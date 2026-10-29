@@ -9,8 +9,10 @@ Decisions so far:
 - **30 Oct 2026: the data comes from Alpaca.** That means Benzinga news from 2015 and daily prices from 2016, with delisted companies kept.
   - FNSPID is dropped. Its timestamps are 8 hours early, almost all rows have no time of day, the biggest stocks have a 2020 to 2022 news hole, and its prices leave out most acquired companies (`REVIEW.md`, C1 to C4).
 
-Pending:
-- Confirm that Alpaca accepts an account from Pakistan, open it, and create API keys. Keys never go into git.
+- **30 Oct 2026: Alpaca access is confirmed.** A paper account opened from Pakistan works, and its keys reach news and prices on the free plan.
+  - The first audit results are in section 9.3.
+  - The keys live in `.env`, which git ignores.
+- **30 Oct 2026: the reader reads headlines only.** Summaries and article text appear unevenly across the years (section 5.2).
 
 ## 1. Problem statement
 
@@ -101,13 +103,18 @@ So the AI **reads with the time-locked model and decides with a learner trained 
 - **Paging:** 50 stories per page, sorted by update time.
 - **Live stream:** a WebSocket (`wss://stream.data.alpaca.markets/v1beta1/news`) sends the same fields.
 - **Updates:** stories can change after publishing, and the API returns the latest version.
+- **Checked on 30 Oct 2026** (section 9.3):
+  - Stories go back to 1 Jan 2015.
+  - Timestamps are true UTC.
+  - `summary` is empty before recent years.
+  - Content appears on 34% to 76% of stories, depending on the sample.
 
 **Prices** come from `GET /v2/stocks/bars`:
 - **History:** daily bars from 2016.
 - **Raw by default.** `adjustment` can be split, dividend, spin-off or all.
 - **Renames:** `asof` follows them (FB became META on 2022-06-09). `asof=-` turns the mapping off.
-- **Delisted symbols stay in the database,** according to an Alpaca staff reply on the forum.
-- **Bar timestamps:** a daily bar is stamped at midnight New York time (the start of the day), not when its close is known.
+- **Delisted symbols stay in the database.** Confirmed: Celgene, Monsanto and Time Warner all return 2016 bars with `asof` set inside 2016.
+- **Bar timestamps:** a daily bar is stamped at midnight New York time (the start of the day), not when its close is known. Confirmed: `2016-01-04T05:00:00Z`.
 
 **The free (Basic) plan:**
 - history from 2016
@@ -116,7 +123,7 @@ So the AI **reads with the time-locked model and decides with a learner trained 
 - real-time quotes from IEX only
 - 30 symbols on a WebSocket
 
-Whether news is included for free was true in the beta launch post; confirm at sign-up. The paid plan is $99 a month and isn't needed.
+News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 a month and isn't needed.
 
 **Other data:**
 - **Dividends and splits:** the corporate-actions API only goes back to April 2020, so for 2016 to 2020 they're worked out by comparing raw and adjusted bars.
@@ -174,7 +181,7 @@ The availability rules are conservative on purpose:
 
 | Record | `available_at` |
 |---|---|
-| News story | Its `updated_at` plus 15 minutes. The text we get is the latest version, and the free plan delivers news about 15 minutes late, so the backtest sees exactly what the live job will see |
+| News story | Its `updated_at` plus 15 minutes. The text we get is the latest version, and the free plan delivers news about 15 minutes late, so the backtest sees exactly what the live job will see. Stories edited more than 3 days after publishing are dropped, because their timing no longer means anything (2.4% of Apple's January 2015 stories, none in later samples) |
 | Daily close, high, low and volume for day d | 16:00 ET on day d. The vendor's bar timestamp (midnight) is never used for timing |
 | Opening price for day d | 9:30 ET on day d. Only the simulator uses it |
 | Return label for day d | The open on day d+1. Dividends and splits inside the window are part of the label |
@@ -218,8 +225,13 @@ What the non-interference test can't see, and what covers each gap:
 
 ### 5.2 The reader (one cloud job)
 
-- **Input:** headline plus summary, with HTML stripped. Article content (its first 256 tokens) is only a variant, and only if the audit shows content is present at a steady rate across the years. Inputs that change over time are what broke FNSPID.
-- **Single-firm filter.** Use only stories tagged to at most 2 symbols, as the ChronoBERT paper did (following Ke et al.). Lists like "46 Stocks Moving In ..." are price recaps, not company news.
+- **Input: the headline only.** Inputs that change over time are what broke FNSPID, and the audit found that only the headline is steady:
+  - `summary` is empty on every 2015 to 2020 story sampled, but filled on most recent ones.
+  - Article content appears on 34% to 76% of stories depending on the sample.
+  - Its typical length grows from about 2,000 characters in 2015 to 6,400 in 2026.
+
+  Content is an exploratory dev variant at most.
+- **Single-firm filter.** Use only stories tagged to at most 2 symbols, as the ChronoBERT paper did (following Ke et al.). Lists like "46 Stocks Moving In ..." are price recaps, not company news, and one sampled story carried 89 symbols. The share kept shifts over time: 64% of Apple's January 2015 stories against 37% of Microsoft's September 2026 stories. That's why story counts are compared across stocks on the same day, never across years.
 - **Vintage.** News first available in year Y is read by the year Y−1 model, so 2016 news goes to `chrono-bert-v1-20151231`. News from 2025 and 2026 is read by the 2024 model, the latest, so its vocabulary will age.
 - **Output:** two 768-number embeddings per story (last layer, and the average of all layers), stored as float16 Parquet.
 - **Cutoff check.**
@@ -299,15 +311,14 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 ## 6. Cost
 
 - **Laptop:** the harness, Track A and the reports. Free.
-- **Alpaca Basic:** free, if news is included (confirm at sign-up).
-- **Reader job:** probably fits Kaggle's free hours or Modal's $30 credit.
+- **Alpaca Basic:** free, with news included (confirmed).
+- **Reader job:** headlines are short, so it may run on the laptop. If not, it probably fits Kaggle's free hours or Modal's $30 credit. The M0 benchmark decides.
 - **Forward test:** GitHub Actions, within the free minutes.
 - **Track B:** a few dollars a run on Modal. Rough estimate.
 
 ## 7. Risks and open questions
 
-- **Alpaca from Pakistan** isn't confirmed. If it's not available, the fallback is GDELT (free, 15-minute updates since 2015), but stories would have to be matched to companies by name.
-- **Free-plan news access** comes from a beta-era announcement. Confirm it.
+- **Free-plan terms can change.** Access was confirmed on 30 Oct 2026. Keep a local copy of everything downloaded. GDELT (free, 15-minute updates since 2015) stays the fallback, but stories would have to be matched to companies by name.
 - **News volume in 2015 and 2016** is unknown. If it's thin, the warm-up and dev years shift later.
 - **Alpaca data quirks** (blended tickers, missing adjustments) are covered by the audits in section 9.3.
 - **Short history.** It's about 10 years (from 2016): 3 dev years and about 7 sealed.
@@ -321,7 +332,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 ## 8. Build order
 
-1. **You:** check that Alpaca accepts accounts from Pakistan, open one, and create API keys.
+1. **Done (30 Oct 2026):** Alpaca paper account, keys in `.env`, and access checked.
 2. **M0, data audit** (section 9.3), plus a benchmark of ChronoBERT on the laptop CPU against a Kaggle GPU.
 3. **M1:** the time wall and all the test suites.
 4. **M2:** the reader job and the cutoff check.
@@ -390,6 +401,30 @@ The `agent` package may import only `world.view`, and a test enforces this.
 - **Corporate actions:** compute daily ratios of raw to adjusted bars, and review every one-day move above 25% in a big stock.
 - **Blended histories:** flag any pair of tickers with identical return series.
 - **Membership:** check that the S&P 500 list is complete up to 2026.
+
+**Early results (30 Oct 2026).** These come from `research/alpaca_check.py` and `research/alpaca_news_probe.py`, run on samples: Apple (Jan 2015, Jan 2016, Jun 2018), JPMorgan (Jun 2016, Mar 2020) and Microsoft (Sep 2026).
+
+| Question | Answer so far |
+|---|---|
+| News on the free plan | Yes, at 200 requests a minute |
+| History | Stories from 1 Jan 2015 (Apple had 255 that month) |
+| Timestamps | True UTC. All 8 "Pre-Market", "Mid-Day" and "After-Hours" headlines landed inside their New York windows |
+| Summary | Empty on every 2015 to 2020 story sampled. Present on 186 of 306 stories in Sep 2026 |
+| Content | 34% to 76% of stories, depending on the sample. Median length about 2,000 characters in 2015 and 6,400 in 2026 |
+| Edits | Most happen within minutes. 2.4% of Apple's Jan 2015 stories were edited more than a day later (up to 14 days); none were in the later samples |
+| Symbols per story | Stories with at most 2 symbols: 64% (Apple, Jan 2015) down to 37% (Microsoft, Sep 2026). One story carried 89 symbols |
+| Delisted prices | Celgene, Monsanto and Time Warner all have 2016 bars with `asof` |
+| Bar timestamps | Midnight New York time (`2016-01-04T05:00:00Z`) |
+| Date filter | One query returned stories created weeks before its window. Downloads use overlapping windows and de-duplicate by story id, and timing always comes from each story's own fields |
+
+Still open:
+- news volume per S&P 500 member per year
+- the survivorship audit across every member
+- identity
+- corporate actions
+- blended histories
+- membership coverage
+- the laptop benchmark for reading headlines
 
 Outputs: `audit.md`, `identity.csv` and `split.json`.
 
@@ -493,7 +528,8 @@ Every run uses the same harness:
 - **News:** the volume is unknown until the audit. At 50 stories per request and 200 requests a minute, a million stories takes about 100 minutes.
 - **The trading list:** 50 stocks × about 2,700 trading days ≈ 135,000 stock-days.
 - **Embeddings:** 3 KB per story (two poolings in float16), so a million stories is about 3 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
-- **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded in the cloud job.
+- **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded wherever the reader runs.
+- **Headlines** are short (roughly 15 to 30 tokens), so reading even a million of them may fit on the laptop overnight. The M0 benchmark decides between the laptop and the cloud.
 - **Ridge fits** are small, so a full Track A replay should take minutes on the laptop.
 
 ## Sources
