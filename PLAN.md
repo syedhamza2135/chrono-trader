@@ -13,6 +13,8 @@ Decisions so far:
   - The first audit results are in section 9.3.
   - The keys live in `.env`, which git ignores.
 - **30 Oct 2026: the reader reads headlines only.** Summaries and article text appear unevenly across the years (section 5.2).
+- **30 Oct 2026: one share class per company.** GOOG and GOOGL both rank in the top 50 every year, which would let the ranking bet a company against itself. Keep the more liquid class.
+- **30 Oct 2026: bulk reading runs on a free cloud GPU.** The laptop reads about 6 to 7 headlines a second (42 to 48 hours per million). It only reads the forward test's few dozen headlines a day.
 
 ## 1. Problem statement
 
@@ -138,10 +140,15 @@ News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 
 - **Kaggle:** about 30 free GPU hours a week on a T4 or P100. This is from third-party reports; Kaggle's own docs weren't checked.
 - **Modal:** $30 a month in free credit. A T4 is about $0.59 an hour.
 - **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except reading the news at scale and running an LLM trader.
-  - Disk: C: has 12.4 GB free and D: has 69 GB, so data goes on D:.
+  - **Disk:** C: is tight (about 8.7 GB free on 30 Oct 2026). Everything big lives on D::
+    - the data
+    - the model cache
+    - pip's cache and temp files
+    - the Python environment (the repo's `.venv` is a link to `D:\venvs\chrono-trader`)
 - **ChronoBERT:**
   - It's ModernBERT-base: 22 layers, a 768-number hidden size, and float32 weights of about 600 MB per vintage.
   - On a CPU, load it with `attn_implementation="sdpa"` or `"eager"`. A forum report hit a bug with sdpa, so pin the transformers version and test both.
+  - **Benchmark (30 Oct 2026, transformers 5.22):** both modes work. This CPU reads 6 to 7 headlines a second, and headlines are a median of 21 tokens.
   - A T4 can't run FlashAttention 2.
 - **GitHub Actions** runs the daily forward-test job. Scheduled runs can start late when GitHub is busy, so the job is scheduled early and skips any day it can't finish before the open.
 
@@ -192,6 +199,7 @@ The availability rules are conservative on purpose:
 More rules:
 
 - **Daily clock.** Decide at 9:00 ET, fill at the open, and use the open-to-open total return as the label.
+- **New York dates everywhere.** Downloads and the daily job work out dates in New York time. Pakistan runs 9 to 10 hours ahead, and the free plan refuses any request reaching into a session still in progress. The first price download failed for exactly this reason.
 - **Newest usable label.** At 9:00 on day k, the newest outcome the AI can learn from is day k−2's. Day k−1's open-to-open return isn't complete until day k's open, which comes after the decision.
 - **Returns only.** Total returns come from day-over-day ratios of adjusted bars, which are safe. Dollar volume comes from raw bars. Adjusted price levels are never used, because back-adjusted prices already include future dividends and splits.
 - **Fit on lived days only.** Everything that gets fitted (scalers, the ridge penalty, which embedding pooling to use) is fitted only on days already lived.
@@ -200,6 +208,11 @@ More rules:
   - A hand-checked table covers every company that ever enters the list (about 100). It maps its tickers over time to a permanent ID (SEC CIK).
   - Alpaca's `asof` is set inside each period the company was a member.
   - Renames and reused tickers (FB to META, the old and new DELL) are listed explicitly.
+  - The price audit found what the table must fix (section 9.3):
+    - 50 ticker pairs that are one company
+    - one reused ticker (SNDK)
+    - 11 spells the membership file labels with a later ticker (AABA was YHOO, APTV was DLPH, KDP was DPS, and others)
+- **One share class per company.** When two classes of one company qualify (GOOG and GOOGL), keep the more liquid one.
 - **Exits.** A company that's acquired or delisted leaves at its last available price.
 - **Raw data stays out of git,** because of both size and license. Only code, configs, decisions and metrics are committed.
 
@@ -333,7 +346,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 ## 8. Build order
 
 1. **Done (30 Oct 2026):** Alpaca paper account, keys in `.env`, and access checked.
-2. **M0, data audit** (section 9.3), plus a benchmark of ChronoBERT on the laptop CPU against a Kaggle GPU.
+2. **M0, data audit** (section 9.3). Prices are downloaded and audited, and the laptop benchmark is done. News is downloading.
 3. **M1:** the time wall and all the test suites.
 4. **M2:** the reader job and the cutoff check.
 5. **M3:** Track A on the dev years, with the twins, the placebo and the baselines.
@@ -417,14 +430,23 @@ The `agent` package may import only `world.view`, and a test enforces this.
 | Bar timestamps | Midnight New York time (`2016-01-04T05:00:00Z`) |
 | Date filter | One query returned stories created weeks before its window. Downloads use overlapping windows and de-duplicate by story id, and timing always comes from each story's own fields |
 
+**Price audit (30 Oct 2026).** Run with `python -m data_pipeline.audit_prices`. The full report is in `research/audit/prices.md`.
+
+| Question | Answer |
+|---|---|
+| Downloads | All 753 membership spells since 2016 returned bars: 1,506 files (raw and adjusted), 169 MB |
+| Membership coverage | The membership history runs to 18 Aug 2026 |
+| Survivorship | Every member has bars on every picking date from 2020 on. The gaps are 10 names in 2016, 7 in 2017, 2 in 2018 and 1 in 2019, all labelling problems: the membership file uses a later ticker for an earlier period |
+| Identity | 50 ticker pairs share identical data. They're renames such as FB/META, ANTM/ELV, BBT/TFC and UTX/RTX, plus Dow, DuPont and DowDuPont. One reused ticker, SNDK. No unrelated companies with blended histories turned up |
+| Large moves | 134 adjusted one-day moves above 25% while a member. 8 reversed by more than 20% the next day, mostly real (PG&E in Nov 2018, First Republic in Mar 2023). Nordstrom on 26 Mar 2018 (+38%, then −26%) looks like a bad print |
+| Trading days | Apple's bars match the NYSE calendar exactly, with no missing or extra days |
+| Picking preview | 4 to 9 of the 50 names change each year. Picks that later left the index (Allergan, Celgene, Twitter, American Airlines) all have bars. GOOG and GOOGL both qualify every year |
+| Laptop reading speed | 6 to 7 headlines a second with ChronoBERT on the CPU, so bulk reading goes to a cloud GPU |
+
 Still open:
-- news volume per S&P 500 member per year
-- the survivorship audit across every member
-- identity
-- corporate actions
-- blended histories
-- membership coverage
-- the laptop benchmark for reading headlines
+- the news audit (`python -m data_pipeline.audit_news`), once the download finishes
+- the identity table, fixing the 11 mislabelled spells and recording the 50 renames
+- a check of the Nordstrom print
 
 Outputs: `audit.md`, `identity.csv` and `split.json`.
 
@@ -524,8 +546,8 @@ Every run uses the same harness:
 
 ### 9.13 Rough sizes (estimates)
 
-- **Price bars:** about 700 symbols (every S&P 500 member since 2015) × about 2,700 trading days ≈ 1.9M bars. At 10,000 bars per request, that's about 190 requests.
-- **News:** the volume is unknown until the audit. At 50 stories per request and 200 requests a minute, a million stories takes about 100 minutes.
+- **Price bars (measured):** 753 membership spells, 1,506 files (raw and adjusted), 169 MB, about 10 minutes to download.
+- **News (measured so far):** 430 to 2,040 stories a day market-wide, and 11,500 to 12,400 a month in early 2015. That's roughly 0.9 MB of Parquet per month, and the full download since 2015 takes several hours.
 - **The trading list:** 50 stocks × about 2,700 trading days ≈ 135,000 stock-days.
 - **Embeddings:** 3 KB per story (two poolings in float16), so a million stories is about 3 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
 - **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded wherever the reader runs.
