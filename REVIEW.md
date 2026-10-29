@@ -37,6 +37,7 @@ The timed Benzinga rows are labelled UTC, but the stored time is **true UTC minu
 - **Likely cause.** FNSPID's Benzinga rows come from the Kaggle "Massive Stock News Analysis DB" (Aenlle, 2009 to 2020). Its timed file uses a fixed UTC−4 clock. FNSPID appears to have subtracted the 4 hours instead of adding them.
 - **Why it's critical.** Taken at face value, the mid-day story above becomes visible at 4:45 am, before the 9:00 decision, and it describes that same day's trading. That's a direct leak into the label.
 - **Fix.** Never trust FNSPID times of day. If any time is used, true UTC = stored + 8h, checked by the anchor test in M6.
+- **Cross-check (30 Oct 2026).** Alpaca's correctly timed copy of the same Benzinga story type ("36 Stocks Moving In Thursday's Mid-Day Session", 7 Jun 2018) is stamped 12:30 New York time. FNSPID's summer "Mid-Day" stories sit at 08:3x stored, and 08:3x plus 8 hours is 12:3x New York time. The two sources agree.
 
 ### C2. Almost no FNSPID row has a real time, and dates may run a day early
 

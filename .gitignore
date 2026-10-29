@@ -1,0 +1,12 @@
+# Secrets: API keys live only in .env
+.env
+
+# Data lives in D:\chrono-data. Never commit raw news or prices (size and license).
+data/
+*.parquet
+*.csv.gz
+
+# Python
+.venv/
+__pycache__/
+*.pyc
