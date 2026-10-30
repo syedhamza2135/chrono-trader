@@ -365,7 +365,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 ### 9.1 Where things live
 
-- **Code:** `C:\Users\syedh\dev\chrono-trader`, a git repo.
+- **Code:** `C:\Users\syedh\dev\chrono-trader`, a git repo, pushed to the private GitHub repo `syedhamza2135/chrono-trader`.
 - **Data:** `D:\chrono-data`.
 - **API keys:** environment variables, or a `.env` file listed in `.gitignore`.
 - **Python:** 3.13 in a virtual environment, with these libraries:
