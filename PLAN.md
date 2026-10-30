@@ -1,6 +1,6 @@
 # Chrono-trader: problem statement and plan
 
-Status: research and planning only. Nothing is built yet.
+Status: the data is downloaded and audited (M0, section 9.3). The time wall, the reader and the learner aren't built yet.
 
 This is version 2 (30 Oct 2026). It's rebuilt on Alpaca data after the review in `REVIEW.md`. The review's evidence and probe scripts stay in `REVIEW.md` and `research/fnspid_probes/`.
 
@@ -14,7 +14,8 @@ Decisions so far:
   - The keys live in `.env`, which git ignores.
 - **30 Oct 2026: the reader reads headlines only.** Summaries and article text appear unevenly across the years (section 5.2).
 - **30 Oct 2026: one share class per company.** GOOG and GOOGL both rank in the top 50 every year, which would let the ranking bet a company against itself. Keep the more liquid class.
-- **30 Oct 2026: bulk reading runs on a free cloud GPU.** The laptop reads about 6 to 7 headlines a second (42 to 48 hours per million). It only reads the forward test's few dozen headlines a day.
+- **30 Oct 2026: Benzinga stories only.** Alpaca added a second source, fiscal.ai, on 18 Oct 2026, and it has made up 59% of the feed since. Every earlier story is Benzinga's, so keeping fiscal.ai would hand the forward test a news mix the model never learned on.
+- **30 Oct 2026: the reader can run on the laptop.** It only needs single-firm stories about S&P 500 members: 511,678 headlines from 2016 to 2026. At 6 to 7 headlines a second that's about 22 hours, run a year at a time. This replaces the earlier plan to read on a free cloud GPU, which assumed millions of headlines. A cloud GPU is still the faster option, and M2 picks one.
 
 ## 1. Problem statement
 
@@ -100,9 +101,11 @@ So the AI **reads with the time-locked model and decides with a learner trained 
 ### Data: Alpaca
 
 **News** comes from Benzinga through Alpaca's news API (`GET /v1beta1/news`):
-- **History** goes back to 2015. The docs say to expect about 130+ stories a day across the market.
+- **History** goes back to 2015: 2,260,406 stories from 1 Jan 2015 to 29 Oct 2026. The docs say to expect about 130+ stories a day across the market. Benzinga alone ran about 300 to 700 a day.
 - **Fields:** id, headline, summary, content (HTML, may be empty), author, created_at, updated_at, symbols, source, url.
-- **Paging:** 50 stories per page, sorted by update time.
+- **Paging:** 50 stories per page. The date filter and the sort both use the update time (confirmed on the full download).
+- **Sources:** Benzinga only until 18 Oct 2026, with a blank `source` label until 4 Jan 2022. Since then fiscal.ai adds press releases and analyst-rating notes.
+- **Symbols** are the tickers in use when a story was published (PCLN, FB), and class shares are spelled several ways (section 9.3).
 - **Live stream:** a WebSocket (`wss://stream.data.alpaca.markets/v1beta1/news`) sends the same fields.
 - **Updates:** stories can change after publishing, and the API returns the latest version.
 - **Checked on 30 Oct 2026** (section 9.3):
@@ -139,7 +142,7 @@ News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 
 
 - **Kaggle:** about 30 free GPU hours a week on a T4 or P100. This is from third-party reports; Kaggle's own docs weren't checked.
 - **Modal:** $30 a month in free credit. A T4 is about $0.59 an hour.
-- **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except reading the news at scale and running an LLM trader.
+- **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except running an LLM trader. Reading the news takes it about 22 hours (section 9.3).
   - **Disk:** C: is tight (about 8.7 GB free on 30 Oct 2026). Everything big lives on D::
     - the data
     - the model cache
@@ -188,7 +191,7 @@ The availability rules are conservative on purpose:
 
 | Record | `available_at` |
 |---|---|
-| News story | Its `updated_at` plus 15 minutes. The text we get is the latest version, and the free plan delivers news about 15 minutes late, so the backtest sees exactly what the live job will see. Stories edited more than 3 days after publishing are dropped, because their timing no longer means anything (2.4% of Apple's January 2015 stories, none in later samples) |
+| News story | Its `updated_at` plus 15 minutes. The text we get is the latest version, and the free plan delivers news about 15 minutes late, so the backtest sees exactly what the live job will see. Stories edited more than 3 days after publishing are dropped, because their timing no longer means anything (0.2% of 2015's stories, and at most 0.5% in any year) |
 | Daily close, high, low and volume for day d | 16:00 ET on day d. The vendor's bar timestamp (midnight) is never used for timing |
 | Opening price for day d | 9:30 ET on day d. Only the simulator uses it |
 | Return label for day d | The open on day d+1. Dividends and splits inside the window are part of the label |
@@ -212,6 +215,9 @@ More rules:
     - 50 ticker pairs that are one company
     - one reused ticker (SNDK)
     - 11 spells the membership file labels with a later ticker (AABA was YHOO, APTV was DLPH, KDP was DPS, and others)
+  - The news audit adds what the news needs (section 9.3):
+    - Stories carry the ticker in use when they were published, so news symbols map to entities by date. Booking is PCLN until early 2018, Facebook is FB until June 2022, and from 30 Jun 2021 to June 2022 META meant Roundhill's Metaverse ETF.
+    - Class shares are spelled several ways (BRK.B, BRK-B, BRK/B and plain BRK, and Brown-Forman the same), and all of them map to one entity.
 - **One share class per company.** When two classes of one company qualify (GOOG and GOOGL), keep the more liquid one.
 - **Exits.** A company that's acquired or delisted leaves at its last available price.
 - **Raw data stays out of git,** because of both size and license. Only code, configs, decisions and metrics are committed.
@@ -236,7 +242,7 @@ What the non-interference test can't see, and what covers each gap:
 | Embeddings made by the wrong vintage | The vintage test |
 | Our own hindsight | The seal and the forward test |
 
-### 5.2 The reader (one cloud job)
+### 5.2 The reader (one batch job)
 
 - **Input: the headline only.** Inputs that change over time are what broke FNSPID, and the audit found that only the headline is steady:
   - `summary` is empty on every 2015 to 2020 story sampled, but filled on most recent ones.
@@ -244,7 +250,8 @@ What the non-interference test can't see, and what covers each gap:
   - Its typical length grows from about 2,000 characters in 2015 to 6,400 in 2026.
 
   Content is an exploratory dev variant at most.
-- **Single-firm filter.** Use only stories tagged to at most 2 symbols, as the ChronoBERT paper did (following Ke et al.). Lists like "46 Stocks Moving In ..." are price recaps, not company news, and one sampled story carried 89 symbols. The share kept shifts over time: 64% of Apple's January 2015 stories against 37% of Microsoft's September 2026 stories. That's why story counts are compared across stocks on the same day, never across years.
+- **Source.** Benzinga stories only, meaning a blank or `benzinga` label (section 9.3).
+- **Single-firm filter.** Use only stories about at most 2 companies, as the ChronoBERT paper did (following Ke et al.). Companies are counted after the identity table maps tickers to entities, so GOOG and GOOGL count once, and so do Berkshire's four spellings. Counted by company, 963 of Berkshire's 2,210 stories pass; counted by ticker, only 684. Lists like "46 Stocks Moving In ..." are price recaps, not company news, and one sampled story carried 89 symbols. Market-wide, 80% to 88% of stories pass each year, but the share for a single stock shifts: 64% of Apple's January 2015 stories against 37% of Microsoft's September 2026 stories. That's why story counts are compared across stocks on the same day, never across years.
 - **Vintage.** News first available in year Y is read by the year Y−1 model, so 2016 news goes to `chrono-bert-v1-20151231`. News from 2025 and 2026 is read by the 2024 model, the latest, so its vocabulary will age.
 - **Output:** two 768-number embeddings per story (last layer, and the average of all layers), stored as float16 Parquet.
 - **Cutoff check.**
@@ -325,14 +332,14 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 - **Laptop:** the harness, Track A and the reports. Free.
 - **Alpaca Basic:** free, with news included (confirmed).
-- **Reader job:** headlines are short, so it may run on the laptop. If not, it probably fits Kaggle's free hours or Modal's $30 credit. The M0 benchmark decides.
+- **Reader job:** about 22 hours on the laptop for 511,678 headlines (free), or a much shorter run on Kaggle's free hours or Modal's $30 credit. M2 picks one.
 - **Forward test:** GitHub Actions, within the free minutes.
 - **Track B:** a few dollars a run on Modal. Rough estimate.
 
 ## 7. Risks and open questions
 
 - **Free-plan terms can change.** Access was confirmed on 30 Oct 2026. Keep a local copy of everything downloaded. GDELT (free, 15-minute updates since 2015) stays the fallback, but stories would have to be matched to companies by name.
-- **News volume in 2015 and 2016** is unknown. If it's thin, the warm-up and dev years shift later.
+- **The feed changes.** Benzinga's source label went from blank to `benzinga` in January 2022, and fiscal.ai joined in October 2026. The pipeline filters by source. The forward test should also compare each day's Benzinga story count with recent history, so the next change raises an alarm instead of quietly shifting the features. (News volume in 2016, once a worry, is fine: section 9.3.)
 - **Alpaca data quirks** (blended tickers, missing adjustments) are covered by the audits in section 9.3.
 - **Short history.** It's about 10 years (from 2016): 3 dev years and about 7 sealed.
 - **The S&P 500 membership list** is compiled from Wikipedia and may have gaps.
@@ -346,7 +353,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 ## 8. Build order
 
 1. **Done (30 Oct 2026):** Alpaca paper account, keys in `.env`, and access checked.
-2. **M0, data audit** (section 9.3). Prices are downloaded and audited, and the laptop benchmark is done. News is downloading.
+2. **M0, data audit** (section 9.3). Prices and news are downloaded and audited, and the laptop benchmark is done. Left: the identity table and the Nordstrom check.
 3. **M1:** the time wall and all the test suites.
 4. **M2:** the reader job and the cutoff check.
 5. **M3:** Track A on the dev years, with the twins, the placebo and the baselines.
@@ -367,7 +374,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
   - numpy, and scikit-learn for checks against the hand-rolled ridge
   - `exchange_calendars` for NYSE trading days, holidays and early closes
   - pytest and hypothesis for property-based leak tests
-  - transformers and torch, only for the CPU benchmark (the real embedding job runs in the cloud)
+  - transformers and torch for the reader (on the laptop, or a cloud GPU if M2 picks one)
 
 ```
 chrono-trader/
@@ -378,7 +385,7 @@ chrono-trader/
   agent/           stock picking, features, learner, policy (allowed to see World.view only)
   sim/             fills, costs, portfolio accounting
   eval/            metrics, twins, placebo, pre-registered tests, reports
-  cloud/           the embedding job notebook
+  reader/          the embedding job (on the laptop, or as a cloud notebook)
   research/        probes and notes (FNSPID probes live here)
   tests/
   runs/            one folder per run, plus trials.csv
@@ -428,7 +435,7 @@ The `agent` package may import only `world.view`, and a test enforces this.
 | Symbols per story | Stories with at most 2 symbols: 64% (Apple, Jan 2015) down to 37% (Microsoft, Sep 2026). One story carried 89 symbols |
 | Delisted prices | Celgene, Monsanto and Time Warner all have 2016 bars with `asof` |
 | Bar timestamps | Midnight New York time (`2016-01-04T05:00:00Z`) |
-| Date filter | One query returned stories created weeks before its window. Downloads use overlapping windows and de-duplicate by story id, and timing always comes from each story's own fields |
+| Date filter | One query returned stories created weeks before its window. The full download showed why: Alpaca filters by update time. Timing always comes from each story's own fields |
 
 **Price audit (30 Oct 2026).** Run with `python -m data_pipeline.audit_prices`. The full report is in `research/audit/prices.md`.
 
@@ -441,11 +448,26 @@ The `agent` package may import only `world.view`, and a test enforces this.
 | Large moves | 134 adjusted one-day moves above 25% while a member. 8 reversed by more than 20% the next day, mostly real (PG&E in Nov 2018, First Republic in Mar 2023). Nordstrom on 26 Mar 2018 (+38%, then −26%) looks like a bad print |
 | Trading days | Apple's bars match the NYSE calendar exactly, with no missing or extra days |
 | Picking preview | 4 to 9 of the 50 names change each year. Picks that later left the index (Allergan, Celgene, Twitter, American Airlines) all have bars. GOOG and GOOGL both qualify every year |
-| Laptop reading speed | 6 to 7 headlines a second with ChronoBERT on the CPU, so bulk reading goes to a cloud GPU |
+| Laptop reading speed | 6 to 7 headlines a second with ChronoBERT on the CPU |
+
+**News audit (30 Oct 2026).** Run with `python -m data_pipeline.audit_news`. The full report is in `research/audit/news.md`.
+
+| Question | Answer |
+|---|---|
+| Download | All 142 months from Jan 2015 to Oct 2026: 2,260,406 unique stories, 251 MB of Parquet, about 4.5 hours |
+| Date filter | Alpaca filters by update time. Every story's `updated_at` falls inside the month whose query returned it, and 0.09% were created in an earlier month. Each story is stored once, under the month of its latest edit |
+| Sources | Benzinga only until 18 Oct 2026. Its `source` label is blank until 4 Jan 2022, and every blank-label story links to benzinga.com. Then fiscal.ai arrived with press releases and analyst-rating notes, and made up 59% of stories from 19 to 29 Oct |
+| Volume | Benzinga stories a year: 138,536 in 2015, a low of 107,848 in 2017, a high of 261,736 in 2024, and 208,830 in 2026 up to 29 Oct |
+| Symbols | Each year, 80% to 88% of stories carry 1 or 2 symbols, and 2% to 10% carry none |
+| Edits | Edited more than 3 days after publishing: 0.2% of 2015's stories, and at most 0.5% in any year (2021) |
+| Timestamps | 12,231 session-recap headlines ("22 Stocks Moving In Thursday's Pre-Market Session") were checked against their stamps, and 5 are stamped before their session. Four of those fall inside the right session on the day they were stamped but name the next weekday, so they're typos. One, a mid-day list stamped 08:03 on 13 Jul 2018, is unexplained. Late stamps only delay a story: 247 pre-market lists, all but one from 2024 and 2025, were stamped between 16:04 and 16:10 |
+| Coverage | The median picked stock has 124 to 323 single-firm stories a year, with news on 72 to 154 days. In 2016 it's 177 stories on 96 days, so 2016 works as the warm-up. The only thin name is BKNG in 2016 and 2017, a ticker problem (next row) |
+| Tickers in the news | Stories carry the tickers in use when they were published. Booking is PCLN until early 2018. Facebook is FB until June 2022. From 30 Jun 2021 to June 2022, META meant Roundhill's Metaverse ETF |
+| Class shares | Berkshire is tagged BRK.B, BRK-B, BRK/B or plain BRK, and Brown-Forman the same way. Counted by company, 963 of Berkshire's 2,210 stories pass the single-firm filter; counted by ticker, 684 |
+| Reading load | Single-firm stories about S&P 500 members, 2016 to 2026: 511,678 headlines, about 22 hours on the laptop and 1.5 GB of embeddings. For the 50 picked stocks only: 169,687, about 7 hours |
 
 Still open:
-- the news audit (`python -m data_pipeline.audit_news`), once the download finishes
-- the identity table, fixing the 11 mislabelled spells and recording the 50 renames
+- the identity table: fix the 11 mislabelled spells, record the 50 renames, map news tickers by date (PCLN, FB, Roundhill's META), and fold class-share spellings into one company
 - a check of the Nordstrom print
 
 Outputs: `audit.md`, `identity.csv` and `split.json`.
@@ -547,11 +569,11 @@ Every run uses the same harness:
 ### 9.13 Rough sizes (estimates)
 
 - **Price bars (measured):** 753 membership spells, 1,506 files (raw and adjusted), 169 MB, about 10 minutes to download.
-- **News (measured so far):** 430 to 2,040 stories a day market-wide, and 11,500 to 12,400 a month in early 2015. That's roughly 0.9 MB of Parquet per month, and the full download since 2015 takes several hours.
+- **News (measured):** 2,260,406 stories from Jan 2015 to Oct 2026 (2,243,739 of them Benzinga's), 251 MB of Parquet, about 4.5 hours to download.
 - **The trading list:** 50 stocks × about 2,700 trading days ≈ 135,000 stock-days.
-- **Embeddings:** 3 KB per story (two poolings in float16), so a million stories is about 3 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
+- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 511,678 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
 - **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded wherever the reader runs.
-- **Headlines** are short (roughly 15 to 30 tokens), so reading even a million of them may fit on the laptop overnight. The M0 benchmark decides between the laptop and the cloud.
+- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 511,678 take about 22 hours on the laptop.
 - **Ridge fits** are small, so a full Track A replay should take minutes on the laptop.
 
 ## Sources
