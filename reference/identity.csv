@@ -1,0 +1,809 @@
+entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,last_seen
+0000001800,ABT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000002488,AMD,,2017-03-20,,first membership day,last membership day,2017-03-31,2026-10-31
+0000002969,APD,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000004127,SWKS,,2015-03-12,,first membership day,last membership day,2015-03-31,2026-10-31
+0000004281,AA,,1996-01-02,2016-10-31,first membership day,exact,2014-12-29,2016-10-24
+0000004281,ARNC,,2016-11-01,2020-03-31,exact,exact,2016-11-30,2020-03-11
+0000004281,HWM,,2020-04-01,,exact,last membership day,2020-04-19,2026-10-31
+0000004447,HES,,1996-01-02,2025-07-22,first membership day,last membership day,2014-12-29,2025-06-11
+0000004904,AEP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000004962,AXP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000004977,AFL,,1999-05-28,,first membership day,last membership day,2014-12-29,2026-10-31
+0000005272,AIG,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000005513,UNM,,1996-01-02,2021-09-19,first membership day,last membership day,2014-12-29,2021-08-28
+0000006201,AAL,,2015-03-23,2024-09-22,first membership day,last membership day,2015-03-31,2024-08-29
+0000006281,ADI,,1999-10-12,,first membership day,last membership day,2014-12-29,2026-10-31
+0000006951,AMAT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000007084,ADM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000007332,SWN,,2008-06-06,2017-04-03,first membership day,last membership day,2014-12-29,2017-03-31
+0000008670,ADP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000008818,AVY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000008868,AVP,,1996-01-02,2015-03-22,first membership day,last membership day,2014-12-29,2015-02-20
+0000009389,BLL,,1996-01-02,2022-05-09,first membership day,exact,2014-12-29,2022-04-25
+0000009389,BALL,,2022-05-10,,exact,last membership day,2022-05-20,2026-10-31
+0000009892,BCR,,1996-01-02,2017-12-28,first membership day,last membership day,2014-12-29,2017-12-23
+0000010456,BAX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000010795,BDX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000011544,WRB,,2019-12-05,,first membership day,last membership day,2019-12-31,2026-10-31
+0000012208,BIO,,2020-06-22,2024-09-22,first membership day,last membership day,2020-07-29,2024-08-29
+0000012659,HRB,,1996-01-02,2020-09-20,first membership day,last membership day,2014-12-29,2020-09-28
+0000012927,BA,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000014272,BMY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000014693,BF.B,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000016732,CPB,,1996-01-02,2026-06-21,first membership day,last membership day,2014-12-29,2026-05-23
+0000016918,STZ,,2005-07-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0000018230,CAT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000018926,CTL,,1999-03-25,2020-09-17,first membership day,exact,2014-12-29,2020-08-30
+0000018926,LUMN,,2020-09-18,2023-03-19,exact,last membership day,2020-09-28,2023-02-28
+0000019617,JPM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000020171,CB,,1996-01-02,2016-01-14,first membership day,last membership day,2014-12-29,2015-12-28
+0000020286,CINF,,1997-12-18,,first membership day,last membership day,2014-12-29,2026-10-31
+0000020520,FTR,,2001-02-27,2017-03-19,first membership day,last membership day,2014-12-29,2017-02-28
+0000021076,CLX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000021344,KO,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000021665,CL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000023082,CSC,,1996-01-02,2015-11-30,first membership day,last membership day,2014-12-29,2015-11-18
+0000023217,CAG,,1996-01-02,2026-06-29,first membership day,last membership day,2014-12-29,2026-05-23
+0000024545,TAP,,1996-01-02,2026-09-20,first membership day,last membership day,2014-12-29,2026-08-19
+0000024741,GLW,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000026172,CMI,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000027419,TGT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000027904,DAL,,2013-09-11,,first membership day,last membership day,2014-12-29,2026-10-31
+0000028412,CMA,,1996-01-02,2024-06-23,first membership day,last membership day,2014-12-29,2024-05-23
+0000029534,DG,,2012-12-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0000029905,DOV,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000029915,DOW,,1996-01-02,2017-08-31,first membership day,last membership day,2014-12-29,2017-08-29
+0000029989,OMC,,1997-12-24,,first membership day,last membership day,2014-12-29,2026-10-31
+0000030554,DD,,1996-01-02,2017-08-31,first membership day,last membership day,2014-12-29,2017-08-29
+0000030625,FLS,,2008-10-02,2021-03-21,first membership day,last membership day,2014-12-29,2021-02-28
+0000031462,ECL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000031791,PKI,,1996-01-02,2023-05-15,first membership day,exact,2014-12-29,2023-04-03
+0000031791,RVTY,,2023-05-16,,exact,last membership day,2023-05-21,2026-10-31
+0000032604,EMR,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000033185,EFX,,1997-06-19,,first membership day,last membership day,2014-12-29,2026-10-31
+0000033213,EQT,,2008-12-19,,first membership day,last membership day,2014-12-29,2026-10-31
+0000034408,FDO,,2001-08-06,2015-07-06,first membership day,last membership day,2014-12-29,2015-06-29
+0000034903,FRT,,2016-01-31,,first membership day,last membership day,2016-01-31,2026-10-31
+0000035527,FITB,,1996-03-08,,first membership day,last membership day,2014-12-29,2026-10-31
+0000036104,USB,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000036270,MTB,,2004-02-27,,first membership day,last membership day,2014-12-29,2026-10-31
+0000037785,FMC,,2009-08-19,2025-03-23,first membership day,last membership day,2014-12-29,2025-02-27
+0000037996,F,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000038777,BEN,,1998-04-29,,first membership day,last membership day,2014-12-29,2026-10-31
+0000039899,GCI,,1996-01-02,2015-06-28,first membership day,exact,2014-12-29,2015-05-26
+0000039899,TGNA,,2015-06-29,2017-06-01,exact,last membership day,2015-06-29,2017-05-31
+0000039911,GPS,,1996-01-02,2022-02-01,first membership day,last membership day,2014-12-29,2022-01-29
+0000040533,GD,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000040545,GE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000040704,GIS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000040987,GPC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000042582,GT,,1996-01-02,2019-02-26,first membership day,last membership day,2014-12-29,2019-01-31
+0000045012,HAL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000046080,HAS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000046765,HP,,2010-03-01,2020-05-21,first membership day,last membership day,2014-12-29,2020-04-19
+0000047111,HSY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000047217,HPQ,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000048039,HFC,,2018-06-18,2021-06-03,first membership day,last membership day,2018-06-29,2021-05-26
+0000048465,HRL,,2009-03-04,,first membership day,last membership day,2014-12-29,2026-10-31
+0000048898,HUBB,,2023-10-18,,first membership day,last membership day,2023-10-25,2026-10-31
+0000049071,HUM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000049196,HBAN,,1997-08-06,,first membership day,last membership day,2014-12-29,2026-10-31
+0000049826,ITW,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000050104,TSO,,2007-09-27,2017-07-31,first membership day,exact,2014-12-29,2017-07-28
+0000050104,ANDV,,2017-08-01,2018-09-30,exact,last membership day,2017-08-29,2018-09-26
+0000050863,INTC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000051143,IBM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000051253,IFF,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000051434,IP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000051644,IPG,,1996-01-02,2025-11-27,first membership day,last membership day,2014-12-29,2025-10-31
+0000052988,JEC,,2007-10-26,2019-12-09,first membership day,exact,2014-12-29,2019-11-29
+0000052988,J,,2019-12-10,,exact,last membership day,2019-12-31,2026-10-31
+0000053669,JCI,,1996-01-02,2016-09-05,first membership day,last membership day,2014-12-29,2016-08-31
+0000054480,KSU,,2013-05-24,2021-12-13,first membership day,last membership day,2014-12-29,2021-11-30
+0000055067,K,,1996-01-02,2025-12-10,first membership day,last membership day,2014-12-29,2025-11-29
+0000055785,KMB,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000056873,KR,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000058492,LEG,,1999-10-18,2021-12-19,first membership day,last membership day,2014-12-29,2021-11-30
+0000059478,LLY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000059558,LNC,,1996-01-02,2023-09-17,first membership day,last membership day,2014-12-29,2023-08-31
+0000060086,L,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000060667,LOW,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000062709,MMC,,1996-01-02,2026-01-13,first membership day,exact,2014-12-29,2025-12-23
+0000062709,MRSH,,2026-01-14,,exact,last membership day,2026-01-26,2026-10-31
+0000062996,MAS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000063276,MAT,,1996-01-02,2019-06-06,first membership day,last membership day,2014-12-29,2019-05-29
+0000063754,MKC,,2003-03-21,,first membership day,last membership day,2014-12-29,2026-10-31
+0000063908,MCD,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000064040,MHFI,,1996-01-02,2016-04-27,first membership day,exact,2014-12-29,2016-04-27
+0000064040,SPGI,,2016-04-28,,exact,last membership day,2016-05-27,2026-10-31
+0000064803,CVS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000065984,ETR,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000066740,MMM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000068505,MSI,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000070318,THC,,1996-01-02,2016-04-17,first membership day,last membership day,2014-12-29,2016-03-30
+0000070858,BAC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000072207,NBL,,2007-10-08,2020-10-11,first membership day,last membership day,2014-12-29,2020-09-28
+0000072331,NDSN,,2022-02-15,,first membership day,last membership day,2022-02-26,2026-10-31
+0000072333,JWN,,1996-01-02,2020-06-21,first membership day,last membership day,2014-12-29,2020-06-28
+0000072741,NU,,2009-03-17,2015-02-18,first membership day,exact,2014-12-29,2015-01-27
+0000072741,ES,,2015-02-19,,exact,last membership day,2015-02-20,2026-10-31
+0000072903,XEL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000072971,WFC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000073124,NTRS,,1998-01-30,,first membership day,last membership day,2014-12-29,2026-10-31
+0000073309,NUE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000074208,UDR,,2016-03-07,,first membership day,last membership day,2016-03-30,2026-10-31
+0000075362,PCAR,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000075677,PKG,,2017-07-26,,first membership day,last membership day,2017-07-28,2026-10-31
+0000075829,PLL,,1996-01-02,2015-08-30,first membership day,last membership day,2014-12-29,2015-08-31
+0000076334,PH,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000077360,PNR,,2012-10-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000077476,PEP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000078003,PFE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000078239,PVH,,2013-02-14,2022-09-18,first membership day,last membership day,2014-12-29,2022-08-29
+0000078814,PBI,,1996-01-02,2017-02-28,first membership day,last membership day,2014-12-29,2017-01-28
+0000079282,BRO,,2021-09-20,,first membership day,last membership day,2021-09-27,2026-10-31
+0000079879,PPG,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000079958,PCP,,2007-06-01,2016-01-31,first membership day,last membership day,2014-12-29,2015-12-28
+0000080424,PG,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000080661,PGR,,1997-08-04,,first membership day,last membership day,2014-12-29,2026-10-31
+0000084839,ROL,,2018-10-01,,first membership day,last membership day,2018-10-31,2026-10-31
+0000085961,R,,1996-01-02,2017-06-18,first membership day,last membership day,2014-12-29,2017-05-31
+0000086144,SWY,,1998-11-13,2015-01-26,first membership day,last membership day,2014-12-29,2014-12-29
+0000086312,TRV,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000087347,SLB,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000089800,SHW,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000090185,SIAL,,1996-01-02,2015-11-17,first membership day,last membership day,2014-12-29,2015-10-12
+0000091142,AOS,,2017-07-26,,first membership day,last membership day,2017-07-28,2026-10-31
+0000091419,SJM,,2008-11-06,,first membership day,last membership day,2014-12-29,2026-10-31
+0000091440,SNA,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000091576,KEY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000092122,SO,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000092230,BBT,,1997-12-04,2019-12-08,first membership day,exact,2014-12-29,2019-11-29
+0000092230,TFC,,2019-12-09,,exact,last membership day,2019-12-31,2026-10-31
+0000092380,LUV,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000093410,CVX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000093556,SWK,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000093751,STT,,1997-08-18,,first membership day,last membership day,2014-12-29,2026-10-31
+0000096021,SYY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000096223,LUK,,2007-08-27,2018-05-23,first membership day,exact,2014-12-29,2018-04-30
+0000096223,JEF,,2018-05-24,2019-09-25,exact,last membership day,2018-05-31,2019-08-28
+0000096943,TFX,,2019-01-18,2025-03-23,first membership day,last membership day,2019-01-31,2025-02-27
+0000097210,TER,,2020-09-21,,first membership day,last membership day,2020-10-31,2026-10-31
+0000097476,TXN,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000097745,TMO,,1997-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000098246,TIF,,2000-06-21,2021-01-06,first membership day,last membership day,2014-12-29,2020-12-31
+0000100493,TSN,,2005-08-11,,first membership day,last membership day,2014-12-29,2026-10-31
+0000100517,UAL,,2015-09-03,,first membership day,last membership day,2015-09-30,2026-10-31
+0000100885,UNP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000101778,MRO,,1996-01-02,2024-11-25,first membership day,last membership day,2014-12-29,2024-10-27
+0000101829,UTX,,1996-01-02,2020-04-02,first membership day,exact,2014-12-29,2020-03-11
+0000101829,RTX,,2020-04-03,,exact,last membership day,2020-04-19,2026-10-31
+0000103379,VFC,,1996-01-02,2024-03-31,first membership day,last membership day,2014-12-29,2024-03-28
+0000104169,WMT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000105634,EME,,2025-09-22,,first membership day,last membership day,2025-09-30,2026-10-31
+0000105770,WST,,2020-05-22,,first membership day,last membership day,2020-05-28,2026-10-31
+0000106040,WDC,,2009-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000106535,WY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000106640,WHR,,1996-01-02,2024-03-17,first membership day,last membership day,2014-12-29,2024-02-09
+0000107263,WMB,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000109198,TJX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000109380,ZION,,2001-06-25,2024-03-17,first membership day,last membership day,2014-12-29,2024-02-09
+0000200406,JNJ,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000202058,HRS,,2008-09-22,2019-06-30,first membership day,exact,2014-12-29,2019-06-24
+0000202058,LHX,,2019-07-01,,exact,last membership day,2019-07-19,2026-10-31
+0000203077,STJ,,1996-01-02,2017-01-04,first membership day,last membership day,2014-12-29,2016-12-30
+0000203527,VAR,,2007-02-12,2021-04-19,first membership day,last membership day,2014-12-29,2021-03-29
+0000217346,TXT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000277135,GWW,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000277948,CSX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000310158,MRK,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000310764,SYK,,2000-12-12,,first membership day,last membership day,2014-12-29,2026-10-31
+0000313616,DHR,,1998-11-18,,first membership day,last membership day,2014-12-29,2026-10-31
+0000313927,CHD,,2015-12-28,,first membership day,last membership day,2015-12-28,2026-10-31
+0000314808,ESV,,2012-07-31,2016-03-29,first membership day,last membership day,2014-12-29,2016-02-19
+0000315189,DE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000315213,RHI,,2000-12-05,2024-06-23,first membership day,last membership day,2014-12-29,2024-05-23
+0000315293,AON,,1996-04-23,,first membership day,last membership day,2014-12-29,2026-10-31
+0000315852,RRC,,2007-12-21,2018-06-17,first membership day,last membership day,2014-12-29,2018-05-31
+0000316206,HOT,,2000-11-17,2016-09-22,first membership day,last membership day,2014-12-29,2016-08-31
+0000316709,SCHW,,1997-06-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000318154,AMGN,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000319201,KLAC,,1997-09-15,,first membership day,last membership day,2014-12-29,2026-10-31
+0000320187,NKE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000320193,AAPL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000320335,TMK,,1996-01-02,2019-08-07,first membership day,exact,2014-12-29,2019-07-19
+0000320335,GL,,2019-08-08,,exact,last membership day,2019-08-28,2026-10-31
+0000350563,TE,,2001-10-10,2016-06-30,first membership day,last membership day,2014-12-29,2016-06-26
+0000350698,AN,,2003-02-24,2017-08-07,first membership day,last membership day,2014-12-29,2017-07-28
+0000352541,LNT,,2016-07-01,,first membership day,last membership day,2016-07-15,2026-10-31
+0000352915,UHS,,2014-09-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0000354190,AJG,,2016-05-27,,first membership day,last membership day,2016-05-27,2026-10-31
+0000354908,FLIR,,2009-01-02,2021-05-13,first membership day,last membership day,2014-12-29,2021-04-23
+0000354950,HD,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000356028,CA,,1996-01-02,2018-11-05,first membership day,last membership day,2014-12-29,2018-10-31
+0000701985,LB,,1996-01-02,2021-08-02,first membership day,exact,2014-12-29,2021-07-22
+0000701985,BBWI,,2021-08-03,2024-09-30,exact,last membership day,2021-08-28,2024-08-29
+0000702165,NSC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000704051,LM,,2006-04-24,2016-12-01,first membership day,last membership day,2014-12-29,2016-11-30
+0000707549,LRCX,,2012-06-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0000711404,COO,,2016-09-23,,first membership day,last membership day,2016-09-30,2026-10-31
+0000712515,EA,,2002-07-22,2026-08-04,first membership day,last membership day,2014-12-29,2026-07-21
+0000713676,PNC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000715957,D,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000717423,MUR,,2005-08-15,2017-07-25,first membership day,last membership day,2014-12-29,2017-06-20
+0000718877,ATVI,,2015-08-31,2023-10-17,first membership day,last membership day,2015-09-30,2023-09-29
+0000719739,SIVB,,2018-03-19,2023-03-14,first membership day,last membership day,2018-03-29,2023-02-28
+0000719955,WSM,,2025-03-24,,first membership day,last membership day,2025-03-31,2026-10-31
+0000720005,RJF,,2017-03-20,,first membership day,last membership day,2017-03-31,2026-10-31
+0000721371,CAH,,1997-05-27,,first membership day,last membership day,2014-12-29,2026-10-31
+0000721683,TSS,,2008-01-02,2019-09-22,first membership day,last membership day,2014-12-29,2019-08-28
+0000723125,MU,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000723254,CTAS,,2001-03-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000723531,PAYX,,1998-10-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000726728,O,,2015-04-07,,first membership day,last membership day,2015-04-29,2026-10-31
+0000726958,CASY,,2026-04-09,,first membership day,last membership day,2026-04-19,2026-10-31
+0000728535,JBHT,,2015-07-01,,first membership day,last membership day,2015-07-30,2026-10-31
+0000731766,UNH,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000731802,ATO,,2019-02-15,,first membership day,last membership day,2019-02-27,2026-10-31
+0000732712,VZ,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000732717,T,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000740260,VTR,,2009-03-04,,first membership day,last membership day,2014-12-29,2026-10-31
+0000743316,MXIM,,2018-12-03,2021-08-29,first membership day,last membership day,2018-12-31,2021-07-22
+0000743988,XLNX,,1999-11-08,2022-02-14,first membership day,last membership day,2014-12-29,2022-01-29
+0000745732,ROST,,2009-12-21,,first membership day,last membership day,2014-12-29,2026-10-31
+0000746515,EXPD,,2007-10-10,,first membership day,last membership day,2014-12-29,2026-10-31
+0000749251,IT,,2017-04-05,,first membership day,last membership day,2017-04-30,2026-10-31
+0000750556,STI,,1996-01-02,2019-12-08,first membership day,last membership day,2014-12-29,2019-11-29
+0000753308,NEE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000754737,SCG,,2009-01-02,2019-01-01,first membership day,last membership day,2014-12-29,2018-12-31
+0000759944,CFG,,2016-01-31,,first membership day,last membership day,2016-01-31,2026-10-31
+0000764180,MO,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000764478,BBY,,1999-06-30,,first membership day,last membership day,2014-12-29,2026-10-31
+0000764622,PNW,,1999-10-04,,first membership day,last membership day,2014-12-29,2026-10-31
+0000765880,HCP,,2008-03-31,2019-11-04,first membership day,exact,2014-12-29,2019-10-28
+0000765880,PEAK,,2019-11-05,2024-03-03,exact,exact,2019-11-29,2024-02-09
+0000765880,DOC,,2024-03-04,,exact,last membership day,2024-03-28,2026-10-31
+0000766421,ALK,,2016-05-13,2023-12-17,first membership day,last membership day,2016-05-27,2023-11-20
+0000766704,HCN,,2009-01-30,2018-02-27,first membership day,exact,2014-12-29,2018-01-19
+0000766704,WELL,,2018-02-28,,exact,last membership day,2018-02-28,2026-10-31
+0000768251,ALTR,,2000-04-18,2015-12-27,first membership day,last membership day,2014-12-29,2015-11-18
+0000769397,ADSK,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000773840,HON,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000773910,APC,,1997-07-28,2019-08-08,first membership day,last membership day,2014-12-29,2019-07-19
+0000779152,JKHY,,2018-11-13,,first membership day,last membership day,2018-11-27,2026-10-31
+0000783280,DRE,,2017-07-26,2022-10-02,first membership day,last membership day,2017-07-28,2022-09-29
+0000783325,WEC,,2008-10-31,,first membership day,last membership day,2014-12-29,2026-10-31
+0000788784,PEG,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000789019,MSFT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000789570,MGM,,2017-07-26,,first membership day,last membership day,2017-07-28,2026-10-31
+0000790070,EMC,,1996-03-28,2016-09-06,first membership day,last membership day,2014-12-29,2016-08-31
+0000791519,SPLS,,1998-10-07,2017-09-12,first membership day,last membership day,2014-12-29,2017-08-29
+0000791907,LLTC,,2000-04-03,2017-03-12,first membership day,last membership day,2014-12-29,2017-02-28
+0000793952,HOG,,2000-01-31,2020-06-21,first membership day,last membership day,2014-12-29,2020-06-28
+0000794323,LVLT,,2014-11-05,2017-10-12,first membership day,last membership day,2014-12-29,2017-09-20
+0000794367,M,,1996-01-02,2020-04-05,first membership day,last membership day,2014-12-29,2020-03-11
+0000796343,ADBE,,1997-05-06,,first membership day,last membership day,2014-12-29,2026-10-31
+0000797468,OXY,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000798354,FISV,,2001-04-02,2023-06-06,first membership day,exact,2014-12-29,2023-05-21
+0000798354,FI,,2023-06-07,2025-11-10,exact,exact,2023-06-19,2025-10-31
+0000798354,FISV,,2025-11-11,,exact,last membership day,2025-11-29,2026-10-31
+0000800459,HAR,,2006-02-01,2017-03-12,first membership day,last membership day,2014-12-29,2017-02-28
+0000801898,JOY,,2011-02-28,2015-10-07,first membership day,last membership day,2014-12-29,2015-09-30
+0000804212,ARG,,2009-09-09,2016-05-22,first membership day,last membership day,2014-12-29,2016-04-27
+0000804328,QCOM,,1999-07-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0000804753,CERN,,2010-04-30,2022-06-07,first membership day,last membership day,2014-12-29,2022-05-20
+0000808362,BHI,,1996-01-02,2017-07-06,first membership day,last membership day,2014-12-29,2017-06-20
+0000811156,CMS,,1999-05-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0000812074,OI,,2009-01-02,2016-12-01,first membership day,last membership day,2014-12-29,2016-11-30
+0000813672,CDNS,,2017-09-18,,first membership day,last membership day,2017-09-20,2026-10-31
+0000813828,CBS,,1996-01-02,2019-12-04,first membership day,exact,2014-12-29,2019-11-29
+0000813828,VIAC,,2019-12-05,2022-02-16,exact,exact,2019-12-31,2022-01-29
+0000813828,PARA,,2022-02-17,2025-08-07,exact,last membership day,2022-02-26,2025-07-23
+0000814453,NWL,,1996-01-02,2023-09-17,first membership day,last membership day,2014-12-29,2023-08-31
+0000814547,FICO,,2023-03-20,,first membership day,last membership day,2023-03-24,2026-10-31
+0000815094,ABMD,,2018-05-31,2022-12-21,first membership day,last membership day,2018-05-31,2022-11-23
+0000815097,CCL,,1998-12-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0000815556,FAST,,2008-09-15,,first membership day,last membership day,2014-12-29,2026-10-31
+0000816284,CELG,,2006-11-06,2019-11-20,first membership day,last membership day,2014-12-29,2019-10-28
+0000816761,TDC,,2007-10-01,2017-06-18,first membership day,last membership day,2014-12-29,2017-05-31
+0000818479,XRAY,,2008-11-14,2024-04-01,first membership day,last membership day,2014-12-29,2024-03-28
+0000820027,AMP,,2005-10-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0000820313,APH,,2008-09-30,,first membership day,last membership day,2014-12-29,2026-10-31
+0000820318,COHR,,2026-03-23,,first membership day,last membership day,2026-03-27,2026-10-31
+0000821189,EOG,,2000-11-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000822416,PHM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000823768,WM,,1998-07-17,,first membership day,last membership day,2014-12-29,2026-10-31
+0000827052,EIX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000827054,MCHP,,2007-09-07,,first membership day,last membership day,2014-12-29,2026-10-31
+0000829224,SBUX,,2000-06-08,,first membership day,last membership day,2014-12-29,2026-10-31
+0000831001,C,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000831259,FCX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000832101,IEX,,2019-08-09,,first membership day,last membership day,2019-08-28,2026-10-31
+0000832988,SIG,,2015-07-29,2018-03-18,first membership day,last membership day,2015-07-30,2018-02-28
+0000833444,TYC,,2014-12-29,2016-09-05,first membership day,exact,2014-12-29,2016-08-31
+0000833444,JCI,,2016-09-06,,exact,last membership day,2016-09-30,2026-10-31
+0000842023,TECH,,2021-08-28,,first membership day,last membership day,2021-08-28,2026-10-31
+0000849213,PCL,,2002-01-17,2016-02-21,first membership day,last membership day,2014-12-29,2016-01-31
+0000849395,CRH,,2025-12-22,,first membership day,last membership day,2026-01-26,2026-10-31
+0000849399,SYMC,,2003-03-31,2019-11-04,first membership day,exact,2014-12-29,2019-10-28
+0000849399,NLOK,,2019-11-05,2022-11-07,exact,exact,2019-11-29,2022-10-29
+0000849399,GEN,,2022-11-08,,exact,last membership day,2022-11-23,2026-10-31
+0000850209,FL,,2016-04-04,2019-08-08,first membership day,last membership day,2016-04-27,2019-07-19
+0000850693,AGN,,1996-01-02,2015-03-22,first membership day,last membership day,2014-12-29,2015-02-20
+0000851968,MHK,,2013-12-23,2025-12-21,first membership day,last membership day,2014-12-29,2025-11-29
+0000857005,PTC,,2021-04-20,,first membership day,last membership day,2021-04-23,2026-10-31
+0000858470,COG,,2008-06-23,2021-10-03,first membership day,exact,2014-12-29,2021-09-27
+0000858470,CTRA,,2021-10-04,2026-05-06,exact,last membership day,2021-10-30,2026-04-19
+0000858877,CSCO,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000859737,HOLX,,2016-03-30,2026-04-08,first membership day,last membership day,2016-03-30,2026-03-27
+0000860730,HCA,,2015-01-27,,first membership day,last membership day,2015-01-27,2026-10-31
+0000860731,TYL,,2020-06-22,,first membership day,last membership day,2020-07-29,2026-10-31
+0000861878,SRCL,,2008-11-19,2018-12-02,first membership day,last membership day,2014-12-29,2018-11-27
+0000863157,PETM,,2012-10-05,2015-03-11,first membership day,last membership day,2014-12-29,2015-02-20
+0000864749,TRMB,,2021-01-21,,first membership day,last membership day,2021-01-30,2026-10-31
+0000865436,WFM,,2006-01-03,2017-08-27,first membership day,last membership day,2014-12-29,2017-07-28
+0000865752,MNST,,2012-06-29,,first membership day,last membership day,2014-12-29,2026-10-31
+0000866374,FLEX,,2026-06-22,,first membership day,last membership day,2026-06-30,2026-10-31
+0000866787,AZO,,1997-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000872589,REGN,,2013-05-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000874716,IDXX,,2017-01-05,,first membership day,last membership day,2017-01-28,2026-10-31
+0000874761,AES,,1998-10-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000874766,HIG,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000875045,BIIB,,2003-11-13,,first membership day,last membership day,2014-12-29,2026-10-31
+0000875159,XL,,2001-09-04,2016-07-24,exact,exact,2001-09-04,2016-07-24
+0000875159,XL,,2016-07-25,2018-09-11,exact,exact,2016-07-25,2018-09-11
+0000875320,VRTX,,2013-09-23,,first membership day,last membership day,2014-12-29,2026-10-31
+0000877212,ZBRA,,2019-12-23,,first membership day,last membership day,2019-12-31,2026-10-31
+0000877890,CTXS,,1999-12-01,2022-10-02,first membership day,last membership day,2014-12-29,2022-09-29
+0000878927,ODFL,,2019-12-09,,first membership day,last membership day,2019-12-31,2026-10-31
+0000879101,KIM,,2006-04-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0000879169,INCY,,2017-02-28,,first membership day,last membership day,2017-02-28,2026-10-31
+0000882095,GILD,,2004-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000882184,DHI,,2005-07-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0000882835,ROP,,2009-12-23,,first membership day,last membership day,2014-12-29,2026-10-31
+0000883241,SNPS,,2017-03-16,,first membership day,last membership day,2017-03-31,2026-10-31
+0000883569,FOSL,,2012-04-04,2016-01-04,first membership day,last membership day,2014-12-29,2015-12-28
+0000884887,RCL,,2014-12-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0000884905,PX,,1996-01-02,2018-10-30,first membership day,last membership day,2014-12-29,2018-10-31
+0000885639,KSS,,1998-08-14,2020-09-20,first membership day,last membership day,2014-12-29,2020-09-28
+0000885725,BSX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000886158,BBBY,,1999-10-01,2017-07-25,first membership day,last membership day,2014-12-29,2017-06-20
+0000886982,GS,,2002-07-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0000891024,PDCO,,2005-10-11,2018-03-18,first membership day,last membership day,2014-12-29,2018-02-28
+0000891103,MTCH,,2021-09-20,2026-03-22,first membership day,last membership day,2021-09-27,2026-02-24
+0000895126,CHK,,2006-03-03,2024-10-01,first membership day,exact,2014-12-29,2018-02-28
+0000895126,EXE,,2024-10-02,,exact,last membership day,2025-03-31,2026-10-31
+0000895421,MS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000895930,EVHC,,2016-12-02,2018-10-10,first membership day,last membership day,2016-12-30,2018-09-26
+0000896159,ACE,,2014-12-29,2016-01-14,first membership day,exact,2014-12-29,2015-12-28
+0000896159,CB,,2016-01-15,,exact,last membership day,2016-01-31,2026-10-31
+0000896878,INTU,,2000-12-11,,first membership day,last membership day,2014-12-29,2026-10-31
+0000898173,ORLY,,2009-03-27,,first membership day,last membership day,2014-12-29,2026-10-31
+0000898293,JBL,,2023-12-18,,first membership day,last membership day,2023-12-31,2026-10-31
+0000899051,ALL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000899689,VNO,,2005-08-12,2023-01-03,first membership day,last membership day,2014-12-29,2022-12-28
+0000899866,ALXN,,2012-05-25,2021-07-20,first membership day,last membership day,2014-12-29,2021-06-26
+0000900075,CPRT,,2018-07-02,,first membership day,last membership day,2018-07-21,2026-10-31
+0000906107,EQR,,2001-12-03,2026-08-17,first membership day,exact,2014-12-29,2026-07-21
+0000906107,VMRK,,2026-08-18,,exact,last membership day,2026-08-19,2026-10-31
+0000906163,NVR,,2019-09-26,,first membership day,last membership day,2019-09-29,2026-10-31
+0000906345,CPT,,2022-04-04,,first membership day,last membership day,2022-04-25,2026-10-31
+0000906709,NKTR,,2018-03-19,2019-10-02,first membership day,last membership day,2018-03-29,2019-09-29
+0000908255,BWA,,2011-12-19,2025-03-23,first membership day,last membership day,2014-12-29,2025-02-27
+0000909832,COST,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000909954,GMCR,,2014-03-24,2016-03-02,first membership day,last membership day,2014-12-29,2016-02-19
+0000910521,DECK,,2024-03-18,,first membership day,last membership day,2024-03-28,2026-10-31
+0000910606,REG,,2017-03-02,,first membership day,last membership day,2017-03-31,2026-10-31
+0000912242,MAC,,2013-05-09,2019-12-22,first membership day,last membership day,2014-12-29,2019-11-29
+0000912595,MAA,,2016-12-02,,first membership day,last membership day,2016-12-30,2026-10-31
+0000912615,URBN,,2010-02-08,2017-03-19,first membership day,last membership day,2014-12-29,2017-02-28
+0000912750,NFX,,2010-12-20,2019-02-14,first membership day,last membership day,2014-12-29,2019-01-31
+0000914208,IVZ,,2008-08-21,,first membership day,last membership day,2014-12-29,2026-10-31
+0000915389,EMN,,1996-01-02,2025-11-03,first membership day,last membership day,2014-12-29,2025-10-31
+0000915912,AVB,,2007-01-10,2026-08-17,first membership day,last membership day,2014-12-29,2026-07-21
+0000915913,ALB,,2016-07-01,,first membership day,last membership day,2016-07-15,2026-10-31
+0000916076,MLM,,2014-07-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000916365,TSCO,,2014-01-24,,first membership day,last membership day,2014-12-29,2026-10-31
+0000916863,TEG,,2007-02-22,2015-06-29,first membership day,last membership day,2014-12-29,2015-06-29
+0000920148,LH,,2004-11-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000920522,ESS,,2014-04-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000920760,LEN,,2005-10-04,,first membership day,last membership day,2014-12-29,2026-10-31
+0000921738,PENN,,2021-03-22,2022-09-18,first membership day,last membership day,2021-03-29,2022-08-29
+0000921847,HCBK,,2007-02-15,2015-11-01,first membership day,last membership day,2014-12-29,2015-10-12
+0000922224,PPL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000922621,ERIE,,2024-09-23,,first membership day,last membership day,2024-09-30,2026-10-31
+0000922864,AIV,,2003-03-14,2020-12-20,first membership day,last membership day,2014-12-29,2020-11-30
+0000927066,DVA,,2008-07-31,,first membership day,last membership day,2014-12-29,2026-10-31
+0000927628,COF,,1998-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0000927653,MCK,,1999-01-13,,first membership day,last membership day,2014-12-29,2026-10-31
+0000935703,DLTR,,2011-12-19,,first membership day,last membership day,2014-12-29,2026-10-31
+0000936340,DTE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000936395,CIEN,,2026-02-09,,first membership day,last membership day,2026-02-24,2026-10-31
+0000936468,LMT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000940944,DRI,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000941548,CAM,,2008-01-29,2016-04-03,first membership day,last membership day,2014-12-29,2016-03-30
+0000943452,WAB,,2019-02-27,,first membership day,last membership day,2019-02-27,2026-10-31
+0000943819,RMD,,2017-07-26,,first membership day,last membership day,2017-07-28,2026-10-31
+0000945764,DNR,,2009-04-02,2015-03-22,first membership day,last membership day,2014-12-29,2015-02-20
+0000945841,POOL,,2020-10-07,2026-06-21,first membership day,last membership day,2020-10-31,2026-05-23
+0000946581,TTWO,,2018-03-19,,first membership day,last membership day,2018-03-29,2026-10-31
+0000947484,ACGL,,2022-11-01,,first membership day,last membership day,2022-11-23,2026-10-31
+0000949039,DO,,2009-02-26,2016-10-02,first membership day,last membership day,2014-12-29,2016-08-31
+0001000180,SNDK,,2006-04-20,2016-05-11,first membership day,last membership day,2014-12-29,2016-04-27
+0001000228,HSIC,,2015-03-18,,first membership day,last membership day,2015-03-31,2026-10-31
+0001000697,WAT,,2002-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001001082,DISH,,2017-03-13,2023-06-19,first membership day,last membership day,2017-03-31,2023-05-21
+0001001250,EL,,2006-01-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0001002047,NTAP,,1999-06-25,,first membership day,last membership day,2014-12-29,2026-10-31
+0001002910,AEE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001004155,GAS,,2011-12-13,2016-06-30,first membership day,last membership day,2014-12-29,2016-06-26
+0001004434,AMG,,2014-07-01,2019-12-22,first membership day,last membership day,2014-12-29,2019-11-29
+0001004980,PCG,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001011006,YHOO,,1999-12-08,2017-06-18,first membership day,last membership day,2014-12-29,2017-05-31
+0001012100,SEE,,1998-04-01,2023-12-17,first membership day,last membership day,2014-12-29,2023-11-20
+0001013237,FDS,,2021-12-20,,first membership day,last membership day,2021-12-30,2026-10-31
+0001013462,ANSS,,2017-06-19,2025-07-17,first membership day,last membership day,2017-06-20,2025-06-11
+0001013871,NRG,,2010-01-29,,first membership day,last membership day,2014-12-29,2026-10-31
+0001014473,VRSN,,2006-02-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001015780,ETFC,,2004-04-01,2020-10-06,first membership day,last membership day,2014-12-29,2020-09-28
+0001018724,AMZN,,2005-11-21,,first membership day,last membership day,2014-12-29,2026-10-31
+0001018963,ATI,,1996-01-02,2015-07-01,first membership day,last membership day,2014-12-29,2015-06-29
+0001020569,IRM,,2009-01-06,,first membership day,last membership day,2014-12-29,2026-10-31
+0001021860,NOV,,2005-03-14,2021-09-19,first membership day,last membership day,2014-12-29,2021-08-28
+0001022079,DGX,,2002-12-12,,first membership day,last membership day,2014-12-29,2026-10-31
+0001022671,STLD,,2022-12-22,,first membership day,last membership day,2022-12-28,2026-10-31
+0001024305,COTY,,2016-09-30,2020-09-20,first membership day,last membership day,2016-09-30,2020-09-28
+0001024478,ROK,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001031296,FE,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001032208,SRE,,1998-06-29,,first membership day,last membership day,2014-12-29,2026-10-31
+0001034054,SBAC,,2017-09-01,,first membership day,last membership day,2017-09-20,2026-10-31
+0001035002,VLO,,2004-04-29,,first membership day,last membership day,2014-12-29,2026-10-31
+0001035267,ISRG,,2008-06-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001035443,ARE,,2017-03-20,,first membership day,last membership day,2017-03-31,2026-10-31
+0001035983,FIX,,2025-12-22,,first membership day,last membership day,2026-01-26,2026-10-31
+0001037038,RL,,2007-02-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001037540,BXP,,2006-04-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0001037646,MTD,,2016-09-06,,first membership day,last membership day,2016-09-30,2026-10-31
+0001037868,AME,,2013-09-23,,first membership day,last membership day,2014-12-29,2026-10-31
+0001038357,PXD,,2008-09-24,2024-05-07,first membership day,last membership day,2014-12-29,2024-04-17
+0001039101,LLL,,2004-12-01,2019-06-30,first membership day,last membership day,2014-12-29,2019-06-24
+0001039684,OKE,,2010-03-15,,first membership day,last membership day,2014-12-29,2026-10-31
+0001040971,SLG,,2015-03-23,2021-03-21,first membership day,last membership day,2015-03-31,2021-02-28
+0001041061,YUM,,1997-10-07,,first membership day,last membership day,2014-12-29,2026-10-31
+0001043277,CHRW,,2007-03-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001043604,JNPR,,2006-06-02,2025-07-08,first membership day,last membership day,2014-12-29,2025-06-11
+0001045609,PLD,,2003-07-17,,first membership day,last membership day,2014-12-29,2026-10-31
+0001045810,NVDA,,2001-11-30,,first membership day,last membership day,2014-12-29,2026-10-31
+0001047122,RTN,,1996-01-02,2020-04-05,first membership day,last membership day,2014-12-29,2020-03-11
+0001047862,ED,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001048286,MAR,,1998-05-21,,first membership day,last membership day,2014-12-29,2026-10-31
+0001048695,FFIV,,2010-12-20,,first membership day,last membership day,2014-12-29,2026-10-31
+0001048911,FDX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001050915,PWR,,2009-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001051470,CCI,,2012-03-13,,first membership day,last membership day,2014-12-29,2026-10-31
+0001053112,CVC,,2010-12-20,2016-06-20,first membership day,last membership day,2014-12-29,2016-05-27
+0001053507,AMT,,2007-11-19,,first membership day,last membership day,2014-12-29,2026-10-31
+0001054374,BRCM,,2000-07-03,2016-01-31,first membership day,last membership day,2014-12-29,2015-12-28
+0001057352,CSGP,,2022-09-19,,first membership day,last membership day,2022-09-29,2026-10-31
+0001058090,CMG,,2011-04-28,,first membership day,last membership day,2014-12-29,2026-10-31
+0001058290,CTSH,,2006-11-17,,first membership day,last membership day,2014-12-29,2026-10-31
+0001059556,MCO,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001060391,RSG,,2008-12-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0001063761,SPG,,2002-06-26,,first membership day,last membership day,2014-12-29,2026-10-31
+0001065088,EBAY,,2002-07-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0001065280,NFLX,,2010-12-20,,first membership day,last membership day,2014-12-29,2026-10-31
+0001065696,LKQ,,2016-05-23,2025-12-21,first membership day,last membership day,2016-05-27,2025-11-29
+0001067701,URI,,2014-09-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0001067983,BRK.B,,2010-02-16,,first membership day,last membership day,2014-12-29,2026-10-31
+0001069183,AXON,,2023-05-04,,first membership day,last membership day,2023-05-21,2026-10-31
+0001069202,LII,,2024-12-23,,first membership day,last membership day,2024-12-26,2026-10-31
+0001070412,CNX,,2006-06-28,2016-03-03,first membership day,last membership day,2014-12-29,2016-02-19
+0001070750,HST,,2007-03-20,,first membership day,last membership day,2014-12-29,2026-10-31
+0001071739,CNC,,2016-03-30,,first membership day,last membership day,2016-03-30,2026-10-31
+0001075531,PCLN,,2009-11-06,2018-02-26,first membership day,exact,2014-12-29,2018-01-19
+0001075531,BKNG,,2018-02-27,,exact,last membership day,2018-02-28,2026-10-31
+0001086222,AKAM,,2007-07-12,,first membership day,last membership day,2014-12-29,2026-10-31
+0001087423,RHT,,2009-07-27,2019-07-14,first membership day,last membership day,2014-12-29,2019-06-24
+0001090012,DVN,,2000-08-30,,first membership day,last membership day,2014-12-29,2026-10-31
+0001090727,UPS,,2002-07-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0001090872,A,,2000-06-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0001091667,CHTR,,2016-09-08,,first membership day,last membership day,2016-09-30,2026-10-31
+0001093557,DXCM,,2020-05-12,,first membership day,last membership day,2020-05-28,2026-10-31
+0001094285,TDY,,2020-06-22,,first membership day,last membership day,2020-07-29,2026-10-31
+0001095073,RE,,2017-06-19,2023-07-09,first membership day,exact,2017-06-20,2023-06-19
+0001095073,EG,,2023-07-10,,exact,last membership day,2023-07-31,2026-10-31
+0001097149,ALGN,,2017-06-19,,first membership day,last membership day,2017-06-20,2026-10-31
+0001097864,ON,,2022-06-21,,first membership day,last membership day,2022-06-29,2026-10-31
+0001099219,MET,,2000-12-11,,first membership day,last membership day,2014-12-29,2026-10-31
+0001099800,EW,,2011-04-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001100682,CRL,,2021-05-14,,first membership day,last membership day,2021-05-26,2026-10-31
+0001100962,ENDP,,2015-01-27,2017-03-01,first membership day,last membership day,2015-01-27,2017-02-28
+0001101215,ADS,,2013-12-23,2020-06-21,first membership day,last membership day,2014-12-29,2020-06-28
+0001101239,EQIX,,2015-03-23,,first membership day,last membership day,2015-03-31,2026-10-31
+0001103982,MDLZ,,2007-04-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001105705,TWX,,1996-01-02,2018-06-14,first membership day,last membership day,2014-12-29,2018-05-31
+0001108524,CRM,,2008-09-15,,first membership day,last membership day,2014-12-29,2026-10-31
+0001108827,QEP,,2010-07-01,2015-06-30,first membership day,last membership day,2014-12-29,2015-06-29
+0001109357,EXC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001110783,MON,,2002-08-14,2018-06-06,first membership day,last membership day,2014-12-29,2018-05-31
+0001110803,ILMN,,2015-11-18,,first membership day,last membership day,2015-11-18,2026-10-31
+0001111711,NI,,2000-11-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001111928,IPGP,,2018-03-07,2022-06-20,first membership day,last membership day,2018-03-29,2022-05-20
+0001113169,TROW,,1999-10-13,,first membership day,last membership day,2014-12-29,2026-10-31
+0001115222,DNB,,2008-12-02,2017-04-04,first membership day,last membership day,2014-12-29,2017-03-31
+0001116132,COH,,2004-09-01,2017-10-30,first membership day,exact,2014-12-29,2017-09-20
+0001116132,TPR,,2017-10-31,,exact,last membership day,2017-10-31,2026-10-31
+0001120193,NDAQ,,2008-10-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0001121788,GRMN,,2012-12-12,,first membership day,last membership day,2014-12-29,2026-10-31
+0001122304,AET,,1996-01-02,2018-11-28,first membership day,last membership day,2014-12-29,2018-11-27
+0001123360,GPN,,2016-04-25,,first membership day,last membership day,2016-04-27,2026-10-31
+0001124198,FLR,,2000-12-22,2019-06-02,first membership day,last membership day,2014-12-29,2019-05-29
+0001126328,PFG,,2002-07-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0001130310,CNP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001132979,FRC,,2019-01-02,2023-05-03,first membership day,last membership day,2019-01-31,2023-04-03
+0001133421,NOC,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001135152,FTI,,2009-06-05,2017-01-16,first membership day,last membership day,2014-12-29,2016-12-30
+0001135971,POM,,2007-11-09,2016-03-23,first membership day,last membership day,2014-12-29,2016-02-19
+0001136869,ZMH,,2001-08-07,2015-06-28,first membership day,exact,2014-12-29,2015-05-26
+0001136869,ZBH,,2015-06-29,,exact,last membership day,2015-06-29,2026-10-31
+0001136893,FIS,,2006-11-10,,first membership day,last membership day,2014-12-29,2026-10-31
+0001137411,COL,,2001-07-02,2018-11-26,first membership day,last membership day,2014-12-29,2018-11-27
+0001137774,PRU,,2002-07-22,,first membership day,last membership day,2014-12-29,2026-10-31
+0001137789,STX,,2012-07-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001138118,CBG,,2006-11-10,2018-03-19,first membership day,exact,2014-12-29,2018-02-28
+0001138118,CBRE,,2018-03-20,,exact,last membership day,2018-03-29,2026-10-31
+0001140536,WLTW,,2016-01-05,2022-01-09,first membership day,exact,2016-01-31,2021-12-30
+0001140536,WTW,,2022-01-10,,exact,last membership day,2022-01-29,2026-10-31
+0001140859,ABC,,2001-08-30,2023-08-29,first membership day,exact,2014-12-29,2023-08-31
+0001140859,COR,,2023-08-30,,exact,last membership day,2023-09-29,2026-10-31
+0001141391,MA,,2008-07-18,,first membership day,last membership day,2014-12-29,2026-10-31
+0001144215,AYI,,2016-05-03,2018-06-17,first membership day,last membership day,2016-05-27,2018-05-31
+0001145197,PODD,,2023-03-15,,first membership day,last membership day,2023-03-24,2026-10-31
+0001156039,ANTM,,2002-07-25,2022-06-27,first membership day,exact,2014-12-29,2022-05-20
+0001156039,ELV,,2022-06-28,,exact,last membership day,2022-06-29,2026-10-31
+0001156375,CME,,2006-08-11,,first membership day,last membership day,2014-12-29,2026-10-31
+0001158449,AAP,,2015-07-09,2023-08-24,first membership day,last membership day,2015-07-30,2023-07-31
+0001159297,MWV,,1996-01-02,2015-07-01,first membership day,last membership day,2014-12-29,2015-06-29
+0001163165,COP,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001163739,NBR,,2000-10-18,2015-03-22,first membership day,last membership day,2014-12-29,2015-02-20
+0001164727,NEM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001166691,CMCSA,A,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001166691,CMCSK,A Special,2015-09-21,2015-12-13,class added to the index,class left the index,2015-09-30,2015-11-18
+0001168054,XEC,,2014-06-20,2020-03-01,first membership day,last membership day,2014-12-29,2020-02-27
+0001170010,KMX,,2010-06-28,2025-10-30,first membership day,last membership day,2014-12-29,2025-09-30
+0001174922,WYNN,,2008-11-14,,first membership day,last membership day,2014-12-29,2026-10-31
+0001175454,FLT,,2018-06-20,2024-03-24,first membership day,exact,2018-06-29,2024-02-09
+0001175454,CPAY,,2024-03-25,,exact,last membership day,2024-03-28,2026-10-31
+0001176948,ARES,,2025-12-11,,first membership day,last membership day,2025-12-23,2026-10-31
+0001179929,MOH,,2022-03-02,2026-03-22,first membership day,last membership day,2022-03-23,2026-02-24
+0001260221,TDG,,2016-06-03,,first membership day,last membership day,2016-06-26,2026-10-31
+0001262039,FTNT,,2018-10-11,,first membership day,last membership day,2018-10-31,2026-10-31
+0001267238,AIZ,,2007-04-10,,first membership day,last membership day,2014-12-29,2026-10-31
+0001274057,HSP,,2004-05-03,2015-09-02,first membership day,last membership day,2014-12-29,2015-08-31
+0001274494,FSLR,,2009-10-16,,first membership day,last membership day,2014-12-29,2026-10-31
+0001275283,RAI,,2002-09-04,2017-07-24,first membership day,last membership day,2014-12-29,2017-06-20
+0001276520,GNW,,2005-12-02,2015-11-17,first membership day,last membership day,2014-12-29,2015-10-12
+0001278021,MKTX,,2019-07-01,2025-09-21,first membership day,last membership day,2019-07-19,2025-08-29
+0001279363,WCG,,2018-09-17,2020-01-27,first membership day,last membership day,2018-09-26,2019-12-31
+0001280452,MPWR,,2021-02-12,,first membership day,last membership day,2021-02-28,2026-10-31
+0001281761,RF,,1998-08-28,,first membership day,last membership day,2014-12-29,2026-10-31
+0001282266,WIN,,2006-07-18,2015-04-06,first membership day,last membership day,2014-12-29,2015-03-31
+0001283699,TMUS,,2019-07-15,,first membership day,last membership day,2019-07-19,2026-10-31
+0001285785,MOS,,2011-09-26,,first membership day,last membership day,2014-12-29,2026-10-31
+0001286681,DPZ,,2020-05-12,,first membership day,last membership day,2020-05-28,2026-10-31
+0001288784,SBNY,,2021-12-20,2023-03-14,first membership day,last membership day,2021-12-30,2023-02-28
+0001289490,EXR,,2016-01-19,,first membership day,last membership day,2016-01-31,2026-10-31
+0001297996,DLR,,2016-05-18,,first membership day,last membership day,2016-05-27,2026-10-31
+0001300514,LVS,,2019-10-03,,first membership day,last membership day,2019-10-28,2026-10-31
+0001306830,CE,,2018-12-24,2025-03-23,first membership day,last membership day,2018-12-31,2025-02-27
+0001308161,FOXA,A,2004-12-20,2019-03-18,first membership day,last membership day,2014-12-29,2019-02-27
+0001308161,FOX,B,2015-09-21,2019-03-18,class added to the index,last membership day,2015-09-30,2019-02-27
+0001316835,BLDR,,2023-12-18,2026-09-20,first membership day,last membership day,2023-12-31,2026-08-19
+0001318605,TSLA,,2020-12-21,,first membership day,last membership day,2020-12-31,2026-10-31
+0001321655,PLTR,,2024-09-23,,first membership day,last membership day,2024-09-30,2026-10-31
+0001324404,CF,,2008-08-27,,first membership day,last membership day,2014-12-29,2026-10-31
+0001324424,EXPE,,2007-10-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001326160,DUK,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001326380,GME,,2007-12-14,2016-04-24,first membership day,last membership day,2014-12-29,2016-03-30
+0001326801,FB,,2013-12-23,2022-06-08,first membership day,exact,2014-12-29,2022-05-20
+0001326801,META,,2022-06-09,,exact,last membership day,2022-06-29,2026-10-31
+0001327567,PANW,,2023-06-19,,first membership day,last membership day,2023-06-19,2026-10-31
+0001327811,WDAY,,2024-12-23,,first membership day,last membership day,2024-12-26,2026-10-31
+0001335258,LYV,,2019-12-23,,first membership day,last membership day,2019-12-31,2026-10-31
+0001336917,UA,A,2014-05-01,2016-12-06,exact,exact,2014-05-01,2016-12-06
+0001336917,UA.C,C,2016-04-08,2016-12-06,exact,exact,2016-04-08,2016-12-06
+0001336917,UA,C,2016-12-07,,exact,exact,2016-12-07,2026-10-31
+0001336917,UAA,A,2016-12-07,,exact,exact,2016-12-07,2026-10-31
+0001336920,LDOS,,2019-08-09,,first membership day,last membership day,2019-08-28,2026-10-31
+0001339947,VIAB,,2006-01-03,2019-12-04,first membership day,last membership day,2014-12-29,2019-11-29
+0001341439,ORCL,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001352010,EPAM,,2021-12-14,2026-06-01,first membership day,last membership day,2021-12-30,2026-05-23
+0001358071,CXO,,2016-02-19,2021-01-20,first membership day,last membership day,2016-02-19,2020-12-31
+0001359841,HBI,,2015-03-23,2021-12-19,first membership day,last membership day,2015-03-31,2021-11-30
+0001361658,WYN,,2006-08-01,2018-05-30,first membership day,last membership day,2014-12-29,2018-04-30
+0001365135,WU,,2006-10-02,2021-12-19,first membership day,last membership day,2014-12-29,2021-11-30
+0001370637,ETSY,,2020-09-21,2024-09-22,first membership day,last membership day,2020-10-31,2024-08-29
+0001373715,NOW,,2019-11-21,,first membership day,last membership day,2019-11-29,2026-10-31
+0001373835,SE,,2007-01-03,2017-02-26,first membership day,last membership day,2014-12-29,2017-01-28
+0001374310,CBOE,,2017-02-28,,first membership day,last membership day,2017-02-28,2026-10-31
+0001375365,SMCI,,2024-03-18,,first membership day,last membership day,2024-03-28,2026-10-31
+0001377013,TWC,,2009-03-30,2016-05-17,first membership day,last membership day,2014-12-29,2016-04-27
+0001378946,PBCT,,2008-11-13,2022-04-03,first membership day,last membership day,2014-12-29,2022-03-23
+0001381197,IBKR,,2025-08-28,,first membership day,last membership day,2025-08-29,2026-10-31
+0001383312,BR,,2018-06-18,,first membership day,last membership day,2018-06-29,2026-10-31
+0001385157,TEL,,2011-10-17,,first membership day,last membership day,2014-12-29,2026-10-31
+0001385187,COV,,2011-03-01,2015-01-26,first membership day,last membership day,2014-12-29,2014-12-29
+0001389170,TRGP,,2022-10-12,,first membership day,last membership day,2022-10-29,2026-10-31
+0001390777,BK,,1996-01-02,2026-05-20,first membership day,exact,2014-12-29,2026-04-19
+0001390777,BNY,,2026-05-21,,exact,last membership day,2026-05-23,2026-10-31
+0001393052,VEEV,,2026-05-07,,first membership day,last membership day,2026-05-23,2026-10-31
+0001393311,PSA,,2005-08-19,,first membership day,last membership day,2014-12-29,2026-10-31
+0001393612,DFS,,2007-07-02,2025-05-18,first membership day,last membership day,2014-12-29,2025-04-20
+0001393818,BX,,2023-09-18,,first membership day,last membership day,2023-09-29,2026-10-31
+0001396009,VMC,,1999-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001397187,LULU,,2023-10-18,,first membership day,last membership day,2023-10-25,2026-10-31
+0001402057,CDW,,2019-09-23,,first membership day,last membership day,2019-09-29,2026-10-31
+0001403161,V,,2009-12-21,,first membership day,last membership day,2014-12-29,2026-10-31
+0001403568,ULTA,,2016-04-18,,first membership day,last membership day,2016-04-27,2026-10-31
+0001404912,KKR,,2024-06-24,,first membership day,last membership day,2024-06-26,2026-10-31
+0001408198,MSCI,,2018-04-04,,first membership day,last membership day,2018-04-30,2026-10-31
+0001410636,AWK,,2016-03-04,,first membership day,last membership day,2016-03-30,2026-10-31
+0001413329,PM,,2008-03-31,,first membership day,last membership day,2014-12-29,2026-10-31
+0001413447,NXPI,,2021-03-22,,first membership day,last membership day,2021-03-29,2026-10-31
+0001415404,SATS,,2026-03-23,2026-06-23,first membership day,exact,2026-03-27,2026-05-23
+0001415404,ECHO,,2026-06-24,,exact,last membership day,2026-06-30,2026-10-31
+0001418091,TWTR,,2018-06-07,2022-10-31,first membership day,last membership day,2018-06-29,2022-09-29
+0001418135,DPS,,2008-10-07,2018-07-09,first membership day,exact,2014-12-29,2018-06-29
+0001418135,KDP,,2018-07-10,,exact,last membership day,2022-06-29,2026-10-31
+0001419612,SEDG,,2021-12-20,2023-12-17,first membership day,last membership day,2021-12-30,2023-11-20
+0001424847,LO,,2008-06-11,2015-06-11,first membership day,last membership day,2014-12-29,2015-05-26
+0001430602,SNI,,2008-07-01,2018-03-06,first membership day,last membership day,2014-12-29,2018-02-28
+0001437107,DISCA,A,2010-03-01,2022-04-10,first membership day,exact,2014-12-29,2022-03-23
+0001437107,DISCK,C,2010-03-01,2022-04-10,first membership day,exact,2014-12-29,2022-03-23
+0001437107,WBD,A,2022-04-11,2026-10-05,exact,last membership day,2022-04-25,2026-09-25
+0001442145,VRSK,,2015-10-08,,first membership day,last membership day,2015-10-12,2026-10-31
+0001447669,TWLO,,2026-10-06,,first membership day,last membership day,2026-10-31,2026-10-31
+0001451505,RIG,,2013-10-29,2017-07-25,first membership day,last membership day,2014-12-29,2017-06-20
+0001452575,MJN,,2009-12-21,2017-06-14,first membership day,last membership day,2014-12-29,2017-05-31
+0001457543,CFN,,2009-09-01,2015-03-16,first membership day,last membership day,2014-12-29,2015-02-20
+0001458891,NE,,2011-01-18,2015-07-19,first membership day,last membership day,2014-12-29,2015-06-29
+0001463101,ENPH,,2021-01-07,2025-09-21,first membership day,last membership day,2021-01-30,2025-08-29
+0001465112,DTV,,2006-12-04,2015-07-26,first membership day,last membership day,2014-12-29,2015-06-29
+0001466258,IR,,2010-11-17,2020-03-01,first membership day,exact,2014-12-29,2020-02-27
+0001466258,TT,,2020-03-02,,exact,last membership day,2020-03-11,2026-10-31
+0001467373,ACN,,2011-07-06,,first membership day,last membership day,2014-12-29,2026-10-31
+0001467858,GM,,2013-06-07,,first membership day,last membership day,2014-12-29,2026-10-31
+0001474432,P,,2026-09-21,,first membership day,last membership day,2026-09-25,2026-10-31
+0001474735,GNRC,,2021-03-22,,first membership day,last membership day,2021-03-29,2026-10-31
+0001478242,Q,,2017-08-29,2017-11-14,first membership day,exact,2017-08-29,2017-10-31
+0001478242,IQV,,2017-11-15,,exact,last membership day,2017-11-30,2026-10-31
+0001489393,LYB,,2012-09-05,,first membership day,last membership day,2014-12-29,2026-10-31
+0001491675,CCE,,1998-10-08,2016-05-30,first membership day,last membership day,2014-12-29,2016-04-27
+0001492633,NLSN,,2013-07-09,2022-10-11,first membership day,last membership day,2014-12-29,2022-09-29
+0001496048,GGP,,2013-12-10,2018-08-27,first membership day,last membership day,2014-12-29,2018-07-21
+0001501585,HII,,2018-01-03,,first membership day,last membership day,2018-01-19,2026-10-31
+0001506307,KMI,,2012-05-25,,first membership day,last membership day,2014-12-29,2026-10-31
+0001510295,MPC,,2011-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001512673,XYZ,,2025-07-23,,first membership day,last membership day,2025-07-23,2026-10-31
+0001513761,NCLH,,2017-10-13,,first membership day,last membership day,2017-10-31,2026-10-31
+0001519751,FBHS,,2016-06-24,2022-12-18,first membership day,last membership day,2016-06-26,2022-11-23
+0001521332,DLPH,,2012-12-24,2017-12-04,first membership day,exact,2014-12-29,2017-11-30
+0001521332,APTV,,2017-12-05,,exact,last membership day,2017-12-23,2026-10-31
+0001524472,XYL,,2011-11-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001526520,TRIP,,2011-12-21,2019-12-22,first membership day,last membership day,2014-12-29,2019-11-29
+0001530721,KORS,,2013-11-13,2019-01-01,first membership day,exact,2014-12-29,2018-12-31
+0001530721,CPRI,,2019-01-02,2020-05-11,exact,last membership day,2019-01-31,2020-04-19
+0001532063,ESRX,,2003-09-26,2018-12-20,first membership day,last membership day,2014-12-29,2018-11-27
+0001534701,PSX,,2012-05-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001535527,CRWD,,2024-06-24,,first membership day,last membership day,2024-06-26,2026-10-31
+0001539838,FANG,,2018-12-03,,first membership day,last membership day,2018-12-31,2026-10-31
+0001543151,UBER,,2023-12-18,,first membership day,last membership day,2023-12-31,2026-10-31
+0001545158,KRFT,,2012-10-02,2015-07-05,first membership day,last membership day,2014-12-29,2015-06-29
+0001546640,ADT,,2012-10-02,2016-05-01,first membership day,last membership day,2014-12-29,2016-04-27
+0001551152,ABBV,,2013-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001551182,ETN,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001555280,ZTS,,2013-06-24,,first membership day,last membership day,2014-12-29,2026-10-31
+0001559720,ABNB,,2023-09-18,,first membership day,last membership day,2023-09-29,2026-10-31
+0001561550,DDOG,,2025-07-09,,first membership day,last membership day,2025-07-23,2026-10-31
+0001564708,NWSA,A,2013-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
+0001564708,NWS,B,2015-09-21,,class added to the index,last membership day,2015-09-30,2026-10-31
+0001567892,MNK,,2014-08-19,2017-07-25,first membership day,last membership day,2014-12-29,2017-06-20
+0001571949,ICE,,2007-09-26,,first membership day,last membership day,2014-12-29,2026-10-31
+0001571996,DELL,,2024-09-23,,first membership day,last membership day,2024-09-30,2026-10-31
+0001578845,ACT,,2014-12-29,2015-06-14,first membership day,exact,2014-12-29,2015-05-26
+0001578845,AGN,,2015-06-15,2020-05-11,exact,last membership day,2015-06-29,2020-04-19
+0001579241,ALLE,,2013-12-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001585364,PRGO,,2011-12-19,2021-09-19,first membership day,last membership day,2014-12-29,2021-08-28
+0001585689,HLT,,2017-06-19,,first membership day,last membership day,2017-06-20,2026-10-31
+0001590895,CZR,,2021-03-22,2025-09-21,first membership day,last membership day,2021-03-29,2025-08-29
+0001590955,PAYC,,2020-01-28,2026-03-22,first membership day,last membership day,2020-01-31,2026-02-24
+0001593538,NAVI,,2014-05-01,2018-06-04,first membership day,last membership day,2014-12-29,2018-05-31
+0001596532,ANET,,2018-08-28,,first membership day,last membership day,2018-08-30,2026-10-31
+0001596783,CTLT,,2020-09-21,2024-12-22,first membership day,last membership day,2020-10-31,2024-11-27
+0001598014,INFO,,2017-06-02,2022-03-01,first membership day,last membership day,2017-06-20,2022-02-26
+0001601046,KEYS,,2018-11-06,,first membership day,last membership day,2018-11-27,2026-10-31
+0001601712,SYF,,2015-11-18,,first membership day,last membership day,2015-11-18,2026-10-31
+0001604778,QRVO,,2015-06-12,2024-12-22,first membership day,last membership day,2015-06-29,2024-11-27
+0001609711,GDDY,,2024-06-24,,first membership day,last membership day,2024-06-26,2026-10-31
+0001613103,MDT,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001618921,WAG,,1996-01-02,2014-12-30,first membership day,exact,2014-12-29,2014-12-29
+0001618921,WBA,,2014-12-31,2025-08-27,exact,last membership day,2015-01-27,2025-07-23
+0001620546,BXLT,,2015-07-01,2016-06-02,first membership day,last membership day,2015-07-30,2016-05-27
+0001623613,MYL,,2004-04-23,2020-11-16,first membership day,last membership day,2014-12-29,2020-10-31
+0001629995,CPGX,,2015-07-02,2016-06-30,first membership day,last membership day,2015-07-30,2016-06-26
+0001633917,PYPL,,2015-07-20,,first membership day,last membership day,2015-07-30,2026-10-31
+0001633978,LITE,,2026-03-23,,first membership day,last membership day,2026-03-27,2026-10-31
+0001637459,KHC,,2015-07-06,,first membership day,last membership day,2015-07-30,2026-10-31
+0001645590,HPE,,2015-11-02,,first membership day,last membership day,2015-11-18,2026-10-31
+0001646383,CSRA,,2015-11-30,2018-04-03,first membership day,last membership day,2015-12-28,2018-03-29
+0001652044,GOOG,C,2006-04-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0001652044,GOOGL,A,2006-04-03,,first membership day,last membership day,2014-12-29,2026-10-31
+0001659166,FTV,,2016-07-05,,first membership day,last membership day,2016-07-15,2026-10-31
+0001664703,BE,,2026-09-21,,first membership day,last membership day,2026-09-25,2026-10-31
+0001666700,DWDP,,2017-09-01,2019-06-02,first membership day,exact,2017-09-20,2019-05-29
+0001666700,DD,,2019-06-03,,exact,last membership day,2019-06-24,2026-10-31
+0001671933,TTD,,2025-07-18,2026-09-20,first membership day,last membership day,2025-07-23,2026-08-19
+0001674101,VRT,,2026-03-23,,first membership day,last membership day,2026-03-27,2026-10-31
+0001679273,LW,,2018-12-03,2026-03-22,first membership day,last membership day,2018-12-31,2026-02-24
+0001679788,COIN,,2025-05-19,,first membership day,last membership day,2025-05-27,2026-10-31
+0001681459,FTI,,2017-01-17,2021-02-11,first membership day,last membership day,2017-01-28,2021-01-30
+0001682852,MRNA,,2021-07-21,,first membership day,last membership day,2021-07-22,2026-10-31
+0001685040,BHF,,2017-08-07,2019-04-01,first membership day,last membership day,2017-08-29,2019-03-23
+0001687229,INVH,,2022-09-19,,first membership day,last membership day,2022-09-29,2026-10-31
+0001688568,DXC,,2017-04-04,2023-10-01,first membership day,last membership day,2017-04-30,2023-09-29
+0001690820,CVNA,,2025-12-22,,first membership day,last membership day,2026-01-26,2026-10-31
+0001692819,VST,,2024-05-08,,first membership day,last membership day,2024-05-23,2026-10-31
+0001699150,IR,,2020-03-02,,first membership day,last membership day,2020-03-11,2026-10-31
+0001701605,BHGE,,2017-07-07,2019-10-17,first membership day,exact,2017-07-28,2019-09-29
+0001701605,BKR,,2019-10-18,,exact,last membership day,2019-10-28,2026-10-31
+0001705696,VICI,,2022-06-08,,first membership day,last membership day,2022-06-29,2026-10-31
+0001707925,LIN,,2018-11-06,,first membership day,last membership day,2018-11-27,2026-10-31
+0001711269,EVRG,,2018-06-05,,first membership day,last membership day,2018-06-29,2026-10-31
+0001713445,RDDT,,2026-08-18,,first membership day,last membership day,2026-08-19,2026-10-31
+0001725057,CDAY,,2021-09-20,2024-01-31,first membership day,exact,2021-09-27,2024-01-21
+0001725057,DAY,,2024-02-01,2026-02-08,exact,last membership day,2024-02-09,2026-01-26
+0001730168,AVGO,,2014-05-08,,first membership day,last membership day,2014-12-29,2026-10-31
+0001732845,WRK,,2015-07-02,2024-07-07,first membership day,last membership day,2015-07-30,2024-06-26
+0001739940,CI,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001744489,DIS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0001748790,AMCR,,2019-06-07,,first membership day,last membership day,2019-06-24,2026-10-31
+0001751008,APP,,2025-09-22,,first membership day,last membership day,2025-09-30,2026-10-31
+0001751788,DOW,,2019-04-02,,first membership day,last membership day,2019-04-30,2026-10-31
+0001754301,FOX,B,2019-03-19,,first membership day,last membership day,2019-03-23,2026-10-31
+0001754301,FOXA,A,2019-03-19,,first membership day,last membership day,2019-03-23,2026-10-31
+0001755672,CTVA,,2019-06-03,2026-10-05,first membership day,last membership day,2019-06-24,2026-09-25
+0001757898,STE,,2019-12-23,,first membership day,last membership day,2019-12-31,2026-10-31
+0001770450,XRX,,1996-01-02,2021-03-21,first membership day,last membership day,2014-12-29,2021-02-28
+0001781335,OTIS,,2020-04-03,,first membership day,last membership day,2020-04-19,2026-10-31
+0001783180,CARR,,2020-04-03,,first membership day,last membership day,2020-04-19,2026-10-31
+0001783879,HOOD,,2025-09-22,,first membership day,last membership day,2025-09-30,2026-10-31
+0001786842,VNT,,2020-10-12,2021-03-21,first membership day,last membership day,2020-10-31,2021-02-28
+0001792044,VTRS,,2020-11-17,,first membership day,last membership day,2020-11-30,2026-10-31
+0001792789,DASH,,2025-03-24,,first membership day,last membership day,2025-03-31,2026-10-31
+0001811074,TPL,,2024-11-26,,first membership day,last membership day,2024-11-27,2026-10-31
+0001821825,OGN,,2021-06-04,2023-10-17,first membership day,last membership day,2021-06-26,2023-09-29
+0001835632,MRVL,,2026-06-22,,first membership day,last membership day,2026-06-30,2026-10-31
+0001841666,APA,,1997-07-28,,first membership day,last membership day,2014-12-29,2026-10-31
+0001858681,APO,,2024-12-23,,first membership day,last membership day,2024-12-26,2026-10-31
+0001868275,CEG,,2022-02-02,,first membership day,last membership day,2022-02-26,2026-10-31
+0001932393,GEHC,,2023-01-04,,first membership day,last membership day,2023-01-16,2026-10-31
+0001944048,KVUE,,2023-08-25,,first membership day,last membership day,2023-08-31,2026-10-31
+0001964738,SOLV,,2024-04-01,,first membership day,last membership day,2024-04-17,2026-10-31
+0001967680,VLTO,,2023-10-02,,first membership day,last membership day,2023-10-25,2026-10-31
+0001973266,TKO,,2025-03-24,,first membership day,last membership day,2025-03-31,2026-10-31
+0001996810,GEV,,2024-04-02,,first membership day,last membership day,2024-04-17,2026-10-31
+0001996862,BG,,2023-03-15,,first membership day,last membership day,2023-03-24,2026-10-31
+0002005951,SW,,2024-07-08,,first membership day,last membership day,2024-07-30,2026-10-31
+0002011286,AMTM,,2024-09-30,2024-12-22,first membership day,last membership day,2024-09-30,2024-11-27
+0002011641,FERG,,2026-08-05,,first membership day,last membership day,2026-08-19,2026-10-31
+0002012383,BLK,,2011-04-04,,first membership day,last membership day,2014-12-29,2026-10-31
+0002023554,SNDK,,2025-11-28,,first membership day,last membership day,2025-12-23,2026-10-31
+0002041610,PSKY,,2025-08-08,2026-10-05,first membership day,exact,2025-08-29,2026-09-25
+0002041610,SKYD,,2026-10-06,,exact,last membership day,2026-10-31,2026-10-31
+0002058873,Q,,2025-11-03,,first membership day,last membership day,2025-11-29,2026-10-31
+0002064953,SOLS,,2025-10-30,2025-12-21,first membership day,last membership day,2025-11-29,2025-12-23
+0002082247,FDXF,,2026-06-01,,first membership day,last membership day,2026-06-30,2026-10-31
+0002089271,HONA,,2026-06-29,,first membership day,last membership day,2026-06-30,2026-10-31
+0002115436,XOM,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0002128626,VYLR,,2026-10-01,,first membership day,last membership day,2026-10-31,2026-10-31

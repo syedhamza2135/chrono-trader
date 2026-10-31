@@ -1,0 +1,43 @@
+{
+  "rule": "PLAN.md 5.5: warm-up 2016, dev 2017 to 2019, sealed 2020-01-01 to the last trading day before the seal",
+  "counts_only": "No prices, returns or other outcomes were read to make this file.",
+  "data_through": "2026-10-28",
+  "periods": {
+    "warm_up": {
+      "note": "watch only; the stock list is picked on the first trading day of April",
+      "start": "2016-01-04",
+      "end": "2016-12-30",
+      "sessions": 252,
+      "first_pick": "2016-04-01",
+      "picked_stock_days": 9550,
+      "member_company_days": 125987,
+      "benzinga_stories": 139269,
+      "single_firm_stories_about_members": 33296,
+      "single_firm_stories_about_picked": 11788
+    },
+    "dev": {
+      "note": "tune freely; every run logged in runs/trials.csv",
+      "start": "2017-01-03",
+      "end": "2019-12-31",
+      "sessions": 754,
+      "first_pick": "2017-01-03",
+      "picked_stock_days": 37700,
+      "member_company_days": 376971,
+      "benzinga_stories": 354570,
+      "single_firm_stories_about_members": 79004,
+      "single_firm_stories_about_picked": 26317
+    },
+    "sealed": {
+      "note": "run once after the seal; ends on the last trading day before the seal",
+      "start": "2020-01-02",
+      "end": "2026-10-28",
+      "sessions": 1715,
+      "first_pick": "2020-01-02",
+      "picked_stock_days": 85750,
+      "member_company_days": 857510,
+      "benzinga_stories": 1611364,
+      "single_firm_stories_about_members": 388440,
+      "single_firm_stories_about_picked": 134205
+    }
+  }
+}

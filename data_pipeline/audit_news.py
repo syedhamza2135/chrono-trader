@@ -2,11 +2,13 @@
 
 Checks, by year:
 - which sources the feed carries; everything after that uses Benzinga only, the source the plan reads
-- volume, symbols per story, and the share kept by the single-firm filter (at most 2 symbols)
+- volume, symbols per story, and the share kept by the single-firm filter (at most 2 companies, counted after
+  mapping each tag to a company on the story's date with the identity table; a tag of a company outside the
+  table counts as one company of its own)
 - edit lags (how often and how late stories change after publishing)
 - timestamps against session recaps ("22 Stocks Moving In Thursday's Pre-Market Session"): a recap
   stamped before its session began would mean timestamps run early, which is the leak that matters
-- coverage of the stocks the picking rule would choose (research/audit/universe_preview.csv)
+- coverage of the companies the picking rule would choose (research/audit/universe_preview.csv)
 - which ticker a renamed company's stories carry (FB or META)
 
 Usage: python -m data_pipeline.audit_news
@@ -27,8 +29,41 @@ COLUMNS = ["id", "created_at", "updated_at", "headline", "source", "url", "symbo
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 RECAP = r"\b(" + "|".join(DAYS) + r"|today)['’]s (pre-market|mid-day|after-hours) session"
 WINDOWS = {"pre-market": (4.0, 9.5), "mid-day": (11.0, 14.0), "after-hours": (16.0, 20.0)}
-# News tags class shares as BRK.B, BRK-B, BRK/B or plain BRK; prices use BRK.B. One company, one name.
-CLASS_ALIASES = {"BRK": "BRK.B", "BRK.A": "BRK.B", "BF": "BF.B", "BF.A": "BF.B"}
+
+
+def companies(df):
+    """Per story: the companies its tags name on its date (identity table), and how many distinct companies it
+    names, counting a tag outside the table as one company."""
+    from .identity import SymbolIndex, normalize
+
+    index = SymbolIndex()
+    ex = df[["id", "ny", "symbols"]].explode("symbols").dropna(subset=["symbols"])
+    ex["day"] = ex.ny.dt.date
+    pairs = ex[["symbols", "day"]].drop_duplicates().reset_index(drop=True)
+    found = [index.lookup(t, d) for t, d in zip(pairs.symbols, pairs.day)]
+    pairs["entity"] = ["|".join(sorted(s)) for s in found]
+    pairs["company"] = [e or "?" + normalize(t).split(".")[0] for e, t in zip(pairs.entity, pairs.symbols)]
+    ex = ex.merge(pairs, on=["symbols", "day"], how="left")
+    per = ex.groupby("id").agg(n_companies=("company", "nunique"),
+                               entities=("entity", lambda s: tuple(sorted({e for e in s if e}))))
+    out = df.join(per, on="id")
+    out["n_companies"] = out.n_companies.fillna(0).astype(int)
+    out["entities"] = out.entities.apply(lambda e: e if isinstance(e, tuple) else ())
+    return out
+
+
+def reading_load(single, uni):
+    """Per year from 2016: single-firm stories naming a company that is an S&P 500 member on the story's New York
+    date (reference/memberships.csv), and those naming one of the year's picked companies."""
+    members = pd.read_csv(ROOT / "reference" / "memberships.csv", dtype=str)
+    members["member_from"] = pd.to_datetime(members.member_from)
+    members["member_to"] = pd.to_datetime(members.member_to).fillna(pd.Timestamp.max)
+    s = single[single.year >= 2016].assign(day=lambda x: pd.to_datetime(x.day))
+    j = s.merge(members, left_on="entities", right_on="entity_id")
+    j = j[(j.member_from <= j.day) & (j.day < j.member_to)]
+    picked = set(zip(uni.year, uni.entity_id))
+    j["picked"] = [(y, e) in picked for y, e in zip(j.year, j.entities)]
+    return [{"year": y, "members": g.id.nunique(), "picked": g[g.picked].id.nunique()} for y, g in j.groupby("year")]
 
 
 def load():
@@ -73,12 +108,13 @@ def main():
     total = len(df)
     df = df[df.source.isin(BENZINGA)].drop(columns=["url", "label"])
     older = int((df.year < FIRST_YEAR).sum())
-    df = df[df.year >= FIRST_YEAR]
+    df = companies(df[df.year >= FIRST_YEAR])
 
     by_year = df.groupby("year").agg(
         stories=("id", "size"),
         no_symbol=("n_symbols", lambda s: (s == 0).mean()),
-        single_firm=("n_symbols", lambda s: ((s >= 1) & (s <= 2)).mean()),
+        single_firm=("n_companies", lambda s: ((s >= 1) & (s <= 2)).mean()),
+        single_firm_by_tags=("n_symbols", lambda s: ((s >= 1) & (s <= 2)).mean()),
         edited_15m=("lag_h", lambda s: (s > 0.25).mean()),
         edited_1d=("lag_h", lambda s: (s > 24).mean()),
         edited_3d=("lag_h", lambda s: (s > 72).mean()),
@@ -90,23 +126,24 @@ def main():
     rec_table = rec_table.reindex(columns=["inside", "late", "early"], fill_value=0)
     early = rec[rec.status == "early"].sort_values("ny")
 
-    cov_rows = []
+    cov_rows, load_rows = [], []
     uni_path = OUT / "universe_preview.csv"
     if uni_path.exists():
-        uni = pd.read_csv(uni_path)
-        mask = (df.n_symbols >= 1) & (df.n_symbols <= 2)
-        single = df.loc[mask, ["id", "year", "symbols"]].assign(day=df.loc[mask, "ny"].dt.date).explode("symbols")
-        single["symbols"] = single.symbols.str.replace(r"[/-]", ".", regex=True).replace(CLASS_ALIASES)
-        single = single.drop_duplicates(["id", "symbols"])
+        uni = pd.read_csv(uni_path, dtype={"entity_id": str})
+        mask = (df.n_companies >= 1) & (df.n_companies <= 2)
+        single = df.loc[mask, ["id", "year", "entities"]].assign(day=df.loc[mask, "ny"].dt.date).explode("entities")
+        single = single.dropna(subset=["entities"])
+        load_rows = reading_load(single, uni)
         for y in sorted(set(uni.year) & set(df.year)):
-            names = set(uni[uni.year == y].ticker)
-            s = single[(single.year == y) & single.symbols.isin(names)]
-            per_name = s.groupby("symbols").size().reindex(sorted(names), fill_value=0)
-            days = s.groupby("symbols")["day"].nunique().reindex(sorted(names), fill_value=0)
+            picked = uni[uni.year == y]
+            label = dict(zip(picked.entity_id, picked.symbol))
+            s = single[(single.year == y) & single.entities.isin(label)]
+            per_name = s.groupby("entities").size().reindex(list(label), fill_value=0)
+            days = s.groupby("entities")["day"].nunique().reindex(list(label), fill_value=0)
             thin = per_name[per_name < 10]
-            cov_rows.append({"year": y, "names": len(names), "median_stories": int(per_name.median()),
-                             "min_stories": int(per_name.min()), "min_name": per_name.idxmin(),
-                             "thin": ", ".join(f"{n} ({c})" for n, c in thin.items()) or "-",
+            cov_rows.append({"year": y, "names": len(label), "median_stories": int(per_name.median()),
+                             "min_stories": int(per_name.min()), "min_name": label[per_name.idxmin()],
+                             "thin": ", ".join(f"{label[n]} ({c})" for n, c in thin.items()) or "-",
                              "median_days_with_news": int(days.median())})
     coverage = pd.DataFrame(cov_rows)
 
@@ -115,6 +152,7 @@ def main():
     first_meta = tagged.loc[tagged.symbols == "META", "ny"].min()
 
     by_year.to_csv(OUT / "news_by_year.csv")
+    pd.DataFrame(load_rows, columns=["year", "members", "picked"]).to_csv(OUT / "news_reading_load.csv", index=False)
     lines = [
         "# News audit",
         "",
@@ -143,7 +181,7 @@ def main():
         "",
         "## Volume, symbols and edits by year",
         "",
-        "| Year | Stories | No symbol | Kept by single-firm filter (1 to 2 symbols) | Edited >15 min later | >1 day | >3 days | Median headline words |",
+        "| Year | Stories | No symbol | Kept by single-firm filter (1 to 2 companies) | Edited >15 min later | >1 day | >3 days | Median headline words |",
         "|---|---|---|---|---|---|---|---|",
         *[f"| {y} | {int(r.stories):,} | {r.no_symbol:.0%} | {r.single_firm:.0%} | {r.edited_15m:.1%} | {r.edited_1d:.1%} | "
           f"{r.edited_3d:.1%} | {r.headline_words:.0f} |" for y, r in by_year.iterrows()],
@@ -165,12 +203,28 @@ def main():
         "",
         "## Coverage of the stocks the rule would pick (single-firm stories per year)",
         "",
-        "Class-share spellings in the news (BRK-B, BRK/B, plain BRK) are matched to the price data's (BRK.B).",
+        "Tags are mapped to companies on each story's date with the identity table (`reference/identity.csv`), so PCLN in "
+        "2016 counts for Booking, META in 2021 (Roundhill's ETF) for nobody, and BRK-B, BRK/B and plain BRK for Berkshire.",
         "",
         "| Year | Names | Median stories per name | Fewest (name) | Under 10 stories | Median days with news |",
         "|---|---|---|---|---|---|",
         *[f"| {r.year} | {r.names} | {r.median_stories} | {r.min_stories} ({r.min_name}) | {r.thin} | {r.median_days_with_news} |"
           for r in coverage.itertuples()],
+        "",
+        "## Reading load (single-firm stories, 2016 on)",
+        "",
+        "Stories passing the single-firm filter that name a company which is an S&P 500 member on the story's date, and "
+        "those naming one of that year's picked companies. Hours assume the measured 6.5 headlines a second on the "
+        "laptop's CPU; embeddings take 3 KB a story (two poolings of 768 float16 values).",
+        "",
+        "| Year | About members | About picked companies |",
+        "|---|---|---|",
+        *[f"| {r['year']} | {r['members']:,} | {r['picked']:,} |" for r in load_rows],
+        *([f"| Total | {sum(r['members'] for r in load_rows):,} | {sum(r['picked'] for r in load_rows):,} |",
+           "",
+           f"About members: {sum(r['members'] for r in load_rows) / 6.5 / 3600:.0f} hours to read and "
+           f"{sum(r['members'] for r in load_rows) * 3072 / 1e9:.1f} GB of embeddings. About picked companies: "
+           f"{sum(r['picked'] for r in load_rows) / 6.5 / 3600:.0f} hours."] if load_rows else []),
         "",
         "## Renamed company: stories tagged FB or META, by year",
         "",

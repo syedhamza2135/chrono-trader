@@ -1,0 +1,87 @@
+action,ticker,date_from,date,cik,cik_from,cik_to,symbol,old,new,share_class,name,evidence
+wiki_cik,,2015-03-01,2015-04-30,0001359841,0000008818,,HBI,,,,,"Wikipedia's 2015-03-31 revision shows Avery Dennison's CIK on HBI; every later revision shows Hanesbrands, 0001359841."
+wiki_cik,,2019-12-01,2020-08-31,0000813828,0001339947,,VIAC,,,,,"ViacomCBS is CBS Corp renamed (0000813828, the CIK Wikipedia shows from 2020-09); 0001339947 is Viacom Inc (VIAB), which CBS acquired."
+wiki_cik,,2015-07-01,2017-03-31,0001637459,0001545158,,KHC,,,,,"Kraft Heinz Co is 0001637459, as Wikipedia shows from 2017-04; 0001545158 is Kraft Foods Group (KRFT), which it absorbed in July 2015."
+wiki_cik,,2015-07-01,2016-01-31,0001636023,0001159297,,WRK,,,,,"WestRock Co, formed 2015-07-01, is 0001636023 as Wikipedia shows from 2016-02; 0001159297 is MeadWestvaco (MWV)."
+wiki_cik,,2019-03-19,2020-08-31,0001754301,0001308161,,FOXA,,,,,Change log 2019-03-19: Fox Corporation added following its spin-off from 21st Century Fox. Wikipedia kept 21st Century Fox's CIK on FOXA until 2020-09.
+wiki_cik,,2019-03-19,2020-08-31,0001754301,0001308161,,FOX,,,,,As for FOXA.
+wiki_cik,,2016-09-06,2016-10-31,0000833444,0000053669,,JCI,,,,,"Change log 2016-09-06: TYC acquired JCI and kept the JCI ticker. Wikipedia's 2016-09-30 revision still shows the old Johnson Controls CIK on JCI; from 2016-11 it shows 0000833444, Tyco's CIK, under the merged Johnson Controls International."
+wiki_cik,,2017-01-17,2017-03-31,0001681459,0001135152,,FTI,,,,,Wikipedia kept FMC Technologies' CIK on FTI until 2017-04. TechnipFMC 10-K for 2017: the merger completed on 2017-01-16 and the combined company began trading as FTI on 2017-01-17 (https://www.sec.gov/Archives/edgar/data/0001681459/000168145918000049/technipfmc20171231-10k.htm).
+split,,,,,0001308161,0001754301,,,,,,Different companies: Disney acquired 21st Century Fox; Fox Corporation was spun off and took FOXA and FOX.
+split,,,,,0001135152,0001681459,,,,,,"Different companies: FMC Technologies merged with Technip into a new company, TechnipFMC."
+cik,AABA,1999-12-08,,0001011006,,,,,,,,"The AABA spell is Yahoo (YHOO): Wikipedia shows YHOO with 0001011006 through 2017-05; it became Altaba (AABA) on 2017-06-19, the day it left the index."
+cik,BHGE,2014-12-29,,0000808362,,,,,,,,"Before July 2017 the BHGE spell is Baker Hughes Inc (BHI, 0000808362), shown by Wikipedia until 2017-06. Change log 2017-07-07: BHI removed, the merged Baker Hughes added."
+cik,DXC,1996-01-02,,0000023082,,,,,,,,"The DXC spell ending 2015-12-01 is Computer Sciences Corp (CSC, 0000023082), shown by Wikipedia until 2015-11."
+cik,WYND,2006-08-01,,0001361658,,,,,,,,"The WYND spell ending 2018-05-31 is Wyndham Worldwide (WYN, 0001361658), shown by Wikipedia until 2018-04."
+cik,FCPT,2015-11-10,,0001650132,,,,,,,,"Four Corners Property Trust, CIK 0001650132 in its own filings (10-K for 2015, https://www.sec.gov/Archives/edgar/data/0001650132/000165013216000041/fourcorners10-k.htm), spun off from Darden on 2015-11-09. S&P Dow Jones Indices (2015-11-02, reprinted by Benzinga; local headline 2015-11-02 17:19 'Standard & Poor's Announces Four Corners Property Trust TO Join S&P SmallCap 600') added it to the S&P 500 for one day at a zero price."
+drop,CCEP,2016-01-04,,,,,,,,,,"Duplicate of CCE: the change log has no CCEP addition, and Coca-Cola Enterprises (CCE) was the member until 2016-05-31, when it merged with European bottlers."
+drop,CPRI,2016-01-04,,,,,,,,,,"Duplicate of KORS: the membership file adds CPRI on 2016-01-04 (the same day as the CCEP duplicate) while KORS stays listed. Michael Kors was one listing, renamed Capri Holdings (CPRI) in January 2019; the change log has no CPRI addition, only KORS added 2013-11-13 and CPRI removed 2020-05-12."
+spell_end,KORS,2013-11-13,2020-05-12,,,,,,,,,"The membership file drops KORS on 2018-09-19 with no change-log removal (it kept the CPRI duplicate instead). Change log 2020-05-12: CPRI removed, DPZ added."
+spell_start,TT,2020-03-03,2020-03-02,,,,,,,,,"Change log 2020-03-02: added IR (the new Ingersoll Rand, formerly Gardner Denver), removed XEC Cimarex Energy. The membership file makes both changes on 2020-03-03, which leaves Ingersoll-Rand plc, renamed Trane (TT) on 2020-03-02, out of the index for one session."
+spell_end,XEC,2014-06-20,2020-03-02,,,,,,,,,As for TT.
+spell_end,FCPT,2015-11-10,2015-11-11,,,,,,,,,"S&P Dow Jones Indices (2015-11-02): Four Corners joins the S&P 500 after the close on 2015-11-09 for one day, then the S&P SmallCap 600 after the close on 2015-11-10 (https://press.spglobal.com/2015-11-02-Four-Corners-Property-Trust-Set-to-Join-the-S-P-SmallCap-600). The membership file keeps it until 2015-11-17."
+boundary,CB,,2016-01-15,,0000020171,0000896159,,,,,,ACE acquired Chubb Corp and took the CB ticker; news tags switch to Chubb Limited on 2016-01-14/15. Change log 2016-01-19 records the index seat change (EXR added).
+boundary,IR,,2020-03-02,,0001466258,0001699150,,,,,,"Change log 2020-03-02: added IR, the new Ingersoll Rand (formerly Gardner Denver). The old Ingersoll-Rand plc became Trane (TT) that day (Alpaca name changes)."
+boundary,JCI,,2016-09-06,,0000053669,0000833444,,,,,,Change log 2016-09-06: TYC acquired JCI and retained the JCI ticker. First news tag of the merged JCI: 2016-09-06.
+boundary,AGN,,2015-03-23,,0000850693,0000884629,,,,,,"Change log 2015-03-23: Allergan removed, acquired by Actavis (which later renamed itself Allergan and took AGN)."
+boundary,FOXA,,2019-03-19,,0001308161,0001754301,,,,,,Change log 2019-03-19: Fox Corporation added following its spin-off from 21st Century Fox.
+boundary,FOX,,2019-03-19,,0001308161,0001754301,,,,,,As for FOXA.
+boundary,FTI,,2017-01-17,,0001135152,0001681459,,,,,,"FMC Technologies was suspended before the open on 2017-01-17, when TechnipFMC began trading as FTI (TechnipFMC 8-K, https://www.sec.gov/Archives/edgar/data/0001681459/000119312517010409/d320389d8k.htm). TechnipFMC 10-K for 2017: the merger completed on 2017-01-16 and the combined company began trading as FTI on 2017-01-17 (https://www.sec.gov/Archives/edgar/data/0001681459/000168145918000049/technipfmc20171231-10k.htm)."
+boundary,BHGE,,2017-07-07,,0000808362,0001701605,,,,,,"Change log 2017-07-07: BHI removed; Baker Hughes, a GE company added. BHGE's first trading day was 2017-07-05."
+member,,2015-01-01,2016-01-15,0000896159,,,ACE,,,,,Wikipedia lists ACE Limited in every 2015 revision; the membership file leaves it out. It became Chubb Limited and kept its seat as CB.
+member,,2015-01-01,2016-09-06,0000833444,,,TYC,,,,,Wikipedia lists Tyco through 2016-08; the membership file leaves it out. Change log 2016-09-06: TYC removed as it took over JCI and kept the JCI ticker.
+member,,2015-01-01,2015-03-23,0001578845,,,ACT,,,,,Wikipedia lists Actavis (ACT) in 2015-01 and 2015-02; the membership file leaves it out until its AGN spell takes over on 2015-03-23.
+rename,,,2015-02-19,,,,,NU,ES,,,"Northeast Utilities 8-K, January 2015: the ticker change takes effect at the beginning of trading on Thursday 2015-02-19 (https://www.sec.gov/Archives/edgar/data/0000072741/000007274115000005/newsreleasedividend.htm)."
+rename,,,2015-06-15,,,,,ACT,AGN,,,Benzinga 2015-06-15 07:04: 'Actavis plc Becomes Allergan plc'.
+rename,,,2015-06-29,,,,,ZMH,ZBH,,,"Zimmer Biomet 8-K, June 2015: the ticker changes to ZBH on 2015-06-29 (https://www.sec.gov/Archives/edgar/data/0001136869/000119312515237276/d948441d8k.htm). Last ZMH tag 2015-06-25, first ZBH tag 2015-06-30."
+rename,,,2015-06-29,,,,,GCI,TGNA,,,"TEGNA 8-K exhibit 99.1, 2015-06-29: Gannett completed the spin-off of its publishing business and begins trading today as TEGNA under TGNA; the new Gannett took GCI (https://www.sec.gov/Archives/edgar/data/0000039899/000104746915005951/a2225299zex-99_1.htm)."
+rename,,,2016-01-15,,,,,ACE,CB,,,News tags switch from ACE to CB on 2016-01-14/15; merger closed 2016-01-14.
+rename,,,2016-04-28,,,,,MHFI,SPGI,,,"Alpaca as-of lookups: SPGI as of 2016-04-27 has its first bar on 2016-04-28, and MHFI as of 2016-04-28 ends on 2016-04-27. MHFI tagged through 2016-04-27."
+rename,,,2016-09-06,,,,,TYC,JCI,,,First JCI tag of the merged company 2016-09-06; change log 2016-09-06.
+rename,,,2016-11-01,,,,,AA,ARNC,,,Benzinga 2016-11-01: 'Alcoa Inc Begins Trading Today On NYSE Under Symbol AA' (the new Alcoa Corp); the old Alcoa Inc became Arconic (ARNC) that day.
+rename,,,2017-08-01,,,,,TSO,ANDV,,,"Alpaca as-of lookups: ANDV as of 2017-07-31 has its first bar on 2017-08-01, and TSO as of 2017-08-01 ends on 2017-07-31."
+rename,,,2017-10-31,,,,,COH,TPR,,,Benzinga 2017-10-31: 'Tapestry (Formerly Coach: COH) Will Report Q1 Results'; 2017-10-11: 'Will Trade As Ticker TPR'.
+rename,,,2017-11-15,,,,,Q,IQV,,,"Alpaca as-of lookups: IQV as of 2017-11-14 has its first bar on 2017-11-15, and Q as of 2017-11-15 ends on 2017-11-14. Still tagged Q on 2017-11-13 while already named IQVIA. (The draft had 2017-11-14.)"
+rename,,,2017-12-05,,,,,DLPH,APTV,,,"Benzinga 2017-12-05 07:43: coverage initiated on 'Aptiv PLC', tagged APTV; DLPH passed to Delphi Technologies the same day."
+rename,,,2018-02-28,,,,,HCN,WELL,,,"Benzinga 2018-02-16: 'Welltower To Change NYSE Ticker To WELL'. Alpaca as-of lookups: WELL as of 2018-02-27 has its first bar on 2018-02-28, and HCN as of 2018-02-28 ends on 2018-02-27."
+rename,,,2018-02-27,,,,,PCLN,BKNG,,,"Benzinga 2018-02-21: 'Priceline Name Change Effective Tues., Feb. 27'."
+rename,,,2018-03-20,,,,,CBG,CBRE,,,"Benzinga 2018-03-08: 'CBRE Group Announces NYSE Ticker Symbol Change to CBRE'. Alpaca as-of lookups: CBRE as of 2018-03-19 has its first bar on 2018-03-20, and CBG as of 2018-03-20 ends on 2018-03-19."
+rename,,,2018-05-24,,,,,LUK,JEF,,,Benzinga 2018-05-23 16:20: 'Leucadia National To Change Its Name To Jefferies Financial Group (JEF)'; LUK tagged through 2018-05-23.
+rename,,,2018-07-10,,,,,DPS,KDP,,,Benzinga 2018-07-10: 'Keurig Dr. Pepper (Formerly Dr. Pepper Snapple Group DPS) To Begin Trading Under Symbol KDP Today'.
+rename,,,2019-01-02,,,,,KORS,CPRI,,,"Alpaca as-of lookups: CPRI as of 2018-12-31 has its first bar on 2019-01-02, and KORS as of 2019-01-02 ends on 2018-12-31."
+rename,,,2019-06-03,,,,,DWDP,DD,,,Membership file switch 2019-06-03.
+rename,,,2019-07-01,,,,,HRS,LHX,,,"Alpaca as-of lookups: LHX as of 2019-06-28 has its first bar on 2019-07-01, and HRS as of 2019-07-01 ends on 2019-06-28. The membership file's 2019-06-01 is a Saturday."
+rename,,,2019-08-08,,,,,TMK,GL,,,Membership file switch 2019-08-08.
+rename,,,2019-10-18,,,,,BHGE,BKR,,,Membership file switch 2019-10-18.
+rename,,,2019-11-05,,,,,SYMC,NLOK,,,Membership file switch 2019-11-05; Benzinga 2019-11-04 announces the Nasdaq ticker.
+rename,,,2019-11-05,,,,,HCP,PEAK,,,Membership file switch 2019-11-05.
+rename,,,2019-12-05,,,,,CBS,VIAC,,,"Membership file switch 2019-12-05. Alpaca's name change says 2020-02-13, a late processing date."
+rename,,,2019-12-09,,,,,BBT,TFC,,,Membership file switch 2019-12-09.
+rename,,,2019-12-10,,,,,JEC,J,,,"Membership file switch 2019-12-10; Benzinga 2019-11-24: 'to Begin Trading on NYSE Under Ticker Symbol J on Dec. 10, 2019'."
+rename,,,2020-03-02,,,,,IR,TT,,,"Alpaca name change 2020-03-02 (the membership file's TT spell starts 2020-03-03, the index date)."
+rename,,,2020-04-03,,,,,UTX,RTX,,,Membership file switch 2020-04-03; Benzinga 2020-04-03: 'Shares To Begin Trading Under ... Ticker Symbol RTX'.
+rename,,,2020-04-01,,,,,ARNC,HWM,,,"Arconic Inc 8-K exhibit (sec.gov, Feb 2020) and Howmet's FY2020 10-K: the separation took effect 2020-04-01 before the NYSE open, ARNC to HWM. The membership file's 2020-04-06 is the index date."
+rename,,,2020-09-18,,,,,CTL,LUMN,,,"Membership file switch and Alpaca name change, both 2020-09-18."
+rename,,,2021-08-03,,,,,LB,BBWI,,,Membership file switch 2021-08-03.
+rename,,,2022-04-11,,,,,DISCA,WBD,,,Membership file switch 2022-04-11; Benzinga 2022-04-11: 'Ticker For Warner Bros. Discovery Is WBD'.
+rename,,,2022-04-11,,,,,DISCK,WBD,,,As for DISCA.
+rename,,,2014-12-31,,,,,WAG,WBA,,,"Walgreens Boots Alliance 8-K12B: WBA began trading on Nasdaq on 2014-12-31, when the holding company reorganization closed (https://www.sec.gov/Archives/edgar/data/0001618921/000119312514457671/d843789d8k12b.htm). Before the study period."
+rows,,2014-05-01,2016-12-06,0001336917,,,UA,,,A,,Class A traded as UA until the 2016-12-07 ticker change (Benzinga 2016-11-28 announcement; 2016-12-07 'Under Armour Symbol Change Confuses Some Investors').
+rows,,2016-12-07,,0001336917,,,UAA,,,A,,Class A as UAA from 2016-12-07.
+rows,,2016-04-08,2016-12-06,0001336917,,,UA.C,,,C,,"Class C shares were distributed 1:1 on 2016-04-08 (UA's raw price halves that day, 85.97 to 43.54); Wikipedia showed them as UA-C or UA.C."
+rows,,2016-12-07,,0001336917,,,UA,,,C,,Class C as UA from 2016-12-07.
+rows,,2001-09-04,2016-07-24,0000875159,,,XL,,,,,"XL Group plc (Ireland) became XL Group Ltd (Bermuda) on 2016-07-25 (Benzinga 2016-07-25 07:39: 'XL Group Completes Redomestication From Ireland To Bermuda'). Alpaca treats them as two securities: XL as of 2016-04-13 ends 2016-07-22, XL as of 2018-09-11 starts 2016-07-25 (closes 32.82 then 32.88). Two rows, so the plan fetches each."
+rows,,2016-07-25,2018-09-11,0000875159,,,XL,,,,,As for the first XL row.
+class,,,,0001652044,,,GOOGL,,,A,,Wikipedia names GOOGL 'Google Inc Class A' (revisions 2014-12 to 2015-09) and 'Alphabet Inc Class A' (2015-10 to 2020-04).
+class,,,,0001652044,,,GOOG,,,C,,Wikipedia names GOOG 'Google Inc Class C' (revisions 2014-12 to 2015-09) and 'Alphabet Inc Class C' (2015-10 to 2020-04).
+class,,,,0001308161,,,FOXA,,,A,,Wikipedia names FOXA 'Twenty-First Century Fox Class A' (revisions 2015-09 to 2019-03).
+class,,,,0001308161,,,FOX,,,B,,Wikipedia names FOX 'Twenty-First Century Fox Class B' (revisions 2015-09 to 2019-03).
+class,,,,0001754301,,,FOXA,,,A,,Wikipedia names FOXA 'Fox Corporation Class A' (revisions 2019-05 to 2020-04).
+class,,,,0001754301,,,FOX,,,B,,Wikipedia names FOX 'Fox Corporation Class B' (revisions 2019-05 to 2020-04).
+class,,,,0001564708,,,NWSA,,,A,,Wikipedia names NWSA 'News Corp. Class A' (revisions 2015-09 to 2020-12).
+class,,,,0001564708,,,NWS,,,B,,Wikipedia names NWS 'News Corp. Class B' (revisions 2015-09 to 2020-12).
+class,,,,0001437107,,,DISCA,,,A,,Wikipedia names DISCA 'Discovery Communications-A' (revisions 2014-12 to 2017-04) and 'Discovery Inc. Class A' (2019-02 to 2020-04). WBD continues this chain in the table.
+class,,,,0001437107,,,DISCK,,,C,,Wikipedia names DISCK 'Discovery Communications-C' (revisions 2014-12 to 2017-04) and 'Discovery Inc. Class C' (2019-02 to 2020-04).
+class,,,,0001166691,,,CMCSA,,,A,,Wikipedia names CMCSA 'Comcast A Corp' while CMCSK was listed (revisions 2015-09 to 2015-11).
+class,,,,0001166691,,,CMCSK,,,A Special,,Wikipedia names CMCSK 'Comcast Special Corp Class A' (revisions 2015-09 to 2015-11).
+name,,,,0001650132,,,,,,,Four Corners Property Trust,"The company of the one-week FCPT spell. CIK checked against its own filings (10-K for 2015, https://www.sec.gov/Archives/edgar/data/0001650132/000165013216000041/fourcorners10-k.htm)."

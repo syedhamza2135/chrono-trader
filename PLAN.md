@@ -1,6 +1,6 @@
 # Chrono-trader: problem statement and plan
 
-Status: the data is downloaded and audited (M0, section 9.3). The time wall, the reader and the learner aren't built yet.
+Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`). The time wall, the reader and the learner aren't built yet.
 
 This is version 2 (30 Oct 2026). It's rebuilt on Alpaca data after the review in `REVIEW.md`. The review's evidence and probe scripts stay in `REVIEW.md` and `research/fnspid_probes/`.
 
@@ -16,6 +16,8 @@ Decisions so far:
 - **30 Oct 2026: one share class per company.** GOOG and GOOGL both rank in the top 50 every year, which would let the ranking bet a company against itself. Keep the more liquid class.
 - **30 Oct 2026: Benzinga stories only.** Alpaca added a second source, fiscal.ai, on 18 Oct 2026, and it has made up 59% of the feed since. Every earlier story is Benzinga's, so keeping fiscal.ai would hand the forward test a news mix the model never learned on.
 - **30 Oct 2026: the reader can run on the laptop.** It only needs single-firm stories about S&P 500 members: 511,678 headlines from 2016 to 2026. At 6 to 7 headlines a second that's about 22 hours, run a year at a time. This replaces the earlier plan to read on a free cloud GPU, which assumed millions of headlines. A cloud GPU is still the faster option, and M2 picks one.
+- **31 Oct 2026: companies, not tickers.** Every S&P 500 member since 2015 has a permanent ID, its SEC CIK, with its tickers and share classes by date (`reference/identity.csv`). Prices are fetched per ticker inside those dates, and news tags map to companies by date. Counted by company, the reader needs 500,740 headlines (section 9.3).
+- **31 Oct 2026: price corrections are data.** Alpaca's adjusted bars get most spin-offs wrong, and its daily open is the first trade on any venue, which can be far from the opening auction on a chaotic day. Corrections live in `reference/price_events.csv`, each with its evidence, and the simulator and features must apply them.
 
 ## 1. Problem statement
 
@@ -118,6 +120,9 @@ So the AI **reads with the time-locked model and decides with a learner trained 
 - **History:** daily bars from 2016.
 - **Raw by default.** `adjustment` can be split, dividend, spin-off or all.
 - **Renames:** `asof` follows them (FB became META on 2022-06-09). `asof=-` turns the mapping off.
+- **Histories follow a symbol, not a company or a share class.** A history fetched with `asof` can splice in another security that used the same symbol before or after: the FOXA file is 21st Century Fox until 2019-03-18 and Fox Corporation after, and Under Armour's UA file is class A until 2016-12-06 and class C after, because the classes swapped tickers. So each ticker is used only inside the dates the identity table gives it (section 9.3).
+- **The daily open is the day's first trade**, on any exchange. On a chaotic day that can be far from the listing exchange's opening auction, where a market-on-open order fills: on 2023-01-24 the NYSE opened LLY, MA, XOM and others late, 8% to 15% away from Alpaca's open. The daily close matches the official closing auction, with a few exceptions (section 9.3).
+- **Spin-off adjustments are unreliable.** At all 14 distributions checked where Alpaca's adjusted bars cover the ex-date, its adjusted return that day was off by 3 to 88 percentage points (section 9.3).
 - **Delisted symbols stay in the database.** Confirmed: Celgene, Monsanto and Time Warner all return 2016 bars with `asof` set inside 2016.
 - **Bar timestamps:** a daily bar is stamped at midnight New York time (the start of the day), not when its close is known. Confirmed: `2016-01-04T05:00:00Z`.
 
@@ -142,7 +147,7 @@ News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 
 
 - **Kaggle:** about 30 free GPU hours a week on a T4 or P100. This is from third-party reports; Kaggle's own docs weren't checked.
 - **Modal:** $30 a month in free credit. A T4 is about $0.59 an hour.
-- **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except running an LLM trader. Reading the news takes it about 22 hours (section 9.3).
+- **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except running an LLM trader. Reading the news takes it about 21 hours (section 9.3).
   - **Disk:** C: is tight (about 8.7 GB free on 30 Oct 2026). Everything big lives on D::
     - the data
     - the model cache
@@ -332,7 +337,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 - **Laptop:** the harness, Track A and the reports. Free.
 - **Alpaca Basic:** free, with news included (confirmed).
-- **Reader job:** about 22 hours on the laptop for 511,678 headlines (free), or a much shorter run on Kaggle's free hours or Modal's $30 credit. M2 picks one.
+- **Reader job:** about 21 hours on the laptop for 500,740 headlines (free), or a much shorter run on Kaggle's free hours or Modal's $30 credit. M2 picks one.
 - **Forward test:** GitHub Actions, within the free minutes.
 - **Track B:** a few dollars a run on Modal. Rough estimate.
 
@@ -353,7 +358,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 ## 8. Build order
 
 1. **Done (30 Oct 2026):** Alpaca paper account, keys in `.env`, and access checked.
-2. **M0, data audit** (section 9.3). Prices and news are downloaded and audited, and the laptop benchmark is done. Left: the identity table and the Nordstrom check.
+2. **Done (31 Oct 2026): M0, data audit** (section 9.3). Prices and news are downloaded and audited, the identity table is built and checked, price corrections are recorded, the split is confirmed with counts, and the laptop benchmark is done.
 3. **M1:** the time wall and all the test suites.
 4. **M2:** the reader job and the cutoff check.
 5. **M3:** Track A on the dev years, with the twins, the placebo and the baselines.
@@ -381,6 +386,7 @@ chrono-trader/
   PLAN.md  REVIEW.md  PREREG.md (before the seal)
   config/          one YAML per run, hashed into the trial ledger
   data_pipeline/   Alpaca download, audit, identity table, event store (allowed to see everything)
+  reference/       hand-checked tables: identity, memberships, price corrections, split.json
   world/           the time wall: Clock, World.view(t), availability rules
   agent/           stock picking, features, learner, policy (allowed to see World.view only)
   sim/             fills, costs, portfolio accounting
@@ -437,20 +443,34 @@ The `agent` package may import only `world.view`, and a test enforces this.
 | Bar timestamps | Midnight New York time (`2016-01-04T05:00:00Z`) |
 | Date filter | One query returned stories created weeks before its window. The full download showed why: Alpaca filters by update time. Timing always comes from each story's own fields |
 
-**Price audit (30 Oct 2026).** Run with `python -m data_pipeline.audit_prices`. The full report is in `research/audit/prices.md`.
+**Price audit (31 Oct 2026).** Run with `python -m data_pipeline.audit_prices`, on the bars `python -m data_pipeline.bars` fetches from the identity table. The full report is in `research/audit/prices.md`.
 
 | Question | Answer |
 |---|---|
-| Downloads | All 753 membership spells since 2016 returned bars: 1,506 files (raw and adjusted), 169 MB |
-| Membership coverage | The membership history runs to 18 Aug 2026 |
-| Survivorship | Every member has bars on every picking date from 2020 on. The gaps are 10 names in 2016, 7 in 2017, 2 in 2018 and 1 in 2019, all labelling problems: the membership file uses a later ticker for an earlier period |
-| Identity | 50 ticker pairs share identical data. They're renames such as FB/META, ANTM/ELV, BBT/TFC and UTX/RTX, plus Dow, DuPont and DowDuPont. One reused ticker, SNDK. No unrelated companies with blended histories turned up |
-| Large moves | 134 adjusted one-day moves above 25% while a member. 8 reversed by more than 20% the next day, mostly real (PG&E in Nov 2018, First Republic in Mar 2023). Nordstrom on 26 Mar 2018 (+38%, then −26%) looks like a bad print |
-| Trading days | Apple's bars match the NYSE calendar exactly, with no missing or extra days |
-| Picking preview | 4 to 9 of the 50 names change each year. Picks that later left the index (Allergan, Celgene, Twitter, American Airlines) all have bars. GOOG and GOOGL both qualify every year |
+| Downloads | 782 plan rows for 717 companies, each ticker fetched as of a date inside its own row: 1,564 files (raw and adjusted), 179 MB, covering 1,371,715 company member days |
+| Membership coverage | The membership history runs to today: fja05680 to 18 Aug 2026, then Wikipedia's change log. It ends with the 503 members on Wikipedia's list |
+| Survivorship | Every member company has bars on every picking date, 2016 to 2026. 68 member sessions have no bar: 66 come after a company's last trade (an acquisition closes before the index removal takes effect) and 2 before Amcor's first NYSE trade. The first run's gaps (10 names in 2016) were labelling problems |
+| Identity | No two companies share 20 or more identical member-day bars. Alpaca's own histories splice securities that used one symbol (FOXA, UA, ARNC, DLPH, XL), so each ticker is used only inside its row. A company changes rows 53 times while a member, and 9 of those days need a return stitched from the previous row |
+| Large moves | 265 adjusted one-day moves above 25% on member days; 14 reversed by more than 20% the next day, and those match the official auction prints (PG&E in Nov 2018, First Republic in Mar 2023, Globe Life in Apr 2024, Moderna in Aug 2026). The first run's 134 and 8 missed current members, whose file names depended on the run date; 267 and 14 on the draft identity table became 265 and 14. The 10 large moves in picked stocks' own years all match the official prints |
+| Official prints | Checked on 784 days. Alpaca's close matches the official closing auction (p99 0.06% on 300 random days), with 5 exceptions. Its open is the day's first trade on any exchange, and on chaotic days it misses the listing exchange's opening auction by up to 24%: 54 days, including 15 stocks on 2023-01-24, the NYSE opening glitch |
+| Adjustment events | 150 member days where the adjusted and raw moves differ by more than 4% (splits, special dividends, spin-offs). At all 14 distributions checked where Alpaca's adjusted bars cover the ex-date, the adjusted return is off by 3 to 88 percentage points |
+| Trading days | Apple's bars match the NYSE calendar exactly, to 2026-10-28 |
+| Picking preview | 5 to 10 of the 50 names change each year, with one share class per company. Picks that later left the index (Allergan, Celgene, Twitter, American Airlines) all have bars |
 | Laptop reading speed | 6 to 7 headlines a second with ChronoBERT on the CPU |
 
-**News audit (30 Oct 2026).** Run with `python -m data_pipeline.audit_news`. The full report is in `research/audit/news.md`.
+**Identity audit (31 Oct 2026).** Run with `python -m data_pipeline.identity`, checked by `python -m pytest tests` (53 tests). The full report is in `research/audit/identity.md`.
+
+| Question | Answer |
+|---|---|
+| Companies | 744 companies since 2015, keyed by SEC CIK, with 807 ticker rows dated exactly or by a membership day. Seven list two share classes at once (Alphabet, Comcast, Discovery, both Foxes, News Corp, Under Armour) |
+| The membership file | Labels about 25 early periods with later tickers (Yahoo as AABA), joins companies that shared a ticker (CB, IR, JCI, AGN, FOX and FOXA, FTI), leaves out ACE, Tyco and Actavis, lists Michael Kors and Coca-Cola Enterprises twice, and has three dates wrong (Trane, Cimarex, Four Corners). All fixed in `reference/identity_fixes.csv`: 86 rows, each with its evidence |
+| Wikipedia | Its CIK column lags events by months or years (Fox by 18 months, Medtronic by 4 years). Our parser had dropped Tractor Supply from three 2015 revisions, and now reads it |
+| News tags | Map to companies by date: PCLN is Booking until 2018-02-26, META in 2021 is nobody (Roundhill's ETF), and BRK/B and plain BRK are Berkshire |
+| Open items | None |
+
+**Price corrections (31 Oct 2026).** `reference/price_events.csv` holds 80 rows, each with its evidence: 54 opening and 5 closing auctions that Alpaca's bars miss; Nordstrom on 2018-03-26, rebuilt from clean trades; 18 distributions with their true total return (WestRock, TEGNA, Aptiv, RTX, Xerox, Under Armour, DuPont, 3M, Fortive, Honeywell, Trane, Ingersoll Rand, Aimco twice, and four at a change of ticker); and Biogen's two halts. About 37 more distributions in `research/audit/adjustment_events.csv` aren't checked yet.
+
+**News audit (30 Oct 2026; coverage and reading load recounted by company on 31 Oct).** Run with `python -m data_pipeline.audit_news`. The full report is in `research/audit/news.md`.
 
 | Question | Answer |
 |---|---|
@@ -461,16 +481,14 @@ The `agent` package may import only `world.view`, and a test enforces this.
 | Symbols | Each year, 80% to 88% of stories carry 1 or 2 symbols, and 2% to 10% carry none |
 | Edits | Edited more than 3 days after publishing: 0.2% of 2015's stories, and at most 0.5% in any year (2021) |
 | Timestamps | 12,231 session-recap headlines ("22 Stocks Moving In Thursday's Pre-Market Session") were checked against their stamps, and 5 are stamped before their session. Four of those fall inside the right session on the day they were stamped but name the next weekday, so they're typos. One, a mid-day list stamped 08:03 on 13 Jul 2018, is unexplained. Late stamps only delay a story: 247 pre-market lists, all but one from 2024 and 2025, were stamped between 16:04 and 16:10 |
-| Coverage | The median picked stock has 124 to 323 single-firm stories a year, with news on 72 to 154 days. In 2016 it's 177 stories on 96 days, so 2016 works as the warm-up. The only thin name is BKNG in 2016 and 2017, a ticker problem (next row) |
+| Coverage | The median picked stock has 121 to 319 single-firm stories a year, with news on 73 to 151 days. In 2016 it's 177 stories on 96 days, so 2016 works as the warm-up. The thinnest pick in any year has 28 (Schlumberger in 2017); counted by company, BKNG is no longer thin |
 | Tickers in the news | Stories carry the tickers in use when they were published. Booking is PCLN until early 2018. Facebook is FB until June 2022. From 30 Jun 2021 to June 2022, META meant Roundhill's Metaverse ETF |
 | Class shares | Berkshire is tagged BRK.B, BRK-B, BRK/B or plain BRK, and Brown-Forman the same way. Counted by company, 963 of Berkshire's 2,210 stories pass the single-firm filter; counted by ticker, 684 |
-| Reading load | Single-firm stories about S&P 500 members, 2016 to 2026: 511,678 headlines, about 22 hours on the laptop and 1.5 GB of embeddings. For the 50 picked stocks only: 169,687, about 7 hours |
+| Reading load | Single-firm stories about companies that are S&P 500 members on the story's date, 2016 to 2026: 500,740 headlines, about 21 hours on the laptop and 1.5 GB of embeddings. For the year's 50 picked companies only: 172,310, about 7 hours |
 
-Still open:
-- the identity table: fix the 11 mislabelled spells, record the 50 renames, map news tickers by date (PCLN, FB, Roundhill's META), and fold class-share spellings into one company
-- a check of the Nordstrom print
+**The split (31 Oct 2026).** `reference/split.json`, from counts only: the warm-up has 252 sessions, the dev years 754 and the sealed years 1,715 so far, with 79,004 single-firm stories about members in the dev years and 388,440 in the sealed years.
 
-Outputs: `audit.md`, `identity.csv` and `split.json`.
+Outputs: `research/audit/audit.md` (the answers above, question by question), `reference/identity.csv` (with `entities.csv`, `memberships.csv` and `identity_fixes.csv`), `reference/price_events.csv` and `reference/split.json`.
 
 ### 9.4 The event store (Parquet)
 
@@ -568,12 +586,12 @@ Every run uses the same harness:
 
 ### 9.13 Rough sizes (estimates)
 
-- **Price bars (measured):** 753 membership spells, 1,506 files (raw and adjusted), 169 MB, about 10 minutes to download.
+- **Price bars (measured):** 782 plan rows for 717 companies, 1,564 files (raw and adjusted), 179 MB. The first download took about 10 minutes.
 - **News (measured):** 2,260,406 stories from Jan 2015 to Oct 2026 (2,243,739 of them Benzinga's), 251 MB of Parquet, about 4.5 hours to download.
 - **The trading list:** 50 stocks × about 2,700 trading days ≈ 135,000 stock-days.
-- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 511,678 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
+- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 500,740 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
 - **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded wherever the reader runs.
-- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 511,678 take about 22 hours on the laptop.
+- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 500,740 take about 21 hours on the laptop.
 - **Ridge fits** are small, so a full Track A replay should take minutes on the laptop.
 
 ## Sources

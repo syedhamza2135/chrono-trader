@@ -6,6 +6,7 @@ pandas==3.1.0
 pyarrow==26.0.0
 exchange_calendars==4.13.2
 tzdata==2026.6
+pytest==9.2.0
 
 # The reader (ChronoBERT). CPU build of torch.
 torch==2.15.0+cpu
