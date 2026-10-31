@@ -6,13 +6,14 @@ The full plan is [PLAN.md](PLAN.md). [REVIEW.md](REVIEW.md) is the review that m
 
 ## Status
 
-M0, the data audit, is nearly done (PLAN.md, section 9.3):
+M0, the data audit, is done (PLAN.md, section 9.3). The answers are in [research/audit/audit.md](research/audit/audit.md):
 
-- **Prices:** daily bars for every S&P 500 member since 2016, raw and adjusted. Audit: [research/audit/prices.md](research/audit/prices.md).
+- **Identity:** every S&P 500 member since 2015 under a permanent company ID (its SEC CIK), with its tickers and share classes by date: [reference/](reference/), checked by `pytest`. Audit: [research/audit/identity.md](research/audit/identity.md).
+- **Prices:** daily bars for every member company since 2016, raw and adjusted, fetched per ticker and date from the identity table. Audit: [research/audit/prices.md](research/audit/prices.md). Corrections, each with its evidence: [reference/price_events.csv](reference/price_events.csv).
 - **News:** every Alpaca (Benzinga) headline since January 2015. Audit: [research/audit/news.md](research/audit/news.md).
-- **Next:** the identity table, which maps tickers to permanent company IDs by date. Then a check of one suspect Nordstrom price.
+- **Split:** the dev and sealed years, confirmed with counts only: [reference/split.json](reference/split.json).
 
-Nothing is trained yet.
+Nothing is trained yet. Next is M1, the time wall.
 
 ## Setup
 
@@ -34,12 +35,18 @@ Run these from the repo root with the venv's Python.
 | Command | What it does |
 |---|---|
 | `python research/alpaca_check.py` | Checks that the keys reach Alpaca's news and prices. It prints counts only |
-| `python -m data_pipeline.bars` | Downloads daily bars for every membership spell. About 10 minutes, and it resumes |
+| `python -m data_pipeline.membership` | Extends the fja05680 membership file to today with Wikipedia's change log, and writes `research/audit/membership.md` |
+| `python -m data_pipeline.identity` | Builds the identity tables in `reference/` from Wikipedia's monthly lists and the hand-checked `reference/identity_fixes.csv`, and writes `research/audit/identity.md` |
+| `python -m pytest tests` | Checks the identity tables |
+| `python -m data_pipeline.bars` | Downloads daily bars for each company's tickers, as the identity table dates them. It writes the download plan and resumes |
 | `python -m data_pipeline.news` | Downloads every news headline, one file per month. About 4.5 hours, and it resumes |
-| `python -m data_pipeline.audit_prices` | Writes `research/audit/prices.md` and its CSVs |
-| `python -m data_pipeline.audit_news` | Writes `research/audit/news.md` |
+| `python -m data_pipeline.audit_prices` | Writes `research/audit/prices.md` and its CSVs (about 3 minutes) |
+| `python -m data_pipeline.audit_news` | Writes `research/audit/news.md` and its CSVs (about 3 minutes) |
+| `python -m data_pipeline.split` | Writes `reference/split.json` from counts only |
+| `python research/verify_prints.py IN OUT` | Checks daily bars against the exchanges' official opening and closing auction prints |
+| `python research/identity_evidence.py` | Looks up local evidence for identity questions (Wikipedia revisions, change log, news tags, bars) |
 | `python research/bench_chronobert.py` | Times ChronoBERT on the CPU |
 
 ## Data and licensing
 
-Raw news and prices never go into git. Benzinga news and market data can't be redistributed, so only code, decisions and small audit summaries are committed.
+Raw news and prices never go into git. Benzinga news and market data can't be redistributed, so only code, decisions, small audit summaries and the hand-checked reference tables are committed. A few rows of `reference/price_events.csv` carry single prices (official opening and closing prints) as corrections.
