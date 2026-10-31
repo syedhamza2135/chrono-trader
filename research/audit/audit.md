@@ -72,7 +72,7 @@ previous session, so the audit stitches that day's return from the previous row'
 
 ### Price corrections (`reference/price_events.csv`)
 
-80 rows, each with its evidence:
+116 rows, each with its evidence:
 
 - **Opens on chaotic days (54).** Alpaca's daily open is the day's first trade on any exchange. A market-on-open
   order fills in the listing exchange's opening auction, which can come minutes later at a very different price. The
@@ -81,15 +81,45 @@ previous session, so the audit stitches that day's return from the previous row'
   of the rest are March 2020 and 2020-11-09.
 - **Closes (5).** CHK 2016-02-08, MRO and PXD 2020-03-09, LYV 2020-03-12 and HLT 2020-03-18 close at the official
   closing auction, not at Alpaca's close. Nordstrom on 2018-03-26 is rebuilt from clean trades.
-- **Distributions (18).** At all 14 distributions checked where Alpaca's adjusted bars cover the ex-date, its
-  adjusted return that day is off by 3 to 88 percentage points. WestRock, TEGNA, Aptiv and RTX get the ratio applied
-  as a split (WestRock: -84.5% adjusted against +3.6% true). Under Armour's class C dividend isn't adjusted at all.
-  Xerox, DuPont, 3M, Fortive, Honeywell (2026), Trane and Aimco are adjusted, but by the wrong amount, and Gardner
-  Denver's history is adjusted for Ingersoll-Rand's distribution although its holders received nothing. Four more
-  happen where a company changes rows (Alcoa to Arconic, Tyco to Johnson Controls, Arconic to Howmet, L Brands to
-  Bath & Body Works). Each correction gives the true total return from the distribution terms in the company's filing
-  and the closing prices of every piece.
+- **Distributions (37).** `adjustment_events.csv` holds 77 splits and 73 distributions (spin-offs, special
+  dividends, one warrant dividend), and all 73 are checked against the true total return on the ex-date: the terms
+  from the company's filing or press release, and the closing price of every piece. Alpaca's adjusted return is off
+  by more than 1 percentage point at 31 of them, by 1.1 to 88 points. WestRock, TEGNA, Aptiv and RTX get the ratio
+  applied as a split (WestRock: -84.5% adjusted against +3.6% true). Western Digital's Sandisk spin-off is adjusted
+  to +4.7% against -5.1% true, and TransDigm's 2025 special dividend as if $174 a share were paid instead of $90. GE's
+  2019 Wabtec distribution is applied on 2019-02-25, a day before GE went ex, so both days get a row. Xerox, DuPont,
+  3M, Fortive (2020 and 2025), Honeywell (2026), Trane, Aimco, Danaher (2016 and 2023), Air Products, Dover,
+  DowDuPont, NortonLifeLock, SL Green, DTE, Labcorp, BorgWarner, BD, Aptiv (2026), FedEx and Skydance are adjusted,
+  but by the wrong amount. Gardner Denver's history is adjusted for Ingersoll-Rand's distribution although its holders
+  received nothing. Under Armour's class C dividend isn't adjusted at all, and four more distributions happen where a
+  company changes rows (Alcoa to Arconic, Tyco to Johnson Controls, Arconic to Howmet, L Brands to Bath & Body Works).
+  Every close behind the 19 rows added on 31 Oct matches the listing exchange's closing auction print.
+- **Distributions Alpaca never applies (17).** `adjustment_events.csv` lists only days where the adjusted and raw moves
+  differ, so a distribution Alpaca leaves out never shows there. Alpaca's own spin-off records (from 2019), Benzinga
+  headlines about completed spin-offs, the S&P 500 change log and Alpaca's dividend records turned up 15 on member days
+  with no adjustment at all, every one more than 1 point off: the spin-offs of Starwood (Vistana into ILG, 2016),
+  Johnson Controls (Adient), Yum (Yum China: -29.7% left as a real loss against +0.7% true), Citrix (LogMeIn), Biogen
+  (Bioverativ), Pentair (nVent: -33.4% against +0.4%), Pfizer (Viatris), Merck (Organon), International Paper
+  (Sylvamo), IBM (Kyndryl), Realty Income (Orion), Zimmer Biomet (ZimVie), BD (Embecta, 2022) and Corteva (Vylor:
+  -83.8% against +4.1%), and Occidental's 2020 warrant dividend. Aimco's 2019 special dividend in cash and stock gets
+  only its offsetting reverse split (-2.2% adjusted against +1.8% true). Of the 17,461 dividends Alpaca records on
+  member days, its adjusted bars match the record within 1 point at all but Occidental's on 2020-03-09, the day the
+  stock halved. Honeywell's Garrett and Resideo spin-offs (2018) and Jacobs' 2025 dividend of its last Amentum shares
+  are within 1 point. Occidental's warrants had no price on the ex-date, so they are valued at their first close, an
+  estimate, and Starwood's ex-date comes from the prices. Every close behind these 17 rows matches the listing
+  exchange's closing auction print.
 - **Halts (2).** Biogen's two FDA-panel halts, zero-volume days that the simulator must not trade.
+
+The other 42 distributions in `adjustment_events.csv` are within 1 point of the true total return and need no row:
+the spin-offs from HCP, Conagra, Varian, HPE (twice in 2017), Vornado, MetLife, DXC, Henry Schein, FMC, VF, Exelon,
+AT&T, GE (2023 and 2024), Kellogg, Jacobs, Lennar, Honeywell (2025), DuPont (2025), Comcast and S&P Global; the
+special dividends of Symantec, Equity Residential (twice), TransDigm (five, 2016 to 2024), Costco, Franklin,
+TripAdvisor, LyondellBasell, Public Storage, Ford, Arch Capital and Progressive (twice); and regular dividends of
+Frontier, Macy's and Helmerich & Payne that topped 4% of a fallen price. Lennar's check is approximate: Millrose had no
+price on Lennar's ex-date (2025-01-21; when-issued trading began on 2025-02-05), but any value between Millrose's
+first regular-way open and close leaves Alpaca within 1 point. The terms, sources and closes are in
+`D:\chrono-data\audit\distributions\` (prices, so kept out of git): `checked.csv` for the 60 checked on 31 Oct and
+`unadjusted_results.csv` for the distributions Alpaca never applies.
 
 The official prints were checked on 784 days: the large moves, screens for suspicious opens and closes, and 300
 random days. Opens on chaotic days outside that sample are not checked.
@@ -107,9 +137,13 @@ in it reads a price or a return.
 
 ## Not done, and known limits
 
-- About 37 more distributions in `adjustment_events.csv` (Fortive from Danaher in 2016, Constellation from Exelon,
-  Warner Bros. Discovery from AT&T, GE HealthCare and GE Vernova, and others) are not checked yet. Given the 14 out of
-  14 above, most are probably off too.
+- The search for distributions Alpaca never applies rests on Alpaca's spin-off records (which start in 2019 and miss
+  some, Kyndryl and Organon among them), Benzinga headlines, the S&P 500 change log and Alpaca's dividend records, so a
+  distribution none of them names can still be missing. The dividend check compares Alpaca's adjusted bars with
+  Alpaca's own dividend records, so a dividend recorded on the wrong date, or not recorded at all, isn't caught.
+- Fortune Brands has no bar on 2022-12-15 and 2022-12-16, its last member days and the MasterBrand spin-off's first:
+  its ticker changed from FBHS to FBIN on 2022-12-15 (Alpaca's name-change record), and the identity table has no FBIN
+  row, so the audit counts the two days as coming after a last trade.
 - Bars from the first download end on 2026-10-28; the 82 files fetched on 31 Oct (41 tickers, raw and adjusted) run
   to 2026-10-30.
 - News summaries and content were not measured by year (headlines only).
