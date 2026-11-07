@@ -47,21 +47,50 @@ def test_on_the_pick_day_too(how):
     assert leaks.non_interference(TABLES, toy, FIRST, FIRST, how, seed=2) == []
 
 
-@settings(max_examples=5, deadline=None, suppress_health_check=[HealthCheck.too_slow])
-@given(day=st.sampled_from(CHECK_DAYS), seed=st.integers(0, 10**6))
-def test_non_interference_on_the_days_that_matter_in_every_mode(day, seed):
-    for how in leaks.HOW:
-        assert leaks.non_interference(TABLES, toy, FIRST, day, how, seed) == [], how
+@pytest.mark.parametrize("day, how", [(d, leaks.HOW[i % 3]) for i, d in enumerate(CHECK_DAYS)])
+def test_non_interference_on_every_check_day(day, how):
+    """Every check day, each with one of the three modes in turn (T and the pick day run all three above)."""
+    assert leaks.non_interference(TABLES, toy, FIRST, day, how, seed=day.day) == []
+
+
+@settings(max_examples=3, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+@given(i=st.integers(0, len(_s) - 1), how=st.sampled_from(leaks.HOW), seed=st.integers(0, 10**6))
+def test_non_interference_on_random_days(i, how, seed):
+    assert leaks.non_interference(TABLES, toy, FIRST, _s[i], how, seed) == []
+
+
+KEYS = {"bars": ["entity_id", "share_class", "date"], "labels": ["entity_id", "share_class", "date"],
+        "stories": ["story_id"], "story_entities": ["story_id", "entity_id"]}
+
+
+@pytest.mark.parametrize("how", leaks.HOW)
+@pytest.mark.parametrize("day", ["2016-11-15", "2017-02-15", "2017-03-15", "2017-05-01"])
+def test_the_perturbed_view_at_t_is_the_original_view(how, day):
+    """Only records not visible at t change, and none of them comes into view by t: a swapped company id or a moved
+    date once let hidden records show, which would flag an honest agent."""
+    t = Clock().decision_time(day)
+    a, b = World(**TABLES).view(t), World(**leaks.perturb(TABLES, t, how, seed=5)).view(t)
+    for name, key in KEYS.items():
+        x = getattr(a, name).sort_values(key, ignore_index=True)
+        y = getattr(b, name).sort_values(key, ignore_index=True)
+        pd.testing.assert_frame_equal(x, y, check_dtype=False, obj=f"{name} on {day} ({how})")
+
+
+def test_compare_flags_a_prediction_missing_in_one_run():
+    a = pd.DataFrame({"date": [T], "entity_id": ["E01"], "share_class": [""], "prediction": [float("nan")],
+                      "position": [0.0]})
+    assert leaks.compare(a, a.assign(prediction=[0.7])) and leaks.compare(a, a) == []
 
 
 def test_the_perturbation_touches_only_records_not_yet_visible():
     t = Clock().decision_time(T)
-    late = leaks.late_rows(TABLES, t)
+    bars = TABLES["bars"].assign(row_id=np.arange(len(TABLES["bars"])))  # follows each row through the perturbation
+    tables = {**TABLES, "bars": bars}
+    early = bars[~leaks.late_rows(tables, t)["bars"]].reset_index(drop=True)
     for how in leaks.HOW:
-        p = leaks.perturb(TABLES, t, how, seed=3)
-        early = TABLES["bars"][~late["bars"]].reset_index(drop=True)
-        kept = p["bars"].iloc[: len(early)] if how == "delete" else p["bars"][~late["bars"]].reset_index(drop=True)
-        pd.testing.assert_frame_equal(early, kept.reset_index(drop=True), check_dtype=False)
+        p = leaks.perturb(tables, t, how, seed=3)["bars"]  # late rows that would show by t are dropped, so count may fall
+        kept = p[p.row_id.isin(early.row_id)].reset_index(drop=True)
+        pd.testing.assert_frame_equal(early, kept, check_dtype=False, obj=how)
     # Before March's joins, the joiners' earlier bars count as late: they show only at the join (or never)
     before_join = leaks.late_rows(TABLES, Clock().decision_time("2017-02-15"))
     hidden = TABLES["bars"].entity_id.isin(["E55", "E56", "E57"]) & (TABLES["bars"].date < pd.Timestamp("2017-02-15"))

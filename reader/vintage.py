@@ -9,13 +9,20 @@ FIRST, LAST = 2014, 2024  # the vintages PLAN 9.13 lists
 
 
 def vintage_for(created_at):
-    """The vintage year for each story's created_at (UTC times)."""
+    """The vintage year for each story's created_at (UTC times): the year before, capped at the latest vintage, so
+    news from 2025 and 2026 is read by the 2024 model (PLAN 5.2)."""
     year = pd.to_datetime(pd.Series(created_at), utc=True).dt.tz_convert("America/New_York").dt.year
-    return year - 1
+    v = (year - 1).clip(upper=LAST)
+    if (v < FIRST).any():
+        raise ValueError(f"no vintage before {FIRST}: a story from {FIRST} or earlier can't be read")
+    return v
 
 
 def breaches(embeddings, stories):
-    """Embedding rows whose vintage isn't from before its story's New York year (should be none)."""
+    """Embedding rows not read by exactly the vintage the rule names for their story (should be none). A missing
+    story counts too."""
     x = embeddings.merge(stories[["story_id", "created_at"]], on="story_id", how="left")
-    year = pd.to_datetime(x.created_at, utc=True).dt.tz_convert("America/New_York").dt.year
-    return x[x.created_at.isna() | (x.vintage_year >= year)]
+    known = x.created_at.notna()
+    want = pd.Series(pd.NA, index=x.index, dtype="Int64")
+    want[known] = vintage_for(x.created_at[known]).to_numpy()
+    return x[~known | (x.vintage_year != want).fillna(True)]

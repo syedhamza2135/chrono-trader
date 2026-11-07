@@ -13,8 +13,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 ## Start here
 
 - M0, the data audit, and its review are done. M1, the time wall, is built on the branch `claude/m1-kickoff-832c2d`,
-  and a leak review's findings are fixed, with two items left: read `research/m1_kickoff.md` first (sections
-  "Session 1" and "Session 2").
+  and the findings of two reviews are fixed, with a few items left: read `research/m1_kickoff.md` first (sections
+  "Session 1" to "Session 3").
 - `research/audit/m0_review.md` records the review and its fixes. `research/brief_check.md` records the check of a
   research brief and what the plan took from it.
 
@@ -32,7 +32,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 - **Facts.** Never invent a number, date, result or source. Every claim needs evidence someone can check.
 - **Docs.** Plain English, short sentences, no em-dashes.
 - **Git.** Commit or push only when the owner asks, and ask again for each one. Claude Code's auto-mode check blocks
-  pushes to master, so the owner runs the push.
+  pushes to master, so the owner runs the push. Commits and pull requests carry no Claude attribution: no
+  Co-Authored-By trailer and no "Generated with Claude Code" line.
 - **Usage limits.** The owner stops work at 90% of the 5-hour limit. Run agents one at a time right after a reset,
   check usage between them, and save the state before stopping.
 - **Privacy.** Never send the owner's email address to any service.
@@ -40,7 +41,7 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Commands
 
-- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (225 pass and 1 skips, in 3 to 4
+- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (255 pass and 1 skips, in 4 to 5
   minutes; the skip is the embeddings table, which arrives in M2). In a worktree with no `.venv` link, use
   `D:\venvs\chrono-trader\Scripts\python.exe`.
 - The time wall: agents get only `world.view.View` (`World` is in `world/world.py`); `sim.simulator.run(world, agent, first, last)` is the daily loop,

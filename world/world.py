@@ -105,10 +105,15 @@ def visible_at(table, df, sp, stories=None):
 
 
 def _plain(df):
-    """Key columns as plain Python strings (no category lists, no shared Arrow buffers)."""
+    """Key columns as plain Python strings (no category lists, no shared Arrow buffers), and list columns (a story's
+    tags) as tuples of their own: Parquet hands each row's list as a view into one array of every row's lists."""
     df = df.copy()
     for c in df.columns:
-        if c in KEYS or c == "headline" or pd.api.types.is_string_dtype(df[c]):
+        first = next((x for x in df[c] if x is not None), None) if df[c].dtype == object else None
+        if isinstance(first, (np.ndarray, list, tuple)):
+            df[c] = pd.Series([() if x is None else tuple(str(s) for s in x) for x in df[c]], index=df.index,
+                              dtype=object)
+        elif c in KEYS or c == "headline" or pd.api.types.is_string_dtype(df[c]):
             df[c] = df[c].astype(object)
     return df
 

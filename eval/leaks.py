@@ -3,7 +3,8 @@ every decision up to t.
 
 `perturb` takes the store's tables and returns copies in which every record visible only after t (world/world.py:
 available after t, or held back until a later join) is scrambled, shifted later, or deleted. Records visible by t
-are untouched. A leak-free agent makes identical decisions on both, up to and including the decision at t.
+are untouched, and a changed record that would become visible by t is dropped, so the view at t is the same in both.
+A leak-free agent makes identical decisions on both, up to and including the decision at t.
 - scramble: late values are swapped among the late records, numbers are scaled at random, and the signs of returns
   and labels are flipped at random. A swap alone keeps the mean, spread and signs of the late data, so it would miss
   a scaler fitted on all of it, or a count of later gains.
@@ -88,6 +89,14 @@ def perturb(tables, t, how, seed=0):
         scramble(out["story_entities"], late["story_entities"], ["entity_id"])
         m.loc[late["joins"], "member_from"] += SHIFT
         m.loc[late["leaves"], "member_to"] += SHIFT
+    if how != "delete":
+        # A changed record must stay hidden at t. A swapped company id, or a date moved into a membership window, can
+        # bring a record that was hidden (its company hadn't joined, or it lay outside every window) into view.
+        ns = pd.Timestamp(t).as_unit("ns").value
+        sp = spells(out["membership"])
+        for k in ("bars", "labels", "story_entities"):
+            shown = visible_at(k, out[k], sp, out["stories"]) <= ns
+            out[k] = out[k][~(late[k] & shown)].reset_index(drop=True)
     return out
 
 
@@ -119,7 +128,7 @@ def compare(a, b, tol=1e-12):
     if len(pos):
         problems.append(f"{len(pos)} positions differ, first on {pos.date.min()}")
     gap = (both.prediction_a - both.prediction_b).abs()
-    far = both[gap > tol]
+    far = both[(gap > tol) | (both.prediction_a.isna() != both.prediction_b.isna())]  # NaN against a number too
     if len(far):
         problems.append(f"{len(far)} predictions differ by more than {tol}, first on {far.date.min()}")
     return problems

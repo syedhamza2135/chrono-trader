@@ -157,6 +157,16 @@ def test_a_view_is_a_copy_that_reaches_no_later_row():
     assert set(v.bars.entity_id.value_counts().index) == set(v.bars.entity_id)
 
 
+def test_a_views_list_columns_reach_no_other_rows(tmp_path):
+    """Parquet hands each story's tags as a view into one array of every story's tags; a view's must be its own."""
+    stories = make_world().stories.df.drop(columns="visible_at")
+    stories.to_parquet(tmp_path / "s.parquet")
+    back = pd.read_parquet(tmp_path / "s.parquet")
+    assert back.symbols.iloc[0].base is not None  # the trap is real
+    v = make_world(stories=back).view(UTC("2021-03-15 12:15"))
+    assert len(v.stories) == 1 and all(getattr(x, "base", None) is None for x in v.stories.symbols)
+
+
 def test_a_company_with_no_membership_never_shows():
     """A missing join time once wrapped to the smallest int64 and let every such row through."""
     bars = pd.DataFrame({"entity_id": ["A", "Z"], "share_class": "", "symbol": ["AAA", "ZZZ"],

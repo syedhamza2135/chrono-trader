@@ -43,6 +43,7 @@ REPORT = ROOT / "research" / "audit" / "auctions.md"
 EXCHANGES = {"N": "NYSE", "A": "NYSE American", "P": "NYSE Arca", "Z": "Cboe BZX",
              "Q": "Nasdaq", "S": "Nasdaq", "T": "Nasdaq"}
 SIDES = {"o": "open", "c": "close"}
+WINDOW = 21  # sessions around a day that vote on its listing exchange (official)
 LATE_OPEN = pd.Timedelta(hours=1)  # an official open more than an hour after the session's open is reported
 PRINT_COLUMNS = ["symbol", "asof", "date", "side", "t", "x", "p", "s", "c"]
 OFFICIAL_COLUMNS = ["symbol", "asof", "date", "listing_exchange", "open", "open_size", "open_time", "n_open_prints",
@@ -101,15 +102,22 @@ def save(path, rows):
 def official(prints):
     """One row per date of one file's prints: the listing exchange, and its largest opening and closing prints.
 
-    The listing exchange is the exchange of the day's largest auction print, opening or closing, because its auctions
-    dwarf the other exchanges' (research/verify_prints.py judges the same way). Ties go to the print Alpaca lists
-    first. A side with no print on the listing exchange is left empty."""
+    A day's largest auction print, opening or closing, is usually the listing exchange's, because its auctions dwarf
+    the other exchanges' (research/verify_prints.py judges by it). But one day's records can lack the listing
+    exchange's cross: on 2026-08-20 Alpaca's records for Nasdaq stocks hold no Nasdaq closing print, so the largest
+    print was NYSE Arca's, and its opening print of a few shares would have become the official open. So the listing
+    exchange is the venue whose print is the largest on most of the WINDOW sessions around the day (the day's own
+    venue wins a tie). Ties between prints go to the one Alpaca lists first. A side with no print on the listing
+    exchange is left empty."""
     if prints.empty:
         return pd.DataFrame(columns=OFFICIAL_COLUMNS)
     df = prints.reset_index(drop=True).assign(venue=lambda d: d.x.map(EXCHANGES).fillna(d.x))
     df["order"] = range(len(df))
     biggest = df.sort_values(["date", "s", "order"], ascending=[True, False, True]).drop_duplicates("date")
-    out = biggest.set_index("date")[["symbol", "asof", "venue"]].rename(columns={"venue": "listing_exchange"})
+    day_venue = biggest.set_index("date").venue.sort_index()
+    own = pd.get_dummies(day_venue).astype(float)
+    votes = own.rolling(WINDOW, center=True, min_periods=1).sum() + 0.5 * own
+    out = biggest.set_index("date")[["symbol", "asof"]].join(votes.idxmax(axis=1).rename("listing_exchange"))
     df = df.join(out.listing_exchange, on="date")
     mine = df[df.venue == df.listing_exchange].sort_values(["date", "side", "s", "order"],
                                                           ascending=[True, True, False, True])

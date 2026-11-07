@@ -5,8 +5,10 @@
   `vars`, `World`, `load`, `read_*`, dunder attributes), whether called or merely referenced.
 - `world`, `sim`, `eval` and `data_pipeline` import nothing from `agent`.
 
-An AST check can't be complete. It stops the paths an agent could take by accident or habit; the non-interference
-and planted-leak tests (tests/test_leaks.py) stop leaks it misses.
+An AST check can't be complete. The non-interference and planted-leak tests (tests/test_leaks.py) catch leaks through
+what a run is handed, but not reads from disk: the files are the same in both runs. Those are stopped only here, by
+name (`read_*`, `read`, `io`, `get_engine` and the rest), so a new way to read files must be added to FORBIDDEN. A
+real guarantee would run decide() in a process that can't see DATA_DIR.
 
 Run with: python -m pytest tests
 """
@@ -19,7 +21,9 @@ AGENT_LIBRARIES = {"numpy", "pandas", "scipy", "sklearn", "river", "math", "stat
                    "itertools", "collections", "typing", "heapq", "bisect", "enum", "abc", "__future__"}
 FORBIDDEN = {"open", "exec", "eval", "compile", "__import__", "globals", "locals", "vars", "getattr", "setattr",
              "delattr", "load", "loads", "loadtxt", "genfromtxt", "fromfile", "memmap", "read_text", "read_bytes",
-             "base", "World", "world", "gc", "sys", "os", "importlib", "inspect", "pickle", "pyarrow"}
+             "base", "World", "world", "gc", "sys", "os", "importlib", "inspect", "pickle", "pyarrow",
+             "io", "get_engine", "read", "HDFStore", "open_memmap", "ParquetFile", "parquet", "feather", "pathlib",
+             "Path", "urlopen", "requests", "subprocess", "socket", "shutil", "as_strided", "stride_tricks"}
 FORBIDDEN_PREFIXES = ("read_", "_mgr", "_data", "_pa_array", "_ndarray")
 
 
@@ -99,10 +103,11 @@ def test_the_checks_catch_the_ways_round_them():
     probe.write_text("import pandas as pd\nfrom world.view import View, World\nfrom world import rules\n"
                      "from .reversal import FEATURES\nimport os\n"
                      "loader = World.load\nw = loader()\nx = vars(pd)['read_parquet']\n"
+                     "y = pd.io.parquet.get_engine('pyarrow').read('store.parquet')\n"
                      "def f(v):\n    return v.bars.close.to_numpy().base\n", encoding="utf-8")
     try:
         imports, names = agent_import_problems(probe), agent_name_problems(probe)
     finally:
         probe.unlink()
     assert imports == ["from world.view ['View', 'World']", "from world ['rules']", "import os"]
-    assert {n.split(" ")[0] for n in names} >= {"World", "load", "vars", "base"}
+    assert {n.split(" ")[0] for n in names} >= {"World", "load", "vars", "base", "io", "get_engine", "read"}

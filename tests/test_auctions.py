@@ -61,6 +61,20 @@ def test_a_side_missing_on_the_listing_exchange_stays_empty():
     assert r.n_open_prints == 1
 
 
+def test_a_day_without_the_listing_exchanges_closing_cross_keeps_its_listing_exchange():
+    """On 2026-08-20 Alpaca's records for Nasdaq stocks hold no Nasdaq closing print, so that day's largest print
+    is NYSE Arca's. The days around it still say Nasdaq, so the open is Nasdaq's cross, not Arca's 2 shares."""
+    days = ["2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-24"]
+    rows = []
+    for d in days:
+        rows.append((d, "o", "13:30:00", "P", 933.05, 2, "Q"))
+        rows.append((d, "o", "13:30:00", "Q", 934.0, 31261, "O"))
+        rows.append((d, "c", "20:00:00", "P" if d == "2026-08-20" else "Q", 935.0, 389068, "M"))
+    r = one(prints(*rows), "2026-08-20")
+    assert (r.listing_exchange, r.open, r.open_size) == ("Nasdaq", 934.0, 31261)
+    assert pd.isna(r.close)  # Nasdaq printed no close that day
+
+
 def test_ties_go_to_the_print_listed_first():
     df = prints(("2024-03-14", "o", "13:30:00", "N", 10.0, 500, "O"),
                 ("2024-03-14", "o", "13:30:00", "N", 10.1, 500, "Q"))

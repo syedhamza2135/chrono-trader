@@ -204,6 +204,7 @@ def main():
     rows = file_rows()
     data_end = rows.loc[(rows.symbol == "AAPL") & rows.member, "date"].max()  # the data's last session
     s = company_series(rows)
+    s = s[s.date <= data_end].reset_index(drop=True)  # a few files hold later bars (12 to 2026-10-30)
     events = pd.read_csv(REFERENCE / "price_events.csv", dtype=str)
     s, applied = apply_events(s, events)
     opens = official_opens(s)
@@ -223,9 +224,13 @@ def main():
     with_open = member_days.merge(opens_out.dropna(subset=["open"])[KEY], on=KEY, how="inner")
     # An exit label ends where a company's series ends before the data does: it stopped trading, or the store stops
     # keeping its bars AFTER days after a removal while its file trades on.
+    # A series that ends on or before its last member day stopped trading, even when its file trades on under the
+    # ticker as another security (DuPont, IHS Markit, WestRock).
     ends = s.groupby(["entity_id", "share_class"], sort=False).agg(last=("date", "max"), row=("row", "last"))
+    ends["last_member"] = s[s.member].groupby(["entity_id", "share_class"], sort=False).date.max()
     traded_to = rows[rows.volume > 0].groupby("row").date.max()
-    window_cut = (ends.row.map(traded_to) > ends["last"]).rename("window_cut").reset_index()
+    cut = (ends.row.map(traded_to) > ends["last"]) & (ends["last"] > ends["last_member"])
+    window_cut = cut.rename("window_cut").reset_index()
     exits = lab[lab.at_close].merge(window_cut, on=["entity_id", "share_class"], how="left")
     counts = {
         "data_end": str(data_end.date()),

@@ -15,7 +15,7 @@ M0, the data audit, is done (PLAN.md, section 9.3). The answers are in [research
 
 A review of the M0 work confirmed 33 findings. The findings, the fixes and what is left are in [research/audit/m0_review.md](research/audit/m0_review.md).
 
-M1, the time wall, is built, and the findings of a leak review are fixed, with two items left (PLAN.md, section 9.2; state, findings and open questions in [research/m1_kickoff.md](research/m1_kickoff.md)):
+M1, the time wall, is built, and the findings of two reviews are fixed, with a few items left (PLAN.md, section 9.2; state, findings and open questions in [research/m1_kickoff.md](research/m1_kickoff.md)):
 
 - **Official opens:** the listing exchange's opening and closing auction prints for every stock-day with a bar, from Alpaca's auctions endpoint. Audit: [research/audit/auctions.md](research/audit/auctions.md).
 - **The event store:** bars, official opens, open-to-open labels, stories, the single-firm filter's links, membership and identity, as Parquet in `D:\chrono-data\store`. Counts: [research/audit/store.md](research/audit/store.md).
@@ -46,7 +46,7 @@ Run these from the repo root with the venv's Python.
 | `python research/alpaca_check.py` | Checks that the keys reach Alpaca's news and prices. It prints counts only |
 | `python -m data_pipeline.membership` | Extends the fja05680 membership file to today with Wikipedia's change log, and writes `research/audit/membership.md` |
 | `python -m data_pipeline.identity` | Builds the identity tables in `reference/` from Wikipedia's monthly lists and the hand-checked `reference/identity_fixes.csv`, and writes `research/audit/identity.md` |
-| `python -m pytest tests` | Checks the identity tables, the price and news audits' rules, the split, the print check, and M1: the auctions, the store's rules, the time wall, the simulator, the seal, the import boundaries and the leak tests (3 to 4 minutes). Tests that need the store skip without it |
+| `python -m pytest tests` | Checks the identity tables, the price and news audits' rules, the split, the print check, and M1: the auctions, the store's rules, the time wall, the simulator, the seal, the import boundaries and the leak tests (4 to 5 minutes). Tests that need the store skip without it |
 | `python -m data_pipeline.bars` | Downloads daily bars for each company's tickers, as the identity table dates them. It writes the download plan and resumes |
 | `python -m data_pipeline.news` | Downloads every news headline, one file per month. About 4.5 hours, and it resumes |
 | `python -m data_pipeline.audit_prices` | Writes `research/audit/prices.md` and its CSVs (about 3 minutes), including `incomplete_bars.csv`: member bars with a trade count below 5% of the median of the file's previous 20 bars |

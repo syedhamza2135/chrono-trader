@@ -126,7 +126,8 @@ together. It runs as a test.
    (future breadth, a 28-day peek at the pick, companies not yet joined) are caught.
 7. Corrections applied only to member bars. They now apply to every bar the store keeps. **Not done:** EQT's
    2018-11-13 Equitrans spin-off needs a `total_return` row in `reference/price_events.csv` (its evidence needs
-   ETRN's first close), and the 117 labels that end on a non-member day weren't reviewed. EQT is never a pick.
+   ETRN's first close), and the 125 labels that start on a member day and end on a non-member day weren't reviewed
+   (none ends at a close). EQT is never a pick.
 8. A holding with no label from its official open froze. It is now sold at that open, and `Run.stats` counts it.
 9. The seal guarded only `sim.run`. Views now refuse the sealed years unless the seal holds (or a data audit opens
    them explicitly), and the seal hashes the run's whole settings, the costs and the agent's parameters included.
@@ -144,6 +145,41 @@ After the fixes: 225 tests pass and 1 skips, in 3 to 4 minutes.
    provisional open M0 rejected.
 3. Before merging into master, the main checkout's untracked `AGENTS.md`, `CLAUDE.md` and `research/m1_kickoff.md`
    must move away, or git will refuse the merge.
+
+## Session 3 (8 Nov): a second review, and the attribution
+
+A second review of PR #1 (one agent, about 26% of a window) found 10 more problems. Each was shown with a script (in
+the session's scratchpad `review2\` folder), and each is fixed:
+1. A view's story tags were still views into one array of every story's tags, as Parquet reads list columns. They
+   are now tuples of their own (`world/world.py`, `_plain`), and the test reads the tags back from Parquet.
+2. A few bar files hold 12 bars after the data end (to 2026-10-30). The simulator's data end moved with them, and it
+   sold every holding on 2026-10-28. The store now ends on the data's last day, and a test checks it.
+3. The perturbations could bring hidden records into view: a swapped company id, or a date moved into a membership
+   window. A changed record that would show by t is now dropped, and a test checks that the perturbed view at t
+   equals the original in every mode.
+4. An agent could read the store from disk with `pd.io.parquet.get_engine(...).read(...)`, which no check saw. The
+   boundary test now names those, and its docstring says the leak check can't see reads from disk.
+5. The listing exchange was chosen each day from that day's largest print. On 2026-08-20 Alpaca's records for Nasdaq
+   stocks hold no Nasdaq closing print, so 9 member stock-days took an NYSE Arca opening print of 1 to 25 shares.
+   It is now the venue of most days' largest print over the 21 sessions around the day. Two real opens came back
+   (COF on 2016-10-13, CXO on 2017-10-09), so 519 member stock-days now lack an official open, and 218 opens printed
+   more than an hour late.
+6. The comparison missed a prediction that is NaN in one run only. It now flags it.
+7. The vintage rule gave 2026 news a 2025 model. It now stops at 2024, the check asks for exactly the rule's
+   vintage, and PLAN 5.2 says the publication year counts.
+8. The property test drew 5 of its 14 check days. Every check day now runs, each with one of the three modes in turn.
+9. Six mergers counted as window cuts. The exits are now 103 stopped and 119 cut.
+10. This note said 117 labels end on a non-member day. The store has 125 that start on a member day and end on one.
+
+The reviewer's own scripts, rerun on the fixed code, show each one fixed. After the fixes: 255 tests pass and 1
+skips, in 4 to 5 minutes.
+
+**Attribution.** On 8 Nov the owner asked to drop the Co-Authored-By trailer everywhere. Their Claude Code user
+settings now hide it (`attribution` with empty texts and no session link), AGENTS.md's Git rule says so, and the
+memory records it. New commits carry no attribution. **Deferred:** all 9 existing commits (8 on master, and
+`b2b9441` on the M1 branch) still carry the line. The owner wants the history rewritten later: messages only (the
+same trees, authors and dates), with backup branches first, then force-pushes of master and the PR branch, the line
+removed from PR #1's description, and the old commit hashes in the docs and the memory updated.
 
 ## Where things stand
 

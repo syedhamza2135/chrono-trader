@@ -33,6 +33,16 @@ def test_decision_days_are_the_trading_days_in_the_price_data():
     assert list(days) == sorted(aapl)
 
 
+@needs_store
+def test_the_store_ends_on_the_datas_last_day():
+    """A few bar files hold later bars (12, to 2026-10-30); a label ending there made the simulator think the data
+    ran on, and sell every holding on the real last day."""
+    import json
+    end = pd.Timestamp(json.loads((ROOT / "reference" / "split.json").read_text())["data_through"])
+    for name, col in (("bars", "date"), ("opens", "date"), ("labels", "end")):
+        assert pd.read_parquet(STORE / f"{name}.parquet", columns=[col])[col].max() <= end, name
+
+
 def test_every_member_on_each_pick_date_has_bars():
     s = pd.read_csv(AUDIT / "survivorship.csv", dtype={"missing": int})
     assert len(s) == 11 and (s.missing == 0).all()
@@ -63,15 +73,18 @@ def test_session_recaps_land_in_their_windows():
 
 
 def test_each_story_gets_the_vintage_from_the_year_before_its_new_york_year():
-    created = pd.Series(pd.to_datetime(["2019-12-31T23:50:00-05:00", "2020-01-01T05:10:00Z", "2016-06-01T12:00:00Z"],
-                                       utc=True, format="ISO8601"))
-    assert list(vintage_for(created)) == [2018, 2019, 2015]
+    created = pd.Series(pd.to_datetime(["2019-12-31T23:50:00-05:00", "2020-01-01T05:10:00Z", "2016-06-01T12:00:00Z",
+                                        "2025-06-02T12:00:00Z", "2026-03-02T12:00:00Z"], utc=True, format="ISO8601"))
+    assert list(vintage_for(created)) == [2018, 2019, 2015, 2024, 2024]  # 2024 is the latest vintage
 
 
 def test_the_vintage_check_flags_a_model_from_the_same_year():
     stories = pd.DataFrame({"story_id": [1, 2], "created_at": pd.to_datetime(["2020-03-02T15:00Z", "2020-03-02T15:00Z"])})
     emb = pd.DataFrame({"story_id": [1, 2], "vintage_year": [2019, 2020]})
     assert list(breaches(emb, stories).story_id) == [2]
+    late = pd.DataFrame({"story_id": [3, 4], "created_at": pd.to_datetime(["2026-03-02T15:00Z", "2020-03-02T15:00Z"])})
+    emb = pd.DataFrame({"story_id": [3, 4], "vintage_year": [2025, 2018]})  # no 2025 model; 2018 isn't the rule's
+    assert list(breaches(emb, late).story_id) == [3, 4]
 
 
 @needs_store
