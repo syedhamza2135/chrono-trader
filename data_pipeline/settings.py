@@ -1,8 +1,12 @@
-"""Paths and Alpaca keys, loaded from the repo's .env (environment variables win). Never print the keys."""
+"""Paths and Alpaca keys, loaded from the repo's .env (environment variables win). Never print the keys.
+
+A git worktree has no .env of its own. Set CHRONO_ENV_FILE to the path of the main checkout's .env to use it there,
+so the file is never copied."""
 import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+ENV_FILE = Path(os.environ.get("CHRONO_ENV_FILE") or ROOT / ".env")
 
 
 def _load_env(path):
@@ -16,7 +20,7 @@ def _load_env(path):
     return env
 
 
-_ENV = _load_env(ROOT / ".env")
+_ENV = _load_env(ENV_FILE)
 _ENV.update({k: v for k, v in os.environ.items() if k.startswith(("APCA_", "CHRONO_"))})
 
 DATA_DIR = Path(_ENV.get("CHRONO_DATA_DIR", r"D:\chrono-data"))

@@ -10,3 +10,6 @@ data/
 .venv/
 __pycache__/
 *.pyc
+
+# Hypothesis keeps its example database here
+.hypothesis/
