@@ -8,8 +8,9 @@ company (IR, CB, JCI, DLPH) therefore still fetches the right one.
 
 A company listing two classes has one membership period per class, and each period uses only the rows of its own
 class. Alpaca's histories follow a symbol rather than a class: as of 2022, UA's history is class A until 2016-12-06
-and class C after, because the two classes swapped tickers that day. Each row is therefore used only inside its
-own dates.
+and class C after, because the two classes swapped tickers that day. So a row's member days are only those inside
+its own dates, but its file holds the symbol's whole history, and the bars outside the row can be another
+security's (see prices.py).
 
 Files: DATA_DIR/bars/<adjustment>/<ticker>__<asof>.parquet. DATA_DIR/bars/plan.csv lists which file covers which
 member days of which company (use_from to use_to), so readers never rebuild file names. An existing file is reused

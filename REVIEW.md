@@ -24,20 +24,20 @@ There are 5 critical findings, 10 major and 18 minor. The fix is a different dat
 
 ### C1. FNSPID's "UTC" timestamps are 8 hours early
 
-The timed Benzinga rows are labelled UTC, but the stored time is **true UTC minus 8 hours**. The evidence comes from headlines whose real time of day is known from what they say:
+The timed Benzinga rows are labelled UTC, but the stored time is **true UTC minus 8 hours**. The evidence comes from recap stories whose real time of day is known from what they cover:
 
 | Story type | Stored hour (summer) | Stored hour (winter) | Implied New York time (stored + 8h) |
 |---|---|---|---|
-| "... Stocks Moving In Friday's Mid-Day Session" | 08 (17 rows), 09 (3) | 08 (1), 09 (4), 10 (2) | about 12:00 to 13:00 |
-| "Stocks That Hit 52-Week Highs/Lows On ..." | 06 (15), 07 (7) | 07 (4), 08 (8) | about 10:00 to 11:00 |
-| "... Stocks Moving In ... Pre-Market Session" | 03 (11), 04 (9) | 04 (3) | about 07:00 to 08:00 |
-| "Biggest Movers From Friday/Yesterday" | 00 to 02 | 01 to 02 | about 04:00 to 06:00 |
+| Mid-day movers recap for a Friday | 08 (17 rows), 09 (3) | 08 (1), 09 (4), 10 (2) | about 12:00 to 13:00 |
+| List of stocks at 52-week highs or lows | 06 (15), 07 (7) | 07 (4), 08 (8) | about 10:00 to 11:00 |
+| Pre-market movers recap | 03 (11), 04 (9) | 04 (3) | about 07:00 to 08:00 |
+| Previous session's biggest movers | 00 to 02 | 01 to 02 | about 04:00 to 06:00 |
 
-- **Why it's exactly 8 hours.** The stored hour is one hour later in winter than in summer, which only fits "true UTC − 8h". Example: "Stocks That Hit 52-Week Highs On Friday" is stored as `2020-06-05 06:30:54 UTC`. Add 8 hours and it's 10:30:54 New York time.
+- **Why it's exactly 8 hours.** The stored hour is one hour later in winter than in summer, which only fits "true UTC − 8h". Example: a Friday list of stocks at 52-week highs is stored as `2020-06-05 06:30:54 UTC`. Add 8 hours and it's 10:30:54 New York time.
 - **Likely cause.** FNSPID's Benzinga rows come from the Kaggle "Massive Stock News Analysis DB" (Aenlle, 2009 to 2020). Its timed file uses a fixed UTC−4 clock. FNSPID appears to have subtracted the 4 hours instead of adding them.
 - **Why it's critical.** Taken at face value, the mid-day story above becomes visible at 4:45 am, before the 9:00 decision, and it describes that same day's trading. That's a direct leak into the label.
 - **Fix.** Never trust FNSPID times of day. If any time is used, true UTC = stored + 8h, checked by the anchor test in M6.
-- **Cross-check (30 Oct 2026).** Alpaca's correctly timed copy of the same Benzinga story type ("36 Stocks Moving In Thursday's Mid-Day Session", 7 Jun 2018) is stamped 12:30 New York time. FNSPID's summer "Mid-Day" stories sit at 08:3x stored, and 08:3x plus 8 hours is 12:3x New York time. The two sources agree.
+- **Cross-check (30 Oct 2026).** Alpaca's correctly timed copy of the same Benzinga story type (a Thursday mid-day movers recap, story 11847137 on 7 Jun 2018) is stamped 12:30 New York time. FNSPID's summer "Mid-Day" stories sit at 08:3x stored, and 08:3x plus 8 hours is 12:3x New York time. The two sources agree.
 
 ### C2. Almost no FNSPID row has a real time, and dates may run a day early
 
@@ -107,7 +107,7 @@ Track A is close to that design on a smaller universe with free data.
 - Add a survivorship audit: compare the companies that have prices against the index members on each date.
 - Add a planted leak where a vendor's daily-bar timestamp (midnight, the start of the day) is wrongly used as the time the close is known.
 
-**M7. Multi-ticker lists and price recaps.** Benzinga tags stories like "46 Stocks Moving In Friday's Mid-Day Session" to dozens of tickers. They're price recaps, not company news.
+**M7. Multi-ticker lists and price recaps.** Benzinga tags its movers recaps, which list dozens of stocks, to dozens of tickers. They're price recaps, not company news.
 - Fix: copy the single-firm filter the ChronoBERT paper used (Ke et al.), keeping only stories tagged to one or two tickers.
 
 **M8. Company identity.** FB/META, DELL reuse, KRFT/KHC, GOOG/GOOGL, and formats like `HEI.A` vs `HEI-A` all break joins.

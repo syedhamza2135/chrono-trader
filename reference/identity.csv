@@ -25,6 +25,7 @@ entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,la
 0000009892,BCR,,1996-01-02,2017-12-28,first membership day,last membership day,2014-12-29,2017-12-23
 0000010456,BAX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
 0000010795,BDX,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
+0000011199,BMS,,2019-06-07,2019-06-10,first membership day,last membership day,2019-06-07,2019-06-10
 0000011544,WRB,,2019-12-05,,first membership day,last membership day,2019-12-31,2026-10-31
 0000012208,BIO,,2020-06-22,2024-09-22,first membership day,last membership day,2020-07-29,2024-08-29
 0000012659,HRB,,1996-01-02,2020-09-20,first membership day,last membership day,2014-12-29,2020-09-28
@@ -599,6 +600,8 @@ entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,la
 0001306830,CE,,2018-12-24,2025-03-23,first membership day,last membership day,2018-12-31,2025-02-27
 0001308161,FOXA,A,2004-12-20,2019-03-18,first membership day,last membership day,2014-12-29,2019-02-27
 0001308161,FOX,B,2015-09-21,2019-03-18,class added to the index,last membership day,2015-09-30,2019-02-27
+0001308161,TFCF,B,2019-03-19,2019-03-19,first membership day,last membership day,2019-03-19,2019-03-19
+0001308161,TFCFA,A,2019-03-19,2019-03-19,first membership day,last membership day,2019-03-19,2019-03-19
 0001316835,BLDR,,2023-12-18,2026-09-20,first membership day,last membership day,2023-12-31,2026-08-19
 0001318605,TSLA,,2020-12-21,,first membership day,last membership day,2020-12-31,2026-10-31
 0001321655,PLTR,,2024-09-23,,first membership day,last membership day,2024-09-30,2026-10-31
@@ -687,7 +690,8 @@ entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,la
 0001510295,MPC,,2011-07-01,,first membership day,last membership day,2014-12-29,2026-10-31
 0001512673,XYZ,,2025-07-23,,first membership day,last membership day,2025-07-23,2026-10-31
 0001513761,NCLH,,2017-10-13,,first membership day,last membership day,2017-10-31,2026-10-31
-0001519751,FBHS,,2016-06-24,2022-12-18,first membership day,last membership day,2016-06-26,2022-11-23
+0001519751,FBHS,,2016-06-24,2022-12-14,exact,exact,2016-06-24,2022-12-14
+0001519751,FBIN,,2022-12-15,2022-12-18,exact,exact,2022-12-15,2022-12-18
 0001521332,DLPH,,2012-12-24,2017-12-04,first membership day,exact,2014-12-29,2017-11-30
 0001521332,APTV,,2017-12-05,,exact,last membership day,2017-12-23,2026-10-31
 0001524472,XYL,,2011-11-01,,first membership day,last membership day,2014-12-29,2026-10-31
@@ -737,6 +741,7 @@ entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,la
 0001637459,KHC,,2015-07-06,,first membership day,last membership day,2015-07-30,2026-10-31
 0001645590,HPE,,2015-11-02,,first membership day,last membership day,2015-11-18,2026-10-31
 0001646383,CSRA,,2015-11-30,2018-04-03,first membership day,last membership day,2015-12-28,2018-03-29
+0001650132,FCPT,,2015-11-10,2015-11-10,first membership day,last membership day,2015-11-10,2015-11-10
 0001652044,GOOG,C,2006-04-03,,first membership day,last membership day,2014-12-29,2026-10-31
 0001652044,GOOGL,A,2006-04-03,,first membership day,last membership day,2014-12-29,2026-10-31
 0001659166,FTV,,2016-07-05,,first membership day,last membership day,2016-07-15,2026-10-31
@@ -767,7 +772,7 @@ entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,la
 0001732845,WRK,,2015-07-02,2024-07-07,first membership day,last membership day,2015-07-30,2024-06-26
 0001739940,CI,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
 0001744489,DIS,,1996-01-02,,first membership day,last membership day,2014-12-29,2026-10-31
-0001748790,AMCR,,2019-06-07,,first membership day,last membership day,2019-06-24,2026-10-31
+0001748790,AMCR,,2019-06-11,,first membership day,last membership day,2019-06-24,2026-10-31
 0001751008,APP,,2025-09-22,,first membership day,last membership day,2025-09-30,2026-10-31
 0001751788,DOW,,2019-04-02,,first membership day,last membership day,2019-04-30,2026-10-31
 0001754301,FOX,B,2019-03-19,,first membership day,last membership day,2019-03-23,2026-10-31
@@ -788,6 +793,7 @@ entity_id,symbol,share_class,valid_from,valid_to,dated_by,dated_to,first_seen,la
 0001858681,APO,,2024-12-23,,first membership day,last membership day,2024-12-26,2026-10-31
 0001868275,CEG,,2022-02-02,,first membership day,last membership day,2022-02-26,2026-10-31
 0001932393,GEHC,,2023-01-04,,first membership day,last membership day,2023-01-16,2026-10-31
+0001941365,MBC,,2022-12-15,2022-12-18,first membership day,last membership day,2022-12-15,2022-12-18
 0001944048,KVUE,,2023-08-25,,first membership day,last membership day,2023-08-31,2026-10-31
 0001964738,SOLV,,2024-04-01,,first membership day,last membership day,2024-04-17,2026-10-31
 0001967680,VLTO,,2023-10-02,,first membership day,last membership day,2023-10-25,2026-10-31

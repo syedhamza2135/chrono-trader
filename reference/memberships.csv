@@ -24,6 +24,7 @@ entity_id,member_from,member_to,source_ticker,how,to_exact
 0000009892,1996-01-02,2017-12-29,BCR,same ticker (37),True
 0000010456,1996-01-02,,BAX,same ticker (143),True
 0000010795,1996-01-02,,BDX,same ticker (143),True
+0000011199,2019-06-07,2019-06-11,BMS,added: missing from the membership file,True
 0000011544,2019-12-05,,WRB,same ticker (83),True
 0000012208,2020-06-22,2024-09-23,BIO,Wikipedia lagging the change by days,True
 0000012659,1996-01-02,2020-09-21,HRB,same ticker (69),True
@@ -591,6 +592,8 @@ entity_id,member_from,member_to,source_ticker,how,to_exact
 0001306830,2018-12-24,2025-03-24,CE,same ticker (75),True
 0001308161,2004-12-20,2019-03-19,FOXA,same ticker (51),True
 0001308161,2015-09-21,2019-03-19,FOX,same ticker (42),True
+0001308161,2019-03-19,2019-03-20,TFCFA,added: missing from the membership file,True
+0001308161,2019-03-19,2019-03-20,TFCF,added: missing from the membership file,True
 0001316835,2023-12-18,2026-09-21,BLDR,same ticker (33),True
 0001318605,2020-12-21,,TSLA,same ticker (71),True
 0001321655,2024-09-23,,PLTR,same ticker (26),True
@@ -754,7 +757,7 @@ entity_id,member_from,member_to,source_ticker,how,to_exact
 0001732845,2015-07-02,2024-07-08,WRK,same ticker (62),True
 0001739940,1996-01-02,,CI,same ticker (69),True
 0001744489,1996-01-02,,DIS,same ticker (69),True
-0001748790,2019-06-07,,AMCR,same ticker (89),True
+0001748790,2019-06-11,,AMCR,same ticker (89),True
 0001751008,2025-09-22,,APP,same ticker (14),True
 0001751788,2019-04-02,,DOW,same ticker (91),True
 0001754301,2019-03-19,,FOX,same ticker (92),True
@@ -775,6 +778,7 @@ entity_id,member_from,member_to,source_ticker,how,to_exact
 0001858681,2024-12-23,,APO,same ticker (23),True
 0001868275,2022-02-02,,CEG,same ticker (57),True
 0001932393,2023-01-04,,GEHC,same ticker (46),True
+0001941365,2022-12-15,2022-12-19,MBC,added: missing from the membership file,True
 0001944048,2023-08-25,,KVUE,same ticker (39),True
 0001964738,2024-04-01,,SOLV,same ticker (31),True
 0001967680,2023-10-02,,VLTO,same ticker (37),True

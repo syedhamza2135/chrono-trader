@@ -1,6 +1,6 @@
 # Chrono-trader: problem statement and plan
 
-Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`). The time wall, the reader and the learner aren't built yet.
+Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`), and the fixes from its review are in (`research/audit/m0_review.md`). The time wall, the reader and the learner aren't built yet.
 
 This is version 2 (30 Oct 2026). It's rebuilt on Alpaca data after the review in `REVIEW.md`. The review's evidence and probe scripts stay in `REVIEW.md` and `research/fnspid_probes/`.
 
@@ -16,14 +16,17 @@ Decisions so far:
 - **30 Oct 2026: one share class per company.** GOOG and GOOGL both rank in the top 50 every year, which would let the ranking bet a company against itself. Keep the more liquid class.
 - **30 Oct 2026: Benzinga stories only.** Alpaca added a second source, fiscal.ai, on 18 Oct 2026, and it has made up 59% of the feed since. Every earlier story is Benzinga's, so keeping fiscal.ai would hand the forward test a news mix the model never learned on.
 - **30 Oct 2026: the reader can run on the laptop.** It only needs single-firm stories about S&P 500 members: 511,678 headlines from 2016 to 2026. At 6 to 7 headlines a second that's about 22 hours, run a year at a time. This replaces the earlier plan to read on a free cloud GPU, which assumed millions of headlines. A cloud GPU is still the faster option, and M2 picks one.
-- **31 Oct 2026: companies, not tickers.** Every S&P 500 member since 2015 has a permanent ID, its SEC CIK, with its tickers and share classes by date (`reference/identity.csv`). Prices are fetched per ticker inside those dates, and news tags map to companies by date. Counted by company, the reader needs 500,740 headlines (section 9.3).
+- **31 Oct 2026: companies, not tickers.** Every S&P 500 member since 2015 has a permanent ID, its SEC CIK, with its tickers and share classes by date (`reference/identity.csv`). Prices are fetched per ticker inside those dates, and news tags map to companies by date. Counted by company, the reader needs 500,745 headlines (section 9.3).
 - **31 Oct 2026: price corrections are data.** Alpaca's adjusted bars get most spin-offs wrong, and its daily open is the first trade on any venue, which can be far from the opening auction on a chaotic day. Corrections live in `reference/price_events.csv`, each with its evidence, and the simulator and features must apply them.
+- **4 Nov 2026: incomplete bars are missing data.** On 2021-04-19, 2021-10-25 and 2022-03-08, Alpaca's bars for 326 to 356 NYSE-listed members a day hold only a handful of trades. A bar whose trade count is below 5% of the median of its file's previous 20 bars is flagged (`prices.incomplete`): 1,035 member bars, counting one more on 2018-03-26. The features must treat those bars as missing, and the stock picker ranks without them.
+- **4 Nov 2026: Alpaca's daily open is the first trade, not the opening auction.** Judged to within a cent, or 0.2% when that is more, it misses the listing exchange's opening auction on 23 of 300 random stock-days, and on 259 of the 787 stock-days checked. Beyond the 54 already in `reference/price_events.csv`, misses aren't corrected one at a time. Instead, M1 fetches the listing exchange's official opening auction print for every stock-day the simulator trades (sections 8 and 9.3).
+- **7 Nov 2026: a research brief was checked before any of it was adopted.** `research/brief_check.md` records its claims, the verified facts, what the plan takes from it, what waits and what it rejects.
 
 ## 1. Problem statement
 
 Build an AI that lives through stock market history once, in order, and learns to trade from what it lives through.
 
-Each trading day it sees only what was public before it decides. Track A uses prices and news. Later versions add SEC filings and economic data as first published.
+Each trading day it sees only what was public before it decides. Track A uses prices and news. Later versions add SEC filings and economic data, each as it stood on that day.
 
 It reads the news with a language model whose training ended before that day. So it arrives able to read, but knowing nothing about the market. It picks positions, sees what happens, and updates itself. It can study its own past as often as it likes. It can never see a day it hasn't lived.
 
@@ -37,6 +40,8 @@ Every model learns patterns, and so do people. What matters is when the patterns
 2. **Its data is point-in-time.** Every record carries the moment it became public, and the AI can't see it before then.
 3. **It learns in a single pass.** It learns only from outcomes that have already happened, in order, one day at a time.
 4. **There is a checked guarantee.** Automated tests prove that changing anything in the future can't change a past decision.
+
+**Frontier models never decide.** They can write code, tests and reports. They make no decision on a replayed day, and they write no lessons, priors, rubrics or features that carry what happened later.
 
 **What Track A learns, honestly:** which stocks to rank above others, from news and recent prices. We set how long to hold, how much to bet, and the long/short rules. Learning those from experience is a later step and needs far more data than one replay of history.
 
@@ -72,6 +77,7 @@ Track A builds on that design.
 - **Sarkar and Vafa.** They found lookahead bias in two forecasting tasks and explain why fixes based on prompting are limited.
 - **Glasserman and Lin.** GPT-3.5 sentiment on headlines with company names removed did better in-sample, and the gap faded out of sample. The effect was strongest for large firms, which the model knows most about.
 - **Dated Data (Cheng et al.).** A model's real knowledge cutoff can differ from the stated one, so we check our reader's cutoff ourselves.
+- **Profit Mirage (Li et al.).** Five LLM trading agents (FinMem, FinAgent, QuantAgent, FinCON and TradingAgents), all on GPT-4o, traded NASDAQ-100 stocks. From a 2021 period before GPT-4o's cutoff to a 2024 period after it, their total return fell by 50% to 72% and their Sharpe ratio by 51% to 62%. The paper runs no random baseline.
 
 ### Time-locked models exist, are open, and hold up
 
@@ -79,9 +85,13 @@ Track A builds on that design.
 |---|---|---|---|---|
 | ChronoBERT | 149M-parameter ModernBERT encoder, 1,024-token context, ModernBERT's tokenizer | Yearly, 1999 to 2024 (26 models) | `manelalab` on Hugging Face, MIT license | The reader for this project |
 | ChronoGPT | 1.55B-parameter decoder, 1,792-token context | Yearly, 1999 to 2024 | `manelalab`, MIT license | Custom architecture with its own inference script |
-| ChronoGPT-Instruct | About 1.5B | Yearly, 1999 to 2024 (the paper evaluates a subset) | `manelalab` | Chat model. Got 0 of 76 major events after its cutoff right |
+| ChronoGPT-Instruct | About 1.55B | Yearly, 1999 to 2024 (the paper evaluates a subset) | `manelalab` | Chat model. Got 0 of 76 major events after its cutoff right |
 | DatedGPT | Twelve 1.3B models, about 100B tokens each | Yearly, 2013 to 2024 | Demo at datedgpt.com. Public weights not confirmed | Instruction-tuned, including finance data |
-| PIT models (Kelly, Malamud, Schwab, Xu) | Up to 4B, trained on 1T tokens | Monthly, 2013 to 2024 | Appear on Hugging Face under `Diamegs`. Not yet confirmed as the authors' account | Finest-grained ageing |
+| PIT models (Kelly, Malamud, Schwab, Xu) | Up to 4B, trained on 1T tokens | Yearly, one checkpoint each December from 2013 to 2024, with November instead of December in 2015. The abstract says monthly, but the paper's text and the released weights are yearly | `Diamegs` on Hugging Face, the account the paper names | Don't cover 1999 to 2012 |
+
+**The cutoffs are the authors' best effort.** ChronoBERT and ChronoGPT are trained only on text dated before each cutoff, but their authors warn that a misdated document, for example one digitized by OCR, can let later text in. That's one more reason for our own cutoff check (section 5.2).
+
+**Models from before 1999 exist, but none can read news by year.** NoLBERT is one 109M-parameter encoder trained only on 1976 to 1995 text. StoriesLM has yearly BERT models from 1900 to 1963. Models trained on older text stop in 1946 or earlier. None is a yearly ladder that can read 1980s or 1990s financial news, so 1999 stays the earliest start for reading news with vintages.
 
 ### How you use them matters more than which one you pick
 
@@ -120,9 +130,9 @@ So the AI **reads with the time-locked model and decides with a learner trained 
 - **History:** daily bars from 2016.
 - **Raw by default.** `adjustment` can be split, dividend, spin-off or all.
 - **Renames:** `asof` follows them (FB became META on 2022-06-09). `asof=-` turns the mapping off.
-- **Histories follow a symbol, not a company or a share class.** A history fetched with `asof` can splice in another security that used the same symbol before or after: the FOXA file is 21st Century Fox until 2019-03-18 and Fox Corporation after, and Under Armour's UA file is class A until 2016-12-06 and class C after, because the classes swapped tickers. So each ticker is used only inside the dates the identity table gives it (section 9.3).
-- **The daily open is the day's first trade**, on any exchange. On a chaotic day that can be far from the listing exchange's opening auction, where a market-on-open order fills: on 2023-01-24 the NYSE opened LLY, MA, XOM and others late, 8% to 15% away from Alpaca's open. The daily close matches the official closing auction, with a few exceptions (section 9.3).
-- **Spin-off adjustments are unreliable.** Of the 73 distributions where Alpaca's adjusted and raw moves differ by more than 4%, its adjusted return on the ex-date is off by more than 1 percentage point at 31 (by up to 88 points), and 15 more distributions on member days aren't adjusted at all, such as Corteva's 2026 Vylor spin-off, left as an 84% loss (section 9.3).
+- **Histories follow a symbol, not a company or a share class.** A history fetched with `asof` can splice in another security that used the same symbol before or after: the FOXA file is 21st Century Fox until 2019-03-18 and Fox Corporation after, and Under Armour's UA file is class A until 2016-12-06 and class C after, because the classes swapped tickers. The DWDP file is Dow Chemical before 2017-09-01. So a company's member days come only from inside the dates the identity table gives each ticker, and anything that reads a file outside those dates, like the stock picker's year of trading before a company joins, keeps only the company's own bars (section 9.3).
+- **The daily open is the day's first trade**, on any exchange. On a chaotic day that can be far from the listing exchange's opening auction, where a market-on-open order fills: on 2023-01-24 the NYSE opened LLY, MA, XOM and 12 others late, 8% to 24% away from Alpaca's open. It misses on ordinary days too, by less (23 of 300 random stock-days), so M1 fetches the official opens. The daily close matches the official closing auction, with a few exceptions (section 9.3).
+- **Spin-off adjustments are unreliable.** Of the 73 distributions where Alpaca's adjusted and raw moves differ by more than 4%, its adjusted return on the ex-date is off by more than 1 percentage point at 31 (by up to 88 points), and 17 more distributions on member days aren't adjusted at all (16 spin-offs and warrant dividends, and Under Armour's class C dividend), such as Corteva's 2026 Vylor spin-off, left as an 84% loss (section 9.3).
 - **Delisted symbols stay in the database.** Confirmed: Celgene, Monsanto and Time Warner all return 2016 bars with `asof` set inside 2016.
 - **Bar timestamps:** a daily bar is stamped at midnight New York time (the start of the day), not when its close is known. Confirmed: `2016-01-04T05:00:00Z`.
 
@@ -141,7 +151,7 @@ News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 
 - **S&P 500 membership** comes from `fja05680/sp500` (MIT license). Since 2019 it's compiled from Wikipedia, so check that it covers up to 2026.
 - **Later versions:**
   - SEC EDGAR acceptance timestamps (a filing accepted after 5:30 pm ET counts as filed the next business day)
-  - ALFRED macro data with `realtime_start` and `realtime_end`
+  - ALFRED macro data as of day T: each decision sees the latest vintage published by that day (the FRED API's `vintage_dates`), which can already be a revision. Never today's revised series, and not the first release either
 
 ### Compute
 
@@ -191,6 +201,8 @@ Each record is stored as `id, source, entity_id, symbol, about_time, available_a
 - `available_at` is when it became public.
 
 The agent only ever calls `world.view(t)`, which returns records with `available_at <= t`. Agent code can't import anything else.
+
+**The environment stands alone.** `world`, `sim` and `eval` import nothing from `agent`. An agent plugs in through one call: given the view at time t, return target positions. Track A, Track B and later experiments share it, and the harness and its leak tests could be released one day without the licensed data.
 
 The availability rules are conservative on purpose:
 
@@ -256,13 +268,14 @@ What the non-interference test can't see, and what covers each gap:
 
   Content is an exploratory dev variant at most.
 - **Source.** Benzinga stories only, meaning a blank or `benzinga` label (section 9.3).
-- **Single-firm filter.** Use only stories about at most 2 companies, as the ChronoBERT paper did (following Ke et al.). Companies are counted after the identity table maps tickers to entities, so GOOG and GOOGL count once, and so do Berkshire's four spellings. Counted by company, 963 of Berkshire's 2,210 stories pass; counted by ticker, only 684. Lists like "46 Stocks Moving In ..." are price recaps, not company news, and one sampled story carried 89 symbols. Market-wide, 80% to 88% of stories pass each year, but the share for a single stock shifts: 64% of Apple's January 2015 stories against 37% of Microsoft's September 2026 stories. That's why story counts are compared across stocks on the same day, never across years.
+- **Single-firm filter.** Use only stories about at most 2 companies, as the ChronoBERT paper did (following Ke et al.). Companies are counted after the identity table maps tickers to entities, so GOOG and GOOGL count once, and so do Berkshire's four spellings. Counted by company, 963 of Berkshire's 2,210 stories pass; counted by ticker, only 684. Benzinga's lists of a session's movers are price recaps, not company news, and one sampled story carried 89 symbols. Market-wide, 80% to 88% of stories pass each year, but the share for a single stock shifts: 64% of Apple's January 2015 stories against 37% of Microsoft's September 2026 stories. That's why story counts are compared across stocks on the same day, never across years.
 - **Vintage.** News first available in year Y is read by the year Y−1 model, so 2016 news goes to `chrono-bert-v1-20151231`. News from 2025 and 2026 is read by the 2024 model, the latest, so its vocabulary will age.
 - **Output:** two 768-number embeddings per story (last layer, and the average of all layers), stored as float16 Parquet.
 - **Cutoff check.**
   - For each vintage V, measure its masked-word loss on headlines from years V−1 to V+2. It should jump after V. Compare against vintage V+1 on the same headlines.
   - Probe named events, such as "Brexit" for vintages before 2016 and "COVID" for vintages before 2020.
   - Flag any vintage that knows too much.
+- **Masking diagnostic.** Rerun the reader with company names and dates masked. With time-locked vintages, a change shows that the signal leans on what the model knew about a company before its cutoff, which is allowed. So this is a diagnostic, not a leak test. The leak guarantees stay the vintage rule, the cutoff check and the non-interference tests.
 - **Known limits.**
   - The tokenizer is ModernBERT's 2024 vocabulary, a tiny theoretical leak channel.
   - ChronoBERT's design was chosen in 2025, knowing what worked on 2008 to 2023 news.
@@ -276,10 +289,10 @@ What the non-interference test can't see, and what covers each gap:
   - returns over 1, 5, 20 and 60 days
   - volatility, and change in trading volume
 - **Left out on purpose:** market-wide and macro features. The model ranks stocks against each other, and a number that's the same for every stock can't change a ranking.
-- **Model.** A ridge regression refit every month on all lived days, as in the ChronoBERT paper. Variants to try in dev:
+- **Model.** A ridge regression refit every month on all lived days, as in the ChronoBERT paper. This is the batch learner, and it's the live agent. Variants to try in dev:
   - averaged monthly coefficients
   - more weight on recent data
-  - online models from River
+  - online models from River. These are sequential learners, compared with the batch learner on identical data in the dev years. `PREREG.md` decides whether that comparison becomes a sealed hypothesis.
 
   The ridge is kept as running sums (X'X and X'y), so memory stays small and the learner can only ever add lived days.
 - **Trading:** rank stocks by predicted return.
@@ -296,11 +309,13 @@ What the non-interference test can't see, and what covers each gap:
 
 ### 5.4 Track B: the time-locked LLM trader (after Track A)
 
-- ChronoGPT-Instruct (yearly vintages, confirmed) reads each stock's stories, writes a short thesis, and trades through the same harness. DatedGPT or a PIT-4B model can replace it if their weights turn out to be available.
+- ChronoGPT-Instruct (yearly vintages, confirmed) reads each stock's stories, writes a short thesis, and trades through the same harness. DatedGPT can replace it if its weights turn out to be available, and so can a PIT model (weights under `Diamegs`).
 - After each outcome it writes a reflection into its own journal, and it looks up past entries before deciding. TradingAgents keeps a similar memory, but here the model can't know the future.
+- **Memory as numbers.** The journal keeps its beliefs as structured statistics, such as each signal's recent hit rate, alongside any text.
+- **Memory ablation.** It runs with no memory, a short memory and a long memory. In one small study (Heil, Pramov and Gong, a CLEF 2026 workshop paper), giving a portfolio manager a 5-day or 10-day memory of its recent decisions and hit rate made results worse.
 - **Stretch goal:** fine-tune it now and then with LoRA on its own lived outcomes, so the learning reaches the weights.
 - **Compute.** Days have to run in order; stocks within a day can run in parallel. ChronoGPT's custom architecture may need its own inference code, which is slower than standard model servers. Expect hours per run on one cloud GPU. It isn't practical on the laptop.
-- The evidence in section 3 suggests this track will probably trail Track A. That comparison is a finding in itself.
+- It's compared with Track A's batch learner on the same days. The evidence in section 3 suggests this track will probably trail Track A. That comparison is a finding in itself.
 
 ### 5.5 Evaluation protocol
 
@@ -324,7 +339,9 @@ Draft pre-registered hypotheses (finalized in `PREREG.md`), all measured over th
 | H2 (learning) | The live agent's daily IC beats the twin frozen at the end of 2019 | Paired, one-sided, Newey-West |
 | H3 (reading) | The live agent's IC beats both the price-only twin and the shuffled-news placebo | Paired, one-sided, Newey-West |
 
-Holm's correction is applied across H1 to H3. Sharpe after costs, drawdowns, turnover and exposures are reported but not tested.
+Holm's correction is applied across H1 to H3. Sharpe after costs, drawdowns, turnover and exposures are reported but not tested. So are results by market regime and after big shocks, and how long learned coefficients keep working.
+
+Every random part (the shuffled-news placebo and the random-ranking baseline) runs with several seeds, and the report shows the spread.
 
 The MVP succeeds if:
 - every leak test passes, and every planted leak is caught
@@ -337,7 +354,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 - **Laptop:** the harness, Track A and the reports. Free.
 - **Alpaca Basic:** free, with news included (confirmed).
-- **Reader job:** about 21 hours on the laptop for 500,740 headlines (free), or a much shorter run on Kaggle's free hours or Modal's $30 credit. M2 picks one.
+- **Reader job:** about 21 hours on the laptop for 500,745 headlines (free), or a much shorter run on Kaggle's free hours or Modal's $30 credit. M2 picks one.
 - **Forward test:** GitHub Actions, within the free minutes.
 - **Track B:** a few dollars a run on Modal. Rough estimate.
 
@@ -350,7 +367,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 - **The S&P 500 membership list** is compiled from Wikipedia and may have gaps.
 - **Licensing.** Benzinga news and market data can't be redistributed. Raw data never goes into git or any public repo.
 - **Weak reasoning in Track B.** Small time-locked LLMs reason poorly. In AlpacaEval, ChronoGPT-Instruct's responses won 13 to 17% of head-to-head comparisons against a 1.8B chat model.
-- **Unconfirmed weights.** The `Diamegs` account (PIT models) and DatedGPT's weights are unconfirmed.
+- **Unconfirmed weights.** DatedGPT's public weights are unconfirmed. The PIT models' weights are under `Diamegs`, the account their paper names.
 - **Hindsight.** We both know how 2020 to 2026 went, and the reader's designers did too. The seal limits this. Only the forward test removes it.
 - **Late GitHub runs.** Scheduled runs can start late. A day the job can't finish before the open is logged as missed, never back-filled.
 - **ChronoBERT on CPU** depends on the sdpa or eager attention path working in the pinned transformers version.
@@ -359,12 +376,13 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 1. **Done (30 Oct 2026):** Alpaca paper account, keys in `.env`, and access checked.
 2. **Done (31 Oct 2026): M0, data audit** (section 9.3). Prices and news are downloaded and audited, the identity table is built and checked, price corrections are recorded, the split is confirmed with counts, and the laptop benchmark is done.
-3. **M1:** the time wall and all the test suites.
+3. **M1:** the time wall and all the test suites, and the listing exchange's official opening auction print for every stock-day the simulator trades (section 9.3).
 4. **M2:** the reader job and the cutoff check.
 5. **M3:** Track A on the dev years, with the twins, the placebo and the baselines.
 6. **M4:** write `PREREG.md`, seal, run the sealed years once, and write the report.
 7. **M5:** start the forward test.
 8. **Track B.**
+9. **Later: a long replay from 1999.** One market, for example the S&P 500 index or EUR/USD, with prices, FOMC statements and as-of economic data, on the same environment. It's deferred, not a replacement for Track A: Track A's 2015 to 2026 data is audited and ready, ranking 50 stocks every day gives far more statistical power than trading one market, and Track A reads real company news through time-locked models. A rebuilt past web (Agentic Time Machine, Bench to the Future) can't feed it news, because neither covers 1999 to 2015 (`research/brief_check.md`).
 
 ## 9. Track A build spec
 
@@ -398,14 +416,14 @@ chrono-trader/
   seal.lock        created at the seal
 ```
 
-The `agent` package may import only `world.view`, and a test enforces this.
+The `agent` package may import only `world.view`, and a test enforces this. The other way round, `world`, `sim` and `eval` import nothing from `agent`, and every agent plugs in through the one call in section 5.1. A test enforces that too.
 
 ### 9.2 Milestones
 
 | # | Milestone | Done when |
 |---|---|---|
 | M0 | Data audit | `audit.md` answers every question in 9.3, the identity table is checked, and the dev/sealed split is confirmed using counts only |
-| M1 | Time wall | Every test in 9.11 passes, and every planted leak gets caught |
+| M1 | Time wall and official opens | Every test in 9.11 passes, every planted leak gets caught, and the simulator has the listing exchange's official opening auction print for every stock-day it trades |
 | M2 | Reader | Every filtered story is embedded by the right vintage, and the cutoff check passes (or any failing vintage is replaced) |
 | M3 | Track A on dev years | A dev report shows IC by quarter, frozen twins, placebo, price-only twin, matched baselines, holding-period variants, costs and exposures |
 | M4 | Pre-register, seal, sealed run | `PREREG.md` is hashed into `seal.lock`, and the sealed report is published as-is |
@@ -443,50 +461,51 @@ The `agent` package may import only `world.view`, and a test enforces this.
 | Bar timestamps | Midnight New York time (`2016-01-04T05:00:00Z`) |
 | Date filter | One query returned stories created weeks before its window. The full download showed why: Alpaca filters by update time. Timing always comes from each story's own fields |
 
-**Price audit (31 Oct 2026).** Run with `python -m data_pipeline.audit_prices`, on the bars `python -m data_pipeline.bars` fetches from the identity table. The full report is in `research/audit/prices.md`.
+**Price audit (31 Oct 2026; rerun on 5 Nov after the M0 review, `research/audit/m0_review.md`).** Run with `python -m data_pipeline.audit_prices`, on the bars `python -m data_pipeline.bars` fetches from the identity table. The full report is in `research/audit/prices.md`.
 
 | Question | Answer |
 |---|---|
-| Downloads | 782 plan rows for 717 companies, each ticker fetched as of a date inside its own row: 1,564 files (raw and adjusted), 179 MB, covering 1,371,715 company member days |
+| Downloads | 787 plan rows for 719 companies, each ticker fetched as of a date inside its own row: 1,574 files (raw and adjusted), 179 MB, covering 1,360,471 company member days to 2026-10-28 (a company listed with two classes counts once a day) |
 | Membership coverage | The membership history runs to today: fja05680 to 18 Aug 2026, then Wikipedia's change log. It ends with the 503 members on Wikipedia's list |
-| Survivorship | Every member company has bars on every picking date, 2016 to 2026. 68 member sessions have no bar: 66 come after a company's last trade (an acquisition closes before the index removal takes effect) and 2 before Amcor's first NYSE trade. The first run's gaps (10 names in 2016) were labelling problems |
-| Identity | No two companies share 20 or more identical member-day bars. Alpaca's own histories splice securities that used one symbol (FOXA, UA, ARNC, DLPH, XL), so each ticker is used only inside its row. A company changes rows 53 times while a member, and 9 of those days need a return stitched from the previous row |
-| Large moves | 265 adjusted one-day moves above 25% on member days; 14 reversed by more than 20% the next day, and those match the official auction prints (PG&E in Nov 2018, First Republic in Mar 2023, Globe Life in Apr 2024, Moderna in Aug 2026). The first run's 134 and 8 missed current members, whose file names depended on the run date; 267 and 14 on the draft identity table became 265 and 14. The 10 large moves in picked stocks' own years all match the official prints |
-| Official prints | Checked on 784 days. Alpaca's close matches the official closing auction (p99 0.06% on 300 random days), with 5 exceptions. Its open is the day's first trade on any exchange, and on chaotic days it misses the listing exchange's opening auction by up to 24%: 54 days, including 15 stocks on 2023-01-24, the NYSE opening glitch |
-| Adjustment events | 150 member days where the adjusted and raw moves differ by more than 4%: 77 splits and 73 distributions (spin-offs, special dividends, a warrant dividend). All 73 are checked against the true total return on the ex-date: 31 are off by more than 1 percentage point (1.1 to 88 points) and 42 are within 1 point. Distributions that Alpaca doesn't adjust at all never show here: 15 were found on member days (Yum China, nVent and Vylor among them), all more than 1 point off and corrected |
+| Survivorship | Every member company has bars on every picking date, 2016 to 2026. 64 member sessions have no bar, all after a company's last trade: 58 where an acquisition closes a few days before the index removal takes effect, and 6 where a failed bank's shares stop trading (SVB Financial from 2023-03-10, First Republic from 2023-05-01). The first run's gaps (10 names in 2016) were labelling problems, and the 2 sessions once put before Amcor's first trade were Bemis's |
+| Identity | No two companies share 20 or more identical member-day bars. Alpaca's own histories splice securities that used one symbol (FOXA, UA, ARNC, DLPH), so a ticker's member days are only those inside its row, and the pick ranking keeps only a company's own bars. Before the review, the ranking used Dow Chemical's bars in the DWDP file for DowDuPont's 2018 pick and left it out of the top 50; on its own bars it ranks 40th. XL is two securities to Alpaca, so it has two rows. A company changes rows 56 times while a member, and 11 of those days need a return stitched from the previous row. On 195 first member days, or returns after a gap, the file's previous bar can't be shown to be the company's own, so the return is left undefined |
+| Large moves | 265 adjusted one-day moves above 25% on member days; 141 fail the print check (almost all on the open) and 43 are corrected in `reference/price_events.csv`. 14 reversed by more than 20% the next day. Of those, 3 match the official auction prints on both sides (PG&E in Nov 2018, Lincoln Financial and Noble Energy in Mar 2020), and `price_events.csv` corrects 6: Nordstrom's bar, Hilton's and Oneok's closes, and the opens of Hess, Ventas and Aptiv. The other 5 match the official close and miss the open by 0.4% to 1.6% (First Republic on three days in Mar 2023, Globe Life in Apr 2024, Moderna in Aug 2026). The first run's 134 and 8 missed current members, whose file names depended on the run date; 267 and 14 on the draft identity table became 265 and 14. The 10 large moves in picked stocks' own years all match the official close; 7 match the open too, and the other 3 miss it by 0.2% to 0.5% (Twitter in 2022, Oracle in 2025, Supermicro in 2026) |
+| Official prints | Checked on 787 stock-days (436 dates): the large moves, screens for suspicious opens and closes, and 300 random stock-days. A bar's open or close matches when it is within a cent of the listing exchange's official auction print, or 0.2% of it when that is more. Alpaca's close matches on all 300 random days (the largest gap is 0.06%) and misses on 8 stock-days: 7 closing auctions and Nordstrom's rebuilt bar, all corrected. Its open is the day's first trade on any exchange, and it misses the opening auction on 259 stock-days (128 dates), with a median gap of 0.64%. That includes 23 of the 300 random days, and 15 stocks on 2023-01-24, the NYSE opening glitch, by up to 24%. 55 of the misses are corrected (54 opening prints and Nordstrom's bar), and M1's official opens cover the rest. 2 closes had no print to judge. The first check, on 784 stock-days at a 2% tolerance, called 198 of these open misses matches |
+| Adjustment events | 150 member days where the adjusted and raw moves differ by more than 4%: 77 splits and 73 distributions (spin-offs, special dividends, a warrant dividend). All 73 are checked against the true total return on the ex-date: 31 are off by more than 1 percentage point (1.1 to 88 points) and 42 are within 1 point. Distributions that Alpaca doesn't adjust at all never show here: 17 were found on member days, 16 spin-offs and warrant dividends (Yum China, nVent and Vylor among them) and Under Armour's class C dividend, all more than 1 point off and corrected |
+| Incomplete bars | 1,035 member bars hold only part of the day's trades (a trade count below 5% of the median of the file's previous 20 bars): 1 on 2018-03-26, 356 on 2021-04-19, 326 on 2021-10-25 and 352 on 2022-03-08. 83 of them are in that year's picks. Their volume, high, low and VWAP aren't the day's, and their open may not be either, so the features must treat them as missing. The list is `research/audit/incomplete_bars.csv` |
 | Trading days | Apple's bars match the NYSE calendar exactly, to 2026-10-28 |
-| Picking preview | 5 to 10 of the 50 names change each year, with one share class per company. Picks that later left the index (Allergan, Celgene, Twitter, American Airlines) all have bars |
+| Picking preview | 5 to 9 of the 50 names change each year, with one share class per company. Each company is ranked on its own bars, without incomplete bars. Picks that later left the index (Allergan, Celgene, Twitter, American Airlines) all have bars |
 | Laptop reading speed | 6 to 7 headlines a second with ChronoBERT on the CPU |
 
-**Identity audit (31 Oct 2026).** Run with `python -m data_pipeline.identity`, checked by `python -m pytest tests` (53 tests). The full report is in `research/audit/identity.md`.
+**Identity audit (31 Oct 2026; rebuilt on 4 Nov after the M0 review).** Run with `python -m data_pipeline.identity`, checked by `python -m pytest tests` (131 tests). The full report is in `research/audit/identity.md`.
 
 | Question | Answer |
 |---|---|
-| Companies | 744 companies since 2015, keyed by SEC CIK, with 807 ticker rows dated exactly or by a membership day. Seven list two share classes at once (Alphabet, Comcast, Discovery, both Foxes, News Corp, Under Armour) |
-| The membership file | Labels about 25 early periods with later tickers (Yahoo as AABA), joins companies that shared a ticker (CB, IR, JCI, AGN, FOX and FOXA, FTI), leaves out ACE, Tyco and Actavis, lists Michael Kors and Coca-Cola Enterprises twice, and has three dates wrong (Trane, Cimarex, Four Corners). All fixed in `reference/identity_fixes.csv`: 86 rows, each with its evidence |
+| Companies | 746 companies since 2015, keyed by SEC CIK, with 814 ticker rows dated exactly or by a membership day. Seven list two share classes at once (Alphabet, Comcast, Discovery, both Foxes, News Corp, Under Armour) |
+| The membership file | Labels about 25 early periods with later tickers (Yahoo as AABA), joins companies that shared a ticker (CB, IR, JCI, AGN, FOX and FOXA, FTI), leaves out ACE, Tyco and Actavis, lists Michael Kors and Coca-Cola Enterprises twice, has three dates wrong (Trane, Cimarex, Four Corners), gives Bemis's two member days (2019-06-07 and 2019-06-10) to Amcor, and leaves out 21st Century Fox's last member day (2019-03-19, as TFCFA and TFCF) and MasterBrand's two (2022-12-15 and 2022-12-16). All fixed in `reference/identity_fixes.csv`: 97 rows, each with its evidence |
 | Wikipedia | Its CIK column lags events by months or years (Fox by 18 months, Medtronic by 4 years). Our parser had dropped Tractor Supply from three 2015 revisions, and now reads it |
-| News tags | Map to companies by date: PCLN is Booking until 2018-02-26, META in 2021 is nobody (Roundhill's ETF), and BRK/B and plain BRK are Berkshire |
+| News tags | Map to companies by date: PCLN is Booking until 2018-02-26, META in 2021 is nobody (Roundhill's ETF), and BRK/B and plain BRK are Berkshire. A class tag on a plain ticker's root (LEN.B, CBS.A, STZ.B) maps to that company, for the US class tags in the news only |
 | Open items | None |
 
-**Price corrections (31 Oct 2026).** `reference/price_events.csv` holds 116 rows, each with its evidence: 54 opening and 5 closing auctions that Alpaca's bars miss; Nordstrom on 2018-03-26, rebuilt from clean trades; 54 distributions with their true total return; and Biogen's two halts. The distributions are the 31 in `research/audit/adjustment_events.csv` where Alpaca's adjusted return is more than 1 percentage point off (named in `research/audit/audit.md`), GE's real ex-date for its 2019 Wabtec distribution (Alpaca applies it a day early), Under Armour's unadjusted class C dividend, four at a change of ticker, 15 spin-offs and warrant dividends that Alpaca never applies, Aimco's 2019 special dividend (only its reverse split is applied), and Occidental's dividend on 2020-03-09. The other 42 distributions in that table are within 1 point.
+**Price corrections (31 Oct 2026; updated on 5 Nov after the M0 review).** `reference/price_events.csv` holds 122 rows, each with its evidence: 54 opening auctions that Alpaca's bars miss (from the first print check; M1's official opens cover the rest); 7 closing auctions; Nordstrom on 2018-03-26, rebuilt from clean trades; 55 distributions with their true total return; Biogen's two halts; and three failed banks whose shares stopped trading while they were still members (SVB Financial, First Republic and Signature Bank). The distributions are the 31 in `research/audit/adjustment_events.csv` where Alpaca's adjusted return is more than 1 percentage point off (named in `research/audit/audit.md`), GE's real ex-date for its 2019 Wabtec distribution (Alpaca applies it a day early), Under Armour's unadjusted class C dividend, four at a change of ticker, 16 spin-offs and warrant dividends that Alpaca never applies, Aimco's 2019 special dividend (only its reverse split is applied), and Occidental's dividend on 2020-03-09. The other 42 distributions in that table are within 1 point.
 
-**News audit (30 Oct 2026; coverage and reading load recounted by company on 31 Oct).** Run with `python -m data_pipeline.audit_news`. The full report is in `research/audit/news.md`.
+**News audit (30 Oct 2026; coverage and reading load recounted by company on 31 Oct; rerun on 5 Nov with New York years, and picked stories counted from each year's pick date).** Run with `python -m data_pipeline.audit_news`. The full report is in `research/audit/news.md`.
 
 | Question | Answer |
 |---|---|
 | Download | All 142 months from Jan 2015 to Oct 2026: 2,260,406 unique stories, 251 MB of Parquet, about 4.5 hours |
 | Date filter | Alpaca filters by update time. Every story's `updated_at` falls inside the month whose query returned it, and 0.09% were created in an earlier month. Each story is stored once, under the month of its latest edit |
 | Sources | Benzinga only until 18 Oct 2026. Its `source` label is blank until 4 Jan 2022, and every blank-label story links to benzinga.com. Then fiscal.ai arrived with press releases and analyst-rating notes, and made up 59% of stories from 19 to 29 Oct |
-| Volume | Benzinga stories a year: 138,536 in 2015, a low of 107,848 in 2017, a high of 261,736 in 2024, and 208,830 in 2026 up to 29 Oct |
+| Volume | Benzinga stories a year: 138,536 in 2015, a low of 107,848 in 2017, a high of 261,738 in 2024, and 208,827 in 2026 up to 29 Oct |
 | Symbols | Each year, 80% to 88% of stories carry 1 or 2 symbols, and 2% to 10% carry none |
 | Edits | Edited more than 3 days after publishing: 0.2% of 2015's stories, and at most 0.5% in any year (2021) |
-| Timestamps | 12,231 session-recap headlines ("22 Stocks Moving In Thursday's Pre-Market Session") were checked against their stamps, and 5 are stamped before their session. Four of those fall inside the right session on the day they were stamped but name the next weekday, so they're typos. One, a mid-day list stamped 08:03 on 13 Jul 2018, is unexplained. Late stamps only delay a story: 247 pre-market lists, all but one from 2024 and 2025, were stamped between 16:04 and 16:10 |
-| Coverage | The median picked stock has 121 to 319 single-firm stories a year, with news on 73 to 151 days. In 2016 it's 177 stories on 96 days, so 2016 works as the warm-up. The thinnest pick in any year has 28 (Schlumberger in 2017); counted by company, BKNG is no longer thin |
+| Timestamps | 12,231 session recaps (Benzinga's lists of a session's movers, with the day and the session named in the headline) were checked against their stamps, and 5 are stamped before their session. Four of those fall inside the right session on the day they were stamped but name the next weekday, so they're typos. One, a mid-day list stamped 08:03 on 13 Jul 2018 (story 12016835), is unexplained. Late stamps only delay a story: 247 pre-market lists, all but one from 2024 and 2025, were stamped between 16:04 and 16:10 |
+| Coverage | Counted from each year's pick date, the median picked stock has 121 to 319 single-firm stories a year, with news on 71 to 151 days. In 2016, from the 2016-04-01 pick, it's 125 stories on 71 days (the fewest, 31, for Berkshire), so 2016 works as the warm-up. The thinnest pick in any year has 28 (Schlumberger in 2017); counted by company, BKNG is no longer thin |
 | Tickers in the news | Stories carry the tickers in use when they were published. Booking is PCLN until early 2018. Facebook is FB until June 2022. From 30 Jun 2021 to June 2022, META meant Roundhill's Metaverse ETF |
 | Class shares | Berkshire is tagged BRK.B, BRK-B, BRK/B or plain BRK, and Brown-Forman the same way. Counted by company, 963 of Berkshire's 2,210 stories pass the single-firm filter; counted by ticker, 684 |
-| Reading load | Single-firm stories about companies that are S&P 500 members on the story's date, 2016 to 2026: 500,740 headlines, about 21 hours on the laptop and 1.5 GB of embeddings. For the year's 50 picked companies only: 172,310, about 7 hours |
+| Reading load | Single-firm stories about companies that are S&P 500 members on the story's date, 2016 to 2026: 500,745 headlines, about 21 hours on the laptop and 1.5 GB of embeddings. For the year's 50 picked companies only, from each pick date: 168,803, about 7 hours |
 
-**The split (31 Oct 2026).** `reference/split.json`, from counts only: the warm-up has 252 sessions, the dev years 754 and the sealed years 1,715 so far, with 79,004 single-firm stories about members in the dev years and 388,440 in the sealed years.
+**The split (31 Oct 2026; rerun on 5 Nov).** `reference/split.json`, from counts only: the warm-up has 252 sessions, the dev years 754 and the sealed years 1,715 so far, with 79,000 single-firm stories about members in the dev years and 387,796 in the sealed years. Stories are counted by New York date up to each period's last session, so the sealed years stop at 2026-10-28.
 
 Outputs: `research/audit/audit.md` (the answers above, question by question), `reference/identity.csv` (with `entities.csv`, `memberships.csv` and `identity_fixes.csv`), `reference/price_events.csv` and `reference/split.json`.
 
@@ -524,6 +543,8 @@ All times are stored in UTC and converted to New York time, with daylight saving
 | vol20 | Standard deviation of daily returns over 20 days |
 | dvol_ratio | Log of 5-day over 60-day average dollar volume, from raw bars |
 
+Bars flagged incomplete (`prices.incomplete`) count as missing for every feature built from volume, range or VWAP.
+
 **Target:** the log total return from day k's open to day k+1's open, minus that day's average across the 50 stocks.
 
 ### 9.7 The learner
@@ -532,6 +553,7 @@ All times are stored in UTC and converted to New York time, with daylight saving
 - Use a ridge regression, refit monthly from running sums over an expanding window. As variants, try averaged monthly coefficients (as in the ChronoBERT paper) and recency weighting.
 - Try penalties from 10⁻² to 10⁴, and validate as described in 9.5.
 - Compute in float64. Sort everything into a fixed order and set `PYTHONHASHSEED=0`. Tests run with a single BLAS thread.
+- **Batch against sequential.** The monthly ridge is the batch learner, and it's the live agent. Online models from River are sequential learners, run on identical data in the dev years. `PREREG.md` decides whether that comparison becomes a sealed hypothesis.
 
 ### 9.8 Portfolio and costs
 
@@ -544,10 +566,11 @@ All times are stored in UTC and converted to New York time, with daylight saving
 ### 9.9 Comparison runs
 
 Every run uses the same harness:
-- the live agent
+- the live agent (the batch learner)
+- sequential learners (the online variants), on identical data in the dev years
 - frozen twins, one per year end, with the end-of-2019 twin pre-registered
 - a price-only twin
-- a shuffled-news placebo, where embeddings are swapped between stocks within each day using a fixed seed
+- a shuffled-news placebo, where embeddings are swapped between stocks within each day
 - long-short baselines: random ranking, 12-1 momentum and 5-day reversal
 - long-only baselines: SPY buy-and-hold and holding all 50 equally
 
@@ -558,6 +581,9 @@ Every run uses the same harness:
 - **The pre-registered tests H1 to H3,** with Holm's correction (sealed years only).
 - **Long-short and long-only results:** return, volatility, Sharpe before and after costs, maximum drawdown, turnover, beta and sector tilt.
 - **Deflated Sharpe** for the chosen dev version, using the number of trials in `runs/trials.csv`.
+- **Seed spread:** the result for each seed of the placebo and the random ranking, and their spread.
+- **Regimes and shocks:** results by market regime and after big shocks. Reported, not tested.
+- **Coefficient life:** how long learned coefficients keep working. Reported, not tested.
 - **Charts:** IC over time, frozen-twin gaps, equity curves against matched baselines, and cost sensitivity.
 
 ### 9.11 Tests
@@ -574,6 +600,7 @@ Every run uses the same harness:
 | Identity | No two entities share a return series, and every symbol maps to exactly one entity on each date |
 | Large moves | Every one-day move above 25% in a stock on the list has been reviewed |
 | Import boundary | `agent` imports nothing except `world.view` |
+| Reverse import boundary | `world`, `sim` and `eval` import nothing from `agent` |
 | Trading days | Decision days equal the trading days in the price data, with no decisions on holidays |
 | Seal | The runner refuses sealed dates without a matching `seal.lock` (settings, `PREREG.md` and commit) and a clean git tree |
 
@@ -586,12 +613,12 @@ Every run uses the same harness:
 
 ### 9.13 Rough sizes (estimates)
 
-- **Price bars (measured):** 782 plan rows for 717 companies, 1,564 files (raw and adjusted), 179 MB. The first download took about 10 minutes.
+- **Price bars (measured):** 787 plan rows for 719 companies, 1,574 files (raw and adjusted), 179 MB on disk on 7 Nov. The first download took about 10 minutes.
 - **News (measured):** 2,260,406 stories from Jan 2015 to Oct 2026 (2,243,739 of them Benzinga's), 251 MB of Parquet, about 4.5 hours to download.
 - **The trading list:** 50 stocks × about 2,700 trading days ≈ 135,000 stock-days.
-- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 500,740 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
+- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 500,745 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
 - **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded wherever the reader runs.
-- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 500,740 take about 21 hours on the laptop.
+- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 500,745 take about 21 hours on the laptop.
 - **Ridge fits** are small, so a full Track A replay should take minutes on the laptop.
 
 ## Sources
@@ -605,7 +632,9 @@ Time-locked models
 - He, Lv, Manela, Wu. Instruction Tuning Chronologically Consistent Language Models. https://arxiv.org/html/2510.11677v1
 - DatedGPT. https://arxiv.org/abs/2603.11838
 - Kelly, Malamud, Schwab, Xu. Scaling Point-in-Time Language Models. https://arxiv.org/abs/2607.11889 and https://www.sfi.ch/en/publications/n-26-37-scaling-point-in-time-language-models
-- PIT model weights (account unconfirmed). https://huggingface.co/Diamegs/PIT-1B-202312
+- PIT model weights (the `Diamegs` account, named in the paper; one checkpoint a year). https://huggingface.co/Diamegs
+- Kakhbod, Li. NoLBERT. https://arxiv.org/abs/2509.01110 and https://huggingface.co/alikLab/NoLBERT
+- Sarkar. StoriesLM. https://huggingface.co/StoriesLM
 - Drinkall et al. Time Machine GPT. https://arxiv.org/abs/2404.18543
 - Benhenda. Look-Ahead-Bench. https://arxiv.org/abs/2601.13770
 
@@ -614,6 +643,7 @@ Leakage evidence
 - Sarkar, Vafa. Lookahead Bias in Pretrained Language Models. https://conference.nber.org/conf_papers/f205530/f205530.pdf
 - Glasserman, Lin. Assessing Look-Ahead Bias in Stock Return Predictions Generated by GPT Sentiment Analysis. https://arxiv.org/abs/2309.17322
 - Cheng et al. Dated Data. https://arxiv.org/abs/2403.12958
+- Li, Zeng, Xing, Xu, Xu. Profit Mirage: Revisiting Information Leakage in LLM-based Financial Agents. https://arxiv.org/abs/2510.07920
 
 Agents and benchmarks
 - TradingAgents. https://github.com/tauricresearch/tradingagents
@@ -626,6 +656,9 @@ Agents and benchmarks
 - StockBench. https://arxiv.org/abs/2510.02209
 - LiveTradeBench. https://arxiv.org/abs/2511.03628
 - Alpha Arena season 1 results. https://forklog.com/en/four-out-of-six-ai-models-suffer-losses-in-trading-tournament/
+- Heil, Pramov, Gong. On the Role of Tools in Agentic LLM-Based Trading Systems (CLEF 2026). https://ceur-ws.org/Vol-4283/paper196.pdf
+- Chai et al. Agentic Time Machine as an Infrastructure for Future-Event Forecasting. https://arxiv.org/abs/2606.21013
+- FutureSearch. Bench to the Future: A Pastcasting Benchmark for Forecasting Agents. https://arxiv.org/abs/2506.21558
 
 Return predictability
 - Ke, Kelly, Xiu. Predicting Returns with Text Data. https://www.nber.org/papers/w26186
@@ -647,6 +680,7 @@ Other data
 - S&P 500 history. https://github.com/fja05680/sp500
 - EDGAR filing times. https://www.hudson-labs.com/post/filing-after-hours-when-it-matters and https://dm.certent.com/help/Content/F_File/timing_filing.htm
 - ALFRED. https://fredblog.stlouisfed.org/2021/04/alfred-at-15-archiving-fred-data-since-2006/ and https://github.com/mortada/fredapi
+- FRED API: real-time periods and vintages. https://fred.stlouisfed.org/docs/api/fred/realtime_period.html and https://fred.stlouisfed.org/docs/api/fred/series_observations.html
 - FNSPID (rejected; see `REVIEW.md`). https://huggingface.co/datasets/Zihan1004/FNSPID
 
 Methods and compute

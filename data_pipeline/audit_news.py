@@ -6,19 +6,26 @@ Checks, by year:
   mapping each tag to a company on the story's date with the identity table; a tag of a company outside the
   table counts as one company of its own)
 - edit lags (how often and how late stories change after publishing)
-- timestamps against session recaps ("22 Stocks Moving In Thursday's Pre-Market Session"): a recap
-  stamped before its session began would mean timestamps run early, which is the leak that matters
-- coverage of the companies the picking rule would choose (research/audit/universe_preview.csv)
+- timestamps against session recaps (Benzinga's lists of the movers in a named day's pre-market, mid-day or
+  after-hours session): a recap stamped before its session began would mean timestamps run early, which is the
+  leak that matters
+- coverage of the companies the picking rule would choose (research/audit/universe_preview.csv), counted from
+  each year's pick date
 - which ticker a renamed company's stories carry (FB or META)
+
+Years and dates are New York time. research/audit/news_by_day.csv counts stories per New York date, for split.py
+to sum over each period's sessions.
 
 Usage: python -m data_pipeline.audit_news
 """
 from datetime import date
 
+import exchange_calendars as xcals
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
 
+from .audit_prices import pick_dates
 from .settings import DATA_DIR, ROOT
 
 NEWS = DATA_DIR / "news"
@@ -52,18 +59,36 @@ def companies(df):
     return out
 
 
-def reading_load(single, uni):
-    """Per year from 2016: single-firm stories naming a company that is an S&P 500 member on the story's New York
-    date (reference/memberships.csv), and those naming one of the year's picked companies."""
+def member_stories(single):
+    """Single-firm stories from 2016, one row per company they name that is an S&P 500 member on the story's New
+    York date (reference/memberships.csv)."""
     members = pd.read_csv(ROOT / "reference" / "memberships.csv", dtype=str)
     members["member_from"] = pd.to_datetime(members.member_from)
     members["member_to"] = pd.to_datetime(members.member_to).fillna(pd.Timestamp.max)
     s = single[single.year >= 2016].assign(day=lambda x: pd.to_datetime(x.day))
     j = s.merge(members, left_on="entities", right_on="entity_id")
-    j = j[(j.member_from <= j.day) & (j.day < j.member_to)]
+    return j[(j.member_from <= j.day) & (j.day < j.member_to)]
+
+
+def reading_load(single, uni, picks):
+    """Per year from 2016: single-firm stories naming a company that is an S&P 500 member on the story's New York
+    date (reference/memberships.csv), and those naming one of the year's picked companies on or after the year's
+    pick date (picks, from audit_prices.pick_dates: 2016-04-01, then the first trading day of each year)."""
+    j = member_stories(single)
     picked = set(zip(uni.year, uni.entity_id))
     j["picked"] = [(y, e) in picked for y, e in zip(j.year, j.entities)]
+    j["picked"] &= j.day >= j.year.map(picks)  # no list exists before the year's pick date
     return [{"year": y, "members": g.id.nunique(), "picked": g[g.picked].id.nunique()} for y, g in j.groupby("year")]
+
+
+def by_day(df, single):
+    """Per New York date from 2016: Benzinga stories, and single-firm stories naming a company that is an S&P 500
+    member that day (as in reading_load). No price or pick goes into these counts; split.py sums them."""
+    stories = df[df.year >= 2016].ny.dt.date.value_counts()
+    members = member_stories(single).groupby("day").id.nunique()
+    members.index = members.index.date
+    out = pd.DataFrame({"stories": stories, "members": members}).fillna(0).astype(int).sort_index()
+    return out.rename_axis("date")
 
 
 def load():
@@ -72,17 +97,17 @@ def load():
     df["created"] = pd.to_datetime(df["created_at"], utc=True)
     df["updated"] = pd.to_datetime(df["updated_at"], utc=True)
     df = df.sort_values("updated").drop_duplicates("id", keep="last")
-    df["year"] = df.created.dt.year
+    df["ny"] = df.created.dt.tz_convert("America/New_York")
+    df["year"] = df.ny.dt.year  # the New York year, like every date in this audit
     df["n_symbols"] = df.symbols.apply(len)
     df["lag_h"] = (df.updated - df.created).dt.total_seconds() / 3600
-    df["ny"] = df.created.dt.tz_convert("America/New_York")
     return df
 
 
 def recaps(df):
     """Session recaps, each marked inside its session's window, late, or early (stamped before the session began)."""
     found = df.headline.str.lower().str.extract(RECAP)
-    rec = df.loc[found[0].notna(), ["year", "ny", "headline"]].assign(day=found[0], session=found[1])
+    rec = df.loc[found[0].notna(), ["id", "year", "ny", "headline"]].assign(day=found[0], session=found[1])
     created = rec.ny.dt.day_of_week
     since = (created - rec.day.map({d: i for i, d in enumerate(DAYS)}).fillna(created)) % 7  # "today" is the day it was created
     hour = rec.ny.dt.hour + rec.ny.dt.minute / 60
@@ -126,18 +151,20 @@ def main():
     rec_table = rec_table.reindex(columns=["inside", "late", "early"], fill_value=0)
     early = rec[rec.status == "early"].sort_values("ny")
 
+    mask = (df.n_companies >= 1) & (df.n_companies <= 2)
+    single = df.loc[mask, ["id", "year", "entities"]].assign(day=df.loc[mask, "ny"].dt.date).explode("entities")
+    single = single.dropna(subset=["entities"])
+    daily = by_day(df, single)
+    picks = pick_dates(xcals.get_calendar("XNYS").sessions_in_range("2016-01-01", f"{df.year.max()}-12-31"))
     cov_rows, load_rows = [], []
     uni_path = OUT / "universe_preview.csv"
     if uni_path.exists():
         uni = pd.read_csv(uni_path, dtype={"entity_id": str})
-        mask = (df.n_companies >= 1) & (df.n_companies <= 2)
-        single = df.loc[mask, ["id", "year", "entities"]].assign(day=df.loc[mask, "ny"].dt.date).explode("entities")
-        single = single.dropna(subset=["entities"])
-        load_rows = reading_load(single, uni)
+        load_rows = reading_load(single, uni, picks)
         for y in sorted(set(uni.year) & set(df.year)):
             picked = uni[uni.year == y]
             label = dict(zip(picked.entity_id, picked.symbol))
-            s = single[(single.year == y) & single.entities.isin(label)]
+            s = single[(single.year == y) & (single.day >= picks[y].date()) & single.entities.isin(label)]
             per_name = s.groupby("entities").size().reindex(list(label), fill_value=0)
             days = s.groupby("entities")["day"].nunique().reindex(list(label), fill_value=0)
             thin = per_name[per_name < 10]
@@ -152,13 +179,14 @@ def main():
     first_meta = tagged.loc[tagged.symbols == "META", "ny"].min()
 
     by_year.to_csv(OUT / "news_by_year.csv")
+    daily.to_csv(OUT / "news_by_day.csv")
     pd.DataFrame(load_rows, columns=["year", "members", "picked"]).to_csv(OUT / "news_reading_load.csv", index=False)
     lines = [
         "# News audit",
         "",
         f"Generated by `python -m data_pipeline.audit_news` on {date.today()}, from {len(months)} downloaded months "
         f"({months[0]} to {months[-1]}): {total:,} unique stories after de-duplicating by id, "
-        f"{len(df):,} of them Benzinga stories created since {FIRST_YEAR}.",
+        f"{len(df):,} of them Benzinga stories created since {FIRST_YEAR}. Years and dates are New York time.",
         "",
         "## Query window",
         "",
@@ -188,21 +216,25 @@ def main():
         "",
         "## Session recaps against their timestamps (created_at in New York time)",
         "",
-        "Headlines such as \"22 Stocks Moving In Thursday's Pre-Market Session\". Windows: pre-market 4:00 to 9:30, "
-        "mid-day 11:00 to 14:00, after-hours 16:00 to 20:00. A late stamp only delays a story. An early one, before the "
-        "session began, would leak the future into the past, so early is the column that matters.",
+        "Recaps are Benzinga's lists of a session's movers, with the day and the session named in the headline. "
+        "Windows: pre-market 4:00 to 9:30, mid-day 11:00 to 14:00, after-hours 16:00 to 20:00. A late stamp only delays "
+        "a story. An early one, before the session began, would leak the future into the past, so early is the column "
+        "that matters.",
         "",
         "| Session | Year | Recaps | Inside | Late | Early |",
         "|---|---|---|---|---|---|",
         *[f"| {s} | {y} | {r.sum():,} | {r.inside:,} | {r.late:,} | {r.early:,} |"
           for s in WINDOWS if s in rec_table.index for y, r in rec_table.loc[s].iterrows()],
         "",
-        f"Early stamps ({len(early)}):" if len(early) else "No early stamps.",
-        *[f"- {r.ny:%Y-%m-%d %a %H:%M}: {r.headline}" + (" (the stamp fits that session on the day it was published, "
-          "so the weekday in the headline is likely a typo)" if r.fits_stamp_day else "") for r in early.head(20).itertuples()],
+        f"Early stamps ({len(early)}), by story id:" if len(early) else "No early stamps.",
+        *[f"- {r.ny:%Y-%m-%d %a %H:%M}, story {r.id}: {r.session} recap for {r.day.title() if r.day in DAYS else r.day}"
+          + (" (the stamp fits that session on the day it was published, so the weekday in the headline is likely a "
+             "typo)" if r.fits_stamp_day else "") for r in early.head(20).itertuples()],
         "",
         "## Coverage of the stocks the rule would pick (single-firm stories per year)",
         "",
+        f"Each year counts from its pick date, since no list exists before it: {picks[min(picks)]:%Y-%m-%d} in "
+        f"{min(picks)}, then the first trading day of each year. "
         "Tags are mapped to companies on each story's date with the identity table (`reference/identity.csv`), so PCLN in "
         "2016 counts for Booking, META in 2021 (Roundhill's ETF) for nobody, and BRK-B, BRK/B and plain BRK for Berkshire.",
         "",
@@ -214,8 +246,10 @@ def main():
         "## Reading load (single-firm stories, 2016 on)",
         "",
         "Stories passing the single-firm filter that name a company which is an S&P 500 member on the story's date, and "
-        "those naming one of that year's picked companies. Hours assume the measured 6.5 headlines a second on the "
-        "laptop's CPU; embeddings take 3 KB a story (two poolings of 768 float16 values).",
+        "those naming one of that year's picked companies from the year's pick date on. Hours assume the measured 6.5 "
+        "headlines a second on the laptop's CPU; embeddings take 3 KB a story (two poolings of 768 float16 values). "
+        "`news_by_day.csv` has the Benzinga stories and the stories about members per New York date, which "
+        "`split.py` sums over each period's sessions.",
         "",
         "| Year | About members | About picked companies |",
         "|---|---|---|",
