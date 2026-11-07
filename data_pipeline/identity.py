@@ -42,6 +42,10 @@ CASES = REFERENCE / "identity_cases.csv"
 REPORT = ROOT / "research" / "audit" / "identity.md"
 NAME_CHANGES = DATA_DIR / "corporate_actions" / "name_changes.json"
 LAG_DAYS = 12  # Wikipedia editors can be this late; differences closer than this to a change are lag
+# News tags for another share class of a member listed under the plain root (LEN.B for Lennar's LEN). In the local
+# news, 26 of their 30 stories also carry the plain ticker. The list is explicit because a foreign class can share a
+# member's root: CCL.A is CCL Industries on the TSX, not Carnival, and PNC.A is Postmedia, not PNC.
+CLASS_TAGS = {"BIO.B", "CBS.A", "LEN.B", "STZ.B", "TAP.A", "UA.C"}
 
 
 def normalize(symbol):
@@ -288,7 +292,13 @@ def timelines(wiki, find, members, fixes, renames, today):  # noqa: C901 (one pa
     class_left = members.dropna(subset=["member_to"]).groupby(["entity", "ticker"]).member_to.apply(list).to_dict()
     stamps = wiki.stamps
     w = wiki.w.assign(entity=wiki.w.cik.map(find))
-    cover = members.groupby("entity").agg(start=("member_from", "min"), end=("member_to", lambda s: None if s.isna().any() else s.max()))
+    # Membership only the fixes know takes its rows from the membership itself: a company Wikipedia's monthly lists
+    # never showed (FCPT, Bemis, MasterBrand), or a member fix under a ticker they never showed for that company (TFCFA).
+    listed, shown = set(w.entity), set(zip(w.entity, w.symbol))
+    by_fix = {(find(r["cik"]), r["symbol"]) for r in fixes if r["action"] == "member"}
+    own = pd.Series([e not in listed or ((e, t) in by_fix and (e, t) not in shown) for e, t in zip(members.entity, members.ticker)],
+                    index=members.index, dtype=bool)
+    cover = members[~own].groupby("entity").agg(start=("member_from", "min"), end=("member_to", lambda s: None if s.isna().any() else s.max()))
     rows = []
     for e, g in w.groupby("entity"):
         if e not in cover.index:
@@ -362,6 +372,11 @@ def timelines(wiki, find, members, fixes, renames, today):  # noqa: C901 (one pa
             rows.append({"entity_id": e, "symbol": r["symbol"], "share_class": labels.get(r["chain"], r["chain"] if several else ""),
                          "valid_from": vf, "valid_to": vt, "dated_by": how_from, "dated_to": how_to,
                          "first_seen": r["first"], "last_seen": r["last"]})
+    for m in members[own].itertuples():  # one row per period, labelled by the `class` fixes if the company has several
+        last = None if pd.isna(m.member_to) else m.member_to - timedelta(days=1)
+        rows.append({"entity_id": m.entity, "symbol": m.ticker, "share_class": class_of.get((m.entity, m.ticker), ""),
+                     "valid_from": m.member_from, "valid_to": last, "dated_by": "first membership day",
+                     "dated_to": "last membership day", "first_seen": m.member_from, "last_seen": last or today})
     rows = pd.DataFrame(rows)
     for f in fixes:  # explicit listing windows: share classes, and tickers whose dates can't be inferred
         if f["action"] == "window":
@@ -385,21 +400,31 @@ class SymbolIndex:
     """Map a story's tags on a given day to companies, using reference/identity.csv.
 
     A tag is normalised the way Wikipedia's are (BRK-B, BRK/B to BRK.B). A class-share tag that isn't listed itself
-    (BRK.A, plain BRK) maps through its root to the listed class of the same company. Only S&P 500 members since
-    2015 are in the table, so tags of other companies map to nothing."""
+    maps through its root to the listed class of the same company: BRK.A and plain BRK to BRK.B, and LEN.B to LEN.
+    The second way is only for the tags in CLASS_TAGS, so D.UN and CCL.A don't become Dominion and Carnival. A share
+    class added to the index after its company (FOX, NWS and CMCSK in September 2015) was already trading, so from
+    2015 its ticker also names the company on the days before. Only S&P 500 members since 2015 are in the table, so
+    tags of other companies map to nothing."""
 
     def __init__(self, rows=None):
         rows = (pd.read_csv(OUT, dtype=str) if rows is None else rows.astype(str)).fillna("")
-        self.by_symbol, self.by_root = defaultdict(list), defaultdict(list)
+        self.by_symbol, self.by_root, self.before = defaultdict(list), defaultdict(list), defaultdict(list)
+        first = rows.groupby("entity_id").valid_from.min()
         for r in rows.itertuples():
             span = (pd.Timestamp(r.valid_from).date(), pd.Timestamp(r.valid_to).date() if r.valid_to not in ("", "nan", "None", "NaT") else date.max)
             self.by_symbol[r.symbol].append((*span, r.entity_id))
             if "." in r.symbol:
                 self.by_root[r.symbol.split(".")[0]].append((*span, r.entity_id))
+            if r.dated_by == "class added to the index":
+                self.before[r.symbol].append((max(pd.Timestamp(first[r.entity_id]).date(), SINCE), span[0] - timedelta(days=1), r.entity_id))
 
     def lookup(self, tag, day):
         tag = normalize(tag)
-        for table, key in ((self.by_symbol, tag), (self.by_root, tag.split(".")[0])):
+        root = tag.split(".")[0]
+        tables = [(self.by_symbol, tag), (self.by_root, root)]
+        if tag in CLASS_TAGS:
+            tables.append((self.by_symbol, root))
+        for table, key in tables + [(self.before, tag)]:
             hits = {e for a, b, e in table.get(key, ()) if a <= day <= b}
             if hits:
                 return hits

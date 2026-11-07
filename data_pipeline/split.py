@@ -2,11 +2,13 @@
 
 Warm-up 2016 (the stock list is picked on the first trading day of April), dev years 2017 to 2019, sealed years
 from 2020-01-01 to the last trading day before the seal. Each period gets counts that show it has enough data:
-trading sessions, member company-days, picked stock-days and stories. Nothing here reads a price, a return or
-any other outcome, so the split can be fixed before anyone has seen how the periods went.
+trading sessions, member company-days, picked stock-days and stories, the stories counted by New York date from
+the period's first session to its last. Nothing here reads a price, a return or any other outcome, so the split
+can be fixed before anyone has seen how the periods went. Stories about the picked companies aren't counted here,
+because the picks are ranked on price times volume (news_reading_load.csv has those counts).
 
-Inputs: the NYSE calendar, reference/memberships.csv, and the news audit's per-year counts
-(research/audit/news_by_year.csv and news_reading_load.csv, from `python -m data_pipeline.audit_news`).
+Inputs: the NYSE calendar, reference/memberships.csv, and the news audit's counts per New York date
+(research/audit/news_by_day.csv, from `python -m data_pipeline.audit_news`).
 
 Usage: python -m data_pipeline.split [last day of data, default today]
 """
@@ -29,7 +31,7 @@ PERIODS = {  # PLAN.md 5.5
 }
 
 
-def counts(start, end, sessions, members, stories, load):
+def counts(start, end, sessions, members, daily):
     days = sessions[(sessions >= pd.Timestamp(start)) & (sessions <= pd.Timestamp(end))]
     member_days = 0
     for _, g in members.groupby("entity_id"):  # a company listing two classes counts once a day
@@ -39,20 +41,18 @@ def counts(start, end, sessions, members, stories, load):
             on |= (days >= r.member_from) & (days <= hi)
         member_days += int(on.sum())
     first_pick = days[days >= pd.Timestamp(2016, 4, 1)][0] if start.startswith("2016") else days[0]
-    years = range(int(start[:4]), int(end[:4]) + 1)
+    news = daily[(daily.date >= days[0]) & (daily.date <= days[-1])]  # New York dates, first session to last
     return {
         "start": str(days[0].date()), "end": str(days[-1].date()), "sessions": len(days),
         "first_pick": str(first_pick.date()), "picked_stock_days": PICKS_PER_YEAR * int((days >= first_pick).sum()),
         "member_company_days": member_days,
-        "benzinga_stories": int(stories.loc[stories.year.isin(years), "stories"].sum()),
-        "single_firm_stories_about_members": int(load.loc[load.year.isin(years), "members"].sum()),
-        "single_firm_stories_about_picked": int(load.loc[load.year.isin(years), "picked"].sum()),
+        "benzinga_stories": int(news.stories.sum()),
+        "single_firm_stories_about_members": int(news.members.sum()),
     }
 
 
 def main(last_day=None):
-    stories = pd.read_csv(AUDIT / "news_by_year.csv")
-    load = pd.read_csv(AUDIT / "news_reading_load.csv")
+    daily = pd.read_csv(AUDIT / "news_by_day.csv", parse_dates=["date"])
     members = pd.read_csv(REFERENCE / "memberships.csv", dtype=str)
     members["member_from"] = pd.to_datetime(members.member_from)
     members["member_to"] = pd.to_datetime(members.member_to)
@@ -65,7 +65,7 @@ def main(last_day=None):
         "periods": {},
     }
     for name, (start, end, note) in PERIODS.items():
-        out["periods"][name] = {"note": note, **counts(start, end or str(sessions[-1].date()), sessions, members, stories, load)}
+        out["periods"][name] = {"note": note, **counts(start, end or str(sessions[-1].date()), sessions, members, daily)}
     (REFERENCE / "split.json").write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(out, indent=2))
 
