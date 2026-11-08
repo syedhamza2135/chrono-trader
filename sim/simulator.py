@@ -5,8 +5,9 @@ returns target positions as weights of equity. Then the simulator:
 1. Marks each holding whose label ends at this session's open: its value grows by the label, the total return from
    its last official open to this one (data_pipeline/store.py). A holding without an official open today (a halt,
    or the NYSE's failed openings on 2023-01-24) keeps its value until its next one.
-2. Sells, at its last traded close, a holding whose company stopped trading (an acquisition or a failure): PLAN's
-   exit at the last available price. Its label ends at that close, and the sale happens at the next session.
+2. Sells, at its last traded close, a holding whose company stopped trading after an acquisition: PLAN's exit at
+   the last available price. After a failure the label is -1 (data_pipeline/store.py), so the holding is worth
+   nothing. Either way the label ends at that close, and the sale happens at the next session.
 3. Trades every stock that has an official open today to its target, and charges costs on the traded value
    (5 bps per side, PLAN 9.8). A stock without an official open isn't traded: the simulator trades only at the
    listing exchange's opening auction print. A stock with an official open but no label from it (the next open is

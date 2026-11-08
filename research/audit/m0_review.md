@@ -5,7 +5,7 @@ refute every finding. The review finished on 2 Nov. The fixes finished on 7 Nov,
 
 ## Where things stand
 
-- **Committed and pushed:** `9a1508f` (the M0 audit) and `e56e09a` (36 more distribution corrections;
+- **Committed and pushed:** `b7d78d9` (the M0 audit) and `3f1825a` (36 more distribution corrections;
   `reference/price_events.csv` has 116 rows). 53 tests pass.
 - **Uncommitted in the working tree (11 files):** the spin-off session's Fortune Brands fix. Two `identity_fixes.csv` rows
   (FBHS until 2022-12-14, FBIN from 2022-12-15), regenerated identity tables and bar plan (pinned to the original run
@@ -14,7 +14,7 @@ refute every finding. The review finished on 2 Nov. The fixes finished on 7 Nov,
   bar, 54 row changes, 500,742 headlines, 388,442 sealed single-firm stories). The M0 session wasn't told; it waits.
 - **Review result:** 33 findings confirmed (2 major, 31 minor) and 2 refuted. The docs area ran in two halves against
   the working tree: `docs-audit` (audit.md) and `docs-plan` (README, PLAN.md, m0_handoff.md, and the licensing and
-  em-dash rules). The other areas read `9a1508f`. The identity findings still hold in the working tree: it has no BMS,
+  em-dash rules). The other areas read `b7d78d9`. The identity findings still hold in the working tree: it has no BMS,
   MBC, FCPT, TFCFA or TFCF rows, and AMCR still starts on 2019-06-07.
 - **Full results:** each finding's claim, failing case, evidence, suggested fix and the skeptic's reproduction are in
   `D:\chrono-data\review\m0_review_findings.md` (compact) and `m0_review_findings_full.md`, and in the workflow journal

@@ -17,9 +17,10 @@ world/ applies the availability rules, so the rules live in one place (world/rul
 - labels: for each company, class and session with an official open, the total return from that open to the next
   official open of the same listing (and `end_open_time`, when that open printed, for the availability rule): (close / open) on the first day, the corrected close-to-close returns between,
   and (open / close) on the end day. The closes cancel, so a wrong close can't move a label. Where no official open
-  follows and the company stopped trading before the data ends (an acquisition or a failure), the label ends at its
-  last traded close (`at_close`), which is PLAN's exit at the last available price. Where none follows because the
-  data ends, there is no label.
+  follows and the company stopped trading before the data ends, the label ends at its last traded close
+  (`at_close`). After an acquisition, that is PLAN's exit at the last available price. After a failure (`failures`:
+  SVB, Signature and First Republic), the label is -1, a total loss, so the backtest can't sell at a price from
+  before the failure (the owner's decision, 8 Nov 2026). Where none follows because the data ends, there is no label.
 - stories: Benzinga's stories, not edited more than 3 days after publishing (world.rules.MAX_EDIT_LAG).
 - story_entities: (story, company) pairs of the stories the single-firm filter keeps: 1 or 2 companies, each tag
   mapped by the story's New York date (audit_news.companies).
@@ -142,8 +143,25 @@ def official_opens(s):
     return o.rename(columns={"close": "official_close"})
 
 
-def labels(s, opens, data_end):
-    """The open-to-open total return of each company, class and session with an official open (see the module)."""
+def failures(s, events, within=pd.Timedelta(days=7)):
+    """The company series whose shares stopped trading because the company failed: a reference/price_events.csv row
+    of kind failure for the symbol of the series' last traded bar, dated within a week after that bar (SVB,
+    Signature and First Republic). Their exit labels are a total loss (see the module)."""
+    ev = events[events.kind == "failure"]
+    when, symbol = pd.to_datetime(ev.date), ev.symbol.to_numpy()
+    last = s[s.volume > 0].groupby(["entity_id", "share_class"], sort=False).agg(symbol=("symbol", "last"),
+                                                                                  last=("date", "max"))
+    out = set()
+    for (ent, cls), r in last.iterrows():
+        f = when[symbol == r.symbol]
+        if ((f > r["last"]) & (f <= r["last"] + within)).any():
+            out.add((ent, cls))
+    return out
+
+
+def labels(s, opens, data_end, failed=frozenset()):
+    """The open-to-open total return of each company, class and session with an official open (see the module).
+    `failed` holds the (entity_id, share_class) pairs from `failures`: their exit label is -1."""
     o = opens.reindex(columns=["entity_id", "share_class", "date", "open", "open_time"]).dropna(subset=["open"])
     x = s[KEY + ["close", "ret", "volume"]].merge(o.rename(columns={"open": "official_open"}), on=KEY, how="left")
     out = []
@@ -157,6 +175,7 @@ def labels(s, opens, data_end):
         traded = np.flatnonzero(g.volume.to_numpy(dtype=float) > 0)
         last_traded = traded[-1] if len(traded) else -1
         stopped = len(traded) > 0 and dates[last_traded] < np.datetime64(data_end)
+        lost = (ent, cls) in failed
         for k, i in enumerate(opened):
             if k + 1 < len(opened):
                 j, at_close = opened[k + 1], False
@@ -167,6 +186,8 @@ def labels(s, opens, data_end):
             if undefined[j] != undefined[i]:
                 continue
             value = close[i] / oo[i] * np.exp(growth[j] - growth[i]) * (1.0 if at_close else oo[j] / close[j]) - 1
+            if at_close and lost:
+                value = -1.0  # a failure: the holding is worth nothing at the exit
             out.append((ent, cls, dates[i], dates[j], value, at_close, pd.NaT if at_close else printed[j]))
     lab = pd.DataFrame(out, columns=["entity_id", "share_class", "date", "end", "label", "at_close", "end_open_time"])
     lab["end_open_time"] = pd.to_datetime(lab.end_open_time, utc=True)
@@ -208,7 +229,8 @@ def main():
     events = pd.read_csv(REFERENCE / "price_events.csv", dtype=str)
     s, applied = apply_events(s, events)
     opens = official_opens(s)
-    lab = labels(s, opens, data_end)
+    failed = failures(s, events)
+    lab = labels(s, opens, data_end, failed)
     bars = s[BAR_COLUMNS].reset_index(drop=True)
     opens_out = opens[["entity_id", "share_class", "date", "open", "open_time", "listing_exchange", "official_close"]]
 
@@ -240,6 +262,8 @@ def main():
         "labels": len(lab), "labels_at_close": int(lab.at_close.sum()),
         "exits_stopped_trading": int((~exits.window_cut.fillna(False).astype(bool)).sum()),
         "exits_window_cut": int(exits.window_cut.fillna(False).astype(bool).sum()),
+        "exits_failed": int(sum((e, c) in failed for e, c in zip(exits.entity_id, exits.share_class))),
+        "failed_companies": len(failed),
         "price_events": applied.value_counts().rename("rows").reset_index().to_dict("records"),
         "override_opens_equal_to_auctions": f"{override_same} of {len(ov)}",
     }
@@ -270,7 +294,8 @@ def report(c):
              f"- Labels: {c['labels']:,}. {c['labels_at_close']:,} end at a last traded close: "
              f"{c['exits_stopped_trading']:,} where the company stopped trading (an acquisition or a failure), and "
              f"{c['exits_window_cut']:,} where the store stops keeping a removed company's bars, {AFTER} days after "
-             "its removal, while its file trades on.",
+             f"its removal, while its file trades on. Failed companies: {c['failed_companies']}, and their "
+             f"{c['exits_failed']} exit labels are -1, a total loss.",
              f"- The 54 opens that `reference/price_events.csv` overrides, equal to the auctions' official opens: "
              f"{c['override_opens_equal_to_auctions']}.",
              "- `reference/price_events.csv`, by action and result:"]

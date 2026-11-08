@@ -137,7 +137,7 @@ together. It runs as a test.
 
 After the fixes: 225 tests pass and 1 skips, in 3 to 4 minutes.
 
-**Open questions for the owner:**
+**Open questions for the owner** (all three settled on 8 Nov, Session 4):
 1. Failed banks (SVB, First Republic, Signature) exit at their last close, by PLAN's rule "leaves at its last
    available price". For SVB that is its close on 2023-03-09, before the shares became nearly worthless. Keep it, or
    count a failure as a total loss?
@@ -194,14 +194,53 @@ dollar price for the new shares). A smaller distribution that Alpaca never appli
 
 **Attribution.** On 8 Nov the owner asked to drop the Co-Authored-By trailer everywhere. Their Claude Code user
 settings now hide it (`attribution` with empty texts and no session link), AGENTS.md's Git rule says so, and the
-memory records it. New commits carry no attribution. **Deferred:** all 9 existing commits (8 on master, and
-`b2b9441` on the M1 branch) still carry the line. The owner wants the history rewritten later: messages only (the
-same trees, authors and dates), with backup branches first, then force-pushes of master and the PR branch, the line
-removed from PR #1's description, and the old commit hashes in the docs and the memory updated.
+memory records it. New commits carry no attribution. The 9 older commits that carried the line (8 on master, and
+the M1 branch's first) were rewritten on 8 Nov, messages only (Session 4).
+
+## Session 4 (8 Nov): the owner's decisions and the cleanup
+
+The owner settled the three open questions of Session 2 and asked for M1's leftovers to be finished before M2's build.
+
+- **A failed company is a total loss.** SVB Financial, Signature Bank and First Republic each have a `failure` row in
+  `reference/price_events.csv`. `store.failures` marks a company whose `failure` row falls within a week after its
+  last traded bar, and `store.labels` makes its exit label -1 instead of the return to its last close. The simulator
+  marks holdings by their labels, so a holding in a failed company ends at zero, and a short gains its full value.
+  An acquired company still exits at its last traded close. In the rebuilt store, exactly three labels are -1: SVB's
+  from its 2023-03-09 open, Signature's from 2023-03-10 and First Republic's from 2023-04-28. Every other count in
+  `research/audit/store.md` is unchanged. Three new tests cover the rule, and the full suite passes: 258 tests,
+  with 1 skip.
+- **A stock-day with no official open stays untraded.** The owner kept the rule rather than fall back to Alpaca's
+  first trade.
+- **The history was rewritten, messages only.** `git filter-branch --msg-filter` dropped the Claude Co-Authored-By
+  line from the 9 commits that had it. A script compared all 12 commits on master and both `claude/` branches with
+  local backups: the same trees, authors, committers and dates, and messages that differ only by that line. The
+  backups are the local branches under `backup/pre-rewrite/` and filter-branch's `refs/original/`, never pushed.
+  GitHub can still show the old commits through PR #1's history until GitHub Support purges them. The prices and
+  headlines the M0 review found in old commits stay there, as the owner chose. The docs and the memory now use the
+  new hashes:
+
+  | Old | New | Commit |
+  |---|---|---|
+  | `c409871` | `78e0c40` | Add the research plan, its review, and the FNSPID probes |
+  | `e425969` | `0b87aab` | Set up Alpaca access and record the first audit results |
+  | `212bafa` | `130c849` | Add the M0 data pipeline and the price audit |
+  | `cd0a0e2` | `043080f` | Add the news audit and record its results in the plan |
+  | `4d5bb0d` | `69e777b` | Add a README and note the GitHub remote in the plan |
+  | `9a1508f` | `b7d78d9` | Finish the M0 data audit: identity table, price corrections, split |
+  | `e56e09a` | `3f1825a` | Correct more of Alpaca's distribution adjustments |
+  | `7b4a200` | `af1aaf9` | Fix the M0 review findings and adopt the checked parts of a research brief |
+  | `b2b9441` | `93d8f70` | Build M1: the time wall, the event store and the official opens |
+  | `c9c09cf` | `90ecb8a` | Fix the second review's ten findings in M1 |
+  | `87bacdc` | `658db1c` | Correct three distributions on days outside membership |
+  | `4ebbe24` | `2ace1c3` | Start M2 (on M2's branch, `claude/awesome-panini-89f869`) |
+
+- **The merge.** The main checkout's untracked `AGENTS.md`, `CLAUDE.md` and `research/m1_kickoff.md` held nothing
+  this branch lacks (`CLAUDE.md` identical, the other two older versions), so they went to the Recycle Bin. The main
+  checkout's master fast-forwards to this branch, and the owner's push of master merges PR #1.
 
 ## Where things stand
 
-- **M0, the data audit, is done, and its review is closed.** The review's 33 findings are fixed in commit `7b4a200`,
+- **M0, the data audit, is done, and its review is closed.** The review's 33 findings are fixed in commit `af1aaf9`,
   pushed on 7 Nov. Master is the repo's only branch, and it matches the local copy. `research/audit/m0_review.md`
   records how the fixes were made and the decisions taken along the way.
 - **A research brief was checked on 7 Nov** (`research/brief_check.md`). Its adopted parts are in PLAN.md: batch
@@ -224,7 +263,7 @@ simulator has the listing exchange's official opening auction print for every st
    availability rule for each source, and `World.view(t)`, which returns only what was available at time t. Training
    labels must be realized by day k-2 at 9:00 on day k.
 3. **The simulator, `sim/`.** Fills at the open, costs, portfolio accounting, the corrections in
-   `reference/price_events.csv`, and exits at the last available price for acquired or failed companies.
+   `reference/price_events.csv`, and exits at the last available price for acquired companies (a total loss for failed ones, since 8 Nov).
 4. **The parts of `eval/` the tests need**, such as the daily rank IC. The rest comes in M3.
 5. **The test suites** in PLAN 9.11, including both import boundaries.
 6. **The official opens.** A `data_pipeline` job, which may see everything, fetches the listing exchange's opening
@@ -260,5 +299,5 @@ probably take two or three windows (an estimate).
 ## Open questions for the owner
 
 - Whether to rewrite git history to remove the prices and headlines the review found in commits already pushed (the
-  repo is private). This waits for the owner.
+  repo is private). On 8 Nov the owner chose to leave them: the rewrite changed commit messages only.
 - Claude Code's auto-mode check blocks pushes to master, so the owner runs `git push` or adds a permission rule.

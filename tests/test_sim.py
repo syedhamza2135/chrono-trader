@@ -62,6 +62,16 @@ def test_a_company_that_stops_trading_is_sold_at_its_last_close():
     assert sim.cash == pytest.approx(1 - 0.5 - 0.5 * 5e-4 + 0.4 - 0.4 * 5e-4)  # bought for 0.5, sold at 0.4
 
 
+def test_a_failed_company_is_a_total_loss():
+    """Its exit label is -1 (data_pipeline/store.py): the holding is worth nothing, and selling it costs nothing."""
+    w = FakeWorld([("A", "", D[0], 10.0)], [("A", "", D[0], D[0], -1.0, True)])
+    sim = Simulator(w)
+    sim.step(D[0], targets(("A", "", 0.5)))
+    sim.step(D[1], targets(("A", "", 0.5)))
+    assert ("A", "") not in sim.values
+    assert sim.cash == pytest.approx(1 - 0.5 - 0.5 * 5e-4)  # bought for 0.5, worth nothing at the exit
+
+
 def test_a_holding_with_no_label_from_todays_open_is_sold_there_not_frozen():
     """D1 has an official open but no label from it (the next open lies across a day without a return): the holding
     is sold at D1's open, where its last label ended, and counted."""

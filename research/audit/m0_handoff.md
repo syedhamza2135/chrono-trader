@@ -6,7 +6,7 @@
 [audit.md](audit.md); this note stays as the record of the first session's work and findings.
 
 Where the M0 data audit stands, so the next session can pick it up without the conversation. Nothing below is
-committed yet; the last commit is `4d5bb0d` on `master` (pushed to the private GitHub repo).
+committed yet; the last commit is `69e777b` on `master` (pushed to the private GitHub repo).
 
 ## Done this session (uncommitted)
 

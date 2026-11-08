@@ -5,7 +5,7 @@
 | News story | Its `updated_at` plus 15 minutes. Stories edited more than 3 days after publishing are dropped |
 | Daily bar for day d (close, high, low, volume, trade count, VWAP, and the bar's first-trade open) | 16:00 New York time on day d, also on an early close. The vendor's bar timestamp (midnight) is never used |
 | Official opening price for day d | 9:30 New York time on day d. Only the simulator uses it |
-| Return label for day d | The open that ends it: 9:30 on its end date. A company's last label ends at its last close, and shows at the next session's open like any other, so a failure halted before the next open (SVB on 2023-03-10) isn't known early |
+| Return label for day d | The open that ends it: 9:30 on its end date. A company's last label ends at its last close (after a failure it is -1, a total loss), and shows at the next session's open like any other, so a failure halted before the next open (SVB on 2023-03-10) isn't known early |
 | S&P 500 membership change | 0:00 New York time on its effective date |
 
 Each rule is one function, so the availability test, and the planted leak that swaps one out, have one place to look.

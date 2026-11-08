@@ -63,6 +63,17 @@ def test_a_company_that_stops_trading_exits_at_its_last_traded_close():
     assert last.label == pytest.approx(9.0 / 9.5 - 1, abs=1e-12)
 
 
+def test_a_failed_company_exits_at_a_total_loss():
+    """After a failure (SVB, Signature, First Republic) the exit label is -1, not the return to the last close."""
+    s = series([10.0, 9.0, 9.0], [np.nan, -0.1, 0.0], volume=[1000, 500, 0])
+    o = opens([10.0, 9.5, np.nan])
+    lab = store.labels(s, o, data_end=D[-1], failed={("E1", "")})
+    kept = store.labels(s, o, data_end=D[-1])
+    last = lab.iloc[-1]
+    assert (last.date, last.end, bool(last.at_close), last.label) == (D[1], D[1], True, -1.0)
+    assert lab.label.iloc[:-1].tolist() == kept.label.iloc[:-1].tolist()  # the labels before the exit don't change
+
+
 def test_no_label_crosses_a_day_without_a_return():
     s = series([10.0, 11.0, 12.0], [np.nan, np.nan, 12 / 11 - 1])
     lab = store.labels(s, opens([10.0, 11.0, 12.0]), data_end=D[2])
@@ -124,6 +135,15 @@ def test_a_correction_applies_on_a_day_outside_membership_too():
     s, _ = store.apply_events(s, events(
         ("ABC", "2024-03-13", "spin_off", "wrong", "total_return", None, None, None, None, None, None, "0.012")))
     assert s.ret.iloc[2] == 0.012
+
+
+def test_a_failure_row_within_a_week_of_the_last_trade_marks_a_failed_company():
+    s = pd.concat([event_series(), event_series().assign(entity_id="E2", symbol="XYZ")], ignore_index=True)
+    s.loc[s.index[-1], "volume"] = 0  # XYZ's last bar is a zero-volume fill, so its last trade is D[1]
+    ev = events(("ABC", "2024-03-14", "failure", "ok", "stopped_trading"),  # the session after ABC's last trade
+                ("XYZ", "2024-04-30", "failure", "ok", "stopped_trading"),  # seven weeks after XYZ's: another stop
+                ("XYZ", "2024-03-12", "halt", "ok", "no_trade"))
+    assert store.failures(s, ev) == {("E1", "")}
 
 
 def file_bars(rows):

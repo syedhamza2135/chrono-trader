@@ -12,9 +12,9 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Start here
 
-- M0, the data audit, and its review are done. M1, the time wall, is built on the branch `claude/m1-kickoff-832c2d`,
-  and the findings of two reviews are fixed, with a few items left: read `research/m1_kickoff.md` first (sections
-  "Session 1" to "Session 3").
+- M0, the data audit, and its review are done. M1, the time wall, is built, reviewed twice and merged into master
+  (8 Nov), with a few items left: read `research/m1_kickoff.md` first (sections "Session 1" to "Session 4"). M2,
+  the reader, is under way on the branch `claude/awesome-panini-89f869` (`research/m2_kickoff.md` there).
 - `research/audit/m0_review.md` records the review and its fixes. `research/brief_check.md` records the check of a
   research brief and what the plan took from it.
 
@@ -41,7 +41,7 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Commands
 
-- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (255 pass and 1 skips, in 4 to 5
+- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (258 pass and 1 skips, in 4 to 6
   minutes; the skip is the embeddings table, which arrives in M2). In a worktree with no `.venv` link, use
   `D:\venvs\chrono-trader\Scripts\python.exe`.
 - The time wall: agents get only `world.view.View` (`World` is in `world/world.py`); `sim.simulator.run(world, agent, first, last)` is the daily loop,
