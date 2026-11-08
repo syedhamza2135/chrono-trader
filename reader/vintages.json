@@ -1,0 +1,79 @@
+{
+  "source": "Hugging Face API (models/{repo} and its tree/main), read on 2026-11-08; see research/m2_kickoff.md",
+  "weights": "model.safetensors, checked by SHA-256",
+  "files": {
+    "config.json": "dbda3053124939b5dbe90f994ef9d25c666688e1",
+    "tokenizer.json": "2f4d8583e507b7466d2490e2d6c045647a822698",
+    "tokenizer_config.json": "708dcd477ee11392ab611bcd98e298b5bccdcfd7",
+    "special_tokens_map.json": "6bf65ea14185a88eef7e24b41c86a953a58dcbad"
+  },
+  "files_note": "git object ids (SHA-1 of the git blob), the same for every vintage",
+  "vintages": {
+    "2014": {
+      "repo": "manelalab/chrono-bert-v1-20141231",
+      "commit": "9e61adb8d6674d363f14d0d4a3153e4fea3ebefd",
+      "weights_bytes": 598635032,
+      "weights_sha256": "11d99c1098caa09c4e3ec99b7cd03ca6509d8175421dcaabc91765713ebe9037"
+    },
+    "2015": {
+      "repo": "manelalab/chrono-bert-v1-20151231",
+      "commit": "01122aa3fd7a07879a524b6897c41e55c1db091a",
+      "weights_bytes": 598635032,
+      "weights_sha256": "c48ea00d9018171cf4509c511c80740ff472ea6459cdbf188ce451c81bc11328"
+    },
+    "2016": {
+      "repo": "manelalab/chrono-bert-v1-20161231",
+      "commit": "89dff1bb2043cc929c00756002469dfa9482f280",
+      "weights_bytes": 598635032,
+      "weights_sha256": "4a34990efc2c4680567c7e3b53360c52a9e6dc88440a72251fc307543a987f70"
+    },
+    "2017": {
+      "repo": "manelalab/chrono-bert-v1-20171231",
+      "commit": "02bde7f9d3d8c55c1e44d7e3ee071f374a1b9bb4",
+      "weights_bytes": 598635032,
+      "weights_sha256": "0ccb6691d8f94b075b7e774c5aa23c524676b0507ea75053c8482d7a3582732a"
+    },
+    "2018": {
+      "repo": "manelalab/chrono-bert-v1-20181231",
+      "commit": "e716596f5c90945781e74e78ab90c591b9b46080",
+      "weights_bytes": 598635032,
+      "weights_sha256": "a25d806efe68fcba8ba2223e5db1476534e64fd03f41bfb07fe61d15fe3fbaa4"
+    },
+    "2019": {
+      "repo": "manelalab/chrono-bert-v1-20191231",
+      "commit": "33a5fc6e87910b614cf4319eb995301195d9a99d",
+      "weights_bytes": 598635032,
+      "weights_sha256": "88eb7915c5ebb810def9f3c8c6959d6c6e0af0cc0967d57b103c44defba93a53"
+    },
+    "2020": {
+      "repo": "manelalab/chrono-bert-v1-20201231",
+      "commit": "8402477b6b77b799ee220665fcb258939eaf7455",
+      "weights_bytes": 598635032,
+      "weights_sha256": "c99991a6ca24d5710c438a9efe1e6625e64b320dd2e9e24e2f327071d64bff25"
+    },
+    "2021": {
+      "repo": "manelalab/chrono-bert-v1-20211231",
+      "commit": "2d187f3f29b1071392b546fa1195d6b55036ae9b",
+      "weights_bytes": 598635032,
+      "weights_sha256": "258d0752c82f10a3300fa5d018303c1becfc6481b2b554eab798bc92953826d0"
+    },
+    "2022": {
+      "repo": "manelalab/chrono-bert-v1-20221231",
+      "commit": "58bdf9ce273a6744bf8c8acda2df56655e7f1f51",
+      "weights_bytes": 598635032,
+      "weights_sha256": "8905ece0120a4a066bf0686d9c473165ac89aedfdd3b2056fac82fa883eed4a6"
+    },
+    "2023": {
+      "repo": "manelalab/chrono-bert-v1-20231231",
+      "commit": "d1cbfa139a61b067ce0089c12d93f196798ad6b1",
+      "weights_bytes": 598635032,
+      "weights_sha256": "8da109a3cbc8f1527c97b4aaf88b4cac56ecdd8add9c379d417bc6460c959434"
+    },
+    "2024": {
+      "repo": "manelalab/chrono-bert-v1-20241231",
+      "commit": "2478c3bd4a676e2e7bdc72f8100262b39bde4b0d",
+      "weights_bytes": 598635032,
+      "weights_sha256": "f884da52bdb99020ee29cafe4302f3fcbdf4b188a3cf87d6dbd058068c606b9b"
+    }
+  }
+}
