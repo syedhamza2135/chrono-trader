@@ -174,6 +174,24 @@ the session's scratchpad `review2\` folder), and each is fixed:
 The reviewer's own scripts, rerun on the fixed code, show each one fixed. After the fixes: 255 tests pass and 1
 skips, in 4 to 5 minutes.
 
+**The non-member screen (8 Nov).** One agent screened the 48,935 non-member bars the store keeps, as M0 screened
+member days: the adjusted against the raw move (more than 4% apart), and adjusted returns below the price-only
+return. It flagged 12 days, and further screens (Alpaca's dividend and spin-off records, moves above 25%, drops and
+opening gaps) found more. Eight are splits Alpaca adjusted right. Three needed rows, now in
+`reference/price_events.csv` (125 rows):
+- EQT on 2018-11-13: the Equitrans spin-off, 0.8 ETRN per share, which Alpaca applies as a split. +1.82% instead
+  of -57.15%. EQT's last member-day label (2018-11-12) was -58.21%, and it is -0.70% with the row.
+- DPS on 2018-07-10: the $103.75 special dividend paid with the Keurig merger. +1.84% instead of +11.45%.
+- CCE on 2016-05-31: the merger into Coca-Cola European Partners, one share and $14.50 in cash per CCE share (CCE's
+  8-K exhibit on SEC EDGAR, and Cahill Gordon & Reindel's notice). +3.41% instead of -24.70%. CCE's last member-day
+  label (2016-05-27) ended here: it was -24.99%, and it is +0.58% with the row.
+Of the 125 labels that start on a member day and end on a non-member day, EQT's and CCE's were the wrong ones.
+Left open, and none reaches a label or a feature the agents use: Wyndham's 2018-06-01 spin-off of Wyndham Hotels
+(Alpaca applies nothing, and the ratio is in neither the store nor Alpaca's records), Hilton's 2017-01-04 reverse
+split and two spin-offs (114 sessions before it joined), and TechnipFMC's 2021-02-16 Technip Energies spin-off (no
+dollar price for the new shares). A smaller distribution that Alpaca never applied could still be missed before
+2019, since Alpaca's spin-off records start in 2019.
+
 **Attribution.** On 8 Nov the owner asked to drop the Co-Authored-By trailer everywhere. Their Claude Code user
 settings now hide it (`attribution` with empty texts and no session link), AGENTS.md's Git rule says so, and the
 memory records it. New commits carry no attribution. **Deferred:** all 9 existing commits (8 on master, and
