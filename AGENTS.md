@@ -12,6 +12,9 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Start here
 
+- **Work as `PLAYBOOK.md` says:** read the project-status memory first, then work in the hierarchy (a lead, one task
+  session at a time, and the subagent types in `.claude/agents/`: `chrono-scout`, `chrono-digest`, `chrono-checker`,
+  `chrono-judge`, `chrono-skeptic`). Keep briefs narrow and results in files.
 - M0, the data audit, and its review are done. M1, the time wall, is built, reviewed twice and merged into master
   (8 Nov), with a few items left: read `research/m1_kickoff.md` first (sections "Session 1" to "Session 4"). M2,
   the reader, is under way on the branch `claude/awesome-panini-89f869` (`research/m2_kickoff.md` there).
@@ -34,8 +37,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 - **Git.** Commit or push only when the owner asks, and ask again for each one. Claude Code's auto-mode check blocks
   pushes to master, so the owner runs the push. Commits and pull requests carry no Claude attribution: no
   Co-Authored-By trailer and no "Generated with Claude Code" line.
-- **Usage limits.** The owner stops work at 90% of the 5-hour limit. Run agents one at a time right after a reset,
-  check usage between them, and save the state before stopping.
+- **Usage limits.** The owner stops work at 90% of the 5-hour limit. Run agents one at a time, check usage before
+  each, and at 85% save the state and stop. Fable only for high-level judgement, at high effort, never max.
 - **Privacy.** Never send the owner's email address to any service.
 - **Accounts.** Creating accounts (Alpaca and others) is the owner's step.
 
