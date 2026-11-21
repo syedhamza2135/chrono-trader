@@ -35,7 +35,7 @@ needs, so each step stays cheap and a 5-hour usage window holds real work.
 | `chrono-scout` | Haiku | Find files, functions, lines and facts, and answer with file and line | edit or judge |
 | `chrono-digest` | Sonnet, medium | Turn a large file or table into a short digest under `docs/digests/` | judge |
 | `chrono-checker` | Sonnet, high | Run tests, queries and greps, reproduce numbers, and report what it ran and what it printed | change code |
-| `chrono-judge` | Fable, high | A high-level judgement on one narrow question: the time wall, a leak, the simulator's accounting, a design choice | read beyond its brief |
+| `chrono-judge` | Opus, high | A high-level judgement on one narrow question: the time wall, a leak, the simulator's accounting, a design choice | read beyond its brief |
 | `chrono-skeptic` | Opus, high | Try to refute one finding: it stands only if the skeptic's own check shows it | accept a claim without a check |
 
 ## Rules
@@ -46,10 +46,10 @@ needs, so each step stays cheap and a 5-hour usage window holds real work.
 2. **Results go to files.** Agents write findings, digests and reports to files and answer in at most 15 lines. The
    lead opens a file only when it must.
 3. **One agent at a time.** Call `get_usage` before every agent. Start none above 75% of the 5-hour window, and no
-   Fable agent above 60%. At 85%, save the state (the status memory and the task's note) and stop. The owner's line
+   judge or skeptic above 55% (one Opus judge used 27 points on 21 Nov). At 85%, save the state (the status memory and the task's note) and stop. The owner's line
    is 90%.
-4. **Models by level** (memory: feedback-model-tiering). Fable only for high-level judgement, at high effort, never
-   max. Opus for building, planning and refuting. Sonnet for digests and mechanical checks. Haiku for lookups. The
+4. **Models by level** (memory: feedback-model-tiering). Never Fable (the owner, 21 Nov). Opus at high effort for
+   judgement, building, planning and refuting. Sonnet for digests and mechanical checks. Haiku for lookups. The
    types above pin these; any other agent or workflow call sets `model` and `effort` itself.
 5. **Evidence.** Every claim carries a check someone can rerun (AGENTS.md, Facts). Before telling the owner a task is
    done, the lead checks its key claims with cheap commands: `git log`, the test summary line, a file listing.
@@ -95,7 +95,7 @@ since, refresh the digest first.
 ## Reviews
 
 A review runs in stages, one agent at a time: the digests first (Sonnet); then a judge for each high-level area
-(Fable: the time wall and leaks, then the simulator and the labels); then Opus for the plan's consistency and the news
+(Opus: the time wall and leaks, then the simulator and the labels); then Opus for the plan's consistency and the news
 and reader rules; then checkers for the mechanical areas (prices, identity, the docs' numbers, the licensing greps);
 then a skeptic for each area with findings (Opus); then the report. Each agent gets the digests and only its area's
 files.

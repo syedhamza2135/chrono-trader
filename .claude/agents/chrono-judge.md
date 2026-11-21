@@ -1,7 +1,7 @@
 ---
 name: chrono-judge
 description: Chrono-trader high-level judgement on one narrow question, such as a possible leak through the time wall, the simulator's accounting, a label rule, or a design choice against PLAN. Reads only the digests and files its brief names. The most expensive agent, so use it sparingly.
-model: fable
+model: opus
 effort: high
 maxTurns: 40
 disallowedTools: Edit, NotebookEdit, Agent, Workflow

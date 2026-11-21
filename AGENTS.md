@@ -38,7 +38,7 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
   pushes to master, so the owner runs the push. Commits and pull requests carry no Claude attribution: no
   Co-Authored-By trailer and no "Generated with Claude Code" line.
 - **Usage limits.** The owner stops work at 90% of the 5-hour limit. Run agents one at a time, check usage before
-  each, and at 85% save the state and stop. Fable only for high-level judgement, at high effort, never max.
+  each, and at 85% save the state and stop. Never Fable; Opus at high effort for judgement.
 - **Privacy.** Never send the owner's email address to any service.
 - **Accounts.** Creating accounts (Alpaca and others) is the owner's step.
 
