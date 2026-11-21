@@ -1,0 +1,4 @@
+symbol       asof       date listing_exchange  open_size                        open_time  n_open_prints  close_size  n_close_prints
+   LLY 2026-10-28 2019-08-12             NYSE    32952.0 2019-08-12 13:32:01.049400+00:00              1         NaN               0
+missing list rows 519 LLY rows ['2018-01-24']
+missing by date top {'2023-01-24': 267, '2018-01-24': 108, '2022-03-08': 66, '2021-04-09': 17}

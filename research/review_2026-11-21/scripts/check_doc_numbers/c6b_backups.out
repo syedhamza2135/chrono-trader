@@ -1,0 +1,7 @@
+backup/pre-rewrite/master: total commits 8, with trailer 8
+backup/pre-rewrite/m1: total commits 11, with trailer 9
+backup/pre-rewrite/m2: total commits 12, with trailer 9
+union of commits over the three backups: 12
+union with trailer: 9
+union over current master, m1 and m2 branches: 14
+refs/original refs: 3

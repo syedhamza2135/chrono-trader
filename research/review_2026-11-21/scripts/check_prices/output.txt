@@ -1,0 +1,64 @@
+columns: ['symbol', 'date', 'kind', 'status', 'action', 'open', 'high', 'low', 'close', 'volume', 'vwap', 'total_return', 'evidence']
+== 1 counts ==
+rows: 125
+kind                 action         
+bad_print            override_bar        1
+close_print          override_close      7
+dividend             total_return        1
+failure              stopped_trading     3
+halt                 no_trade            2
+merger               total_return        1
+open_print           override_open      54
+share_consolidation  total_return        1
+special_dividend     total_return        6
+spin_off             total_return       46
+stock_dividend       total_return        1
+warrant_dividend     total_return        2
+by kind: {'open_print': 54, 'spin_off': 46, 'close_print': 7, 'special_dividend': 6, 'failure': 3, 'halt': 2, 'warrant_dividend': 2, 'bad_print': 1, 'stock_dividend': 1, 'share_consolidation': 1, 'dividend': 1, 'merger': 1}
+by action: {'total_return': 58, 'override_open': 54, 'override_close': 7, 'stopped_trading': 3, 'no_trade': 2, 'override_bar': 1}
+by status: {'wrong': 99, 'missing': 17, 'ok': 5, 'stitched': 4}
+== 2 blanks ==
+symbol blank rows: []
+date blank rows: []
+kind blank rows: []
+action blank rows: []
+evidence blank rows: []
+action override_bar missing open: []
+action override_bar missing high: []
+action override_bar missing low: []
+action override_bar missing close: []
+action override_bar missing volume: []
+action override_bar missing vwap: []
+action override_close missing close: []
+action override_open missing open: []
+action total_return missing total_return: []
+unparseable numeric: []
+== 3 dates ==
+unparseable dates: []
+min/max date: 2016-02-08 2026-10-14
+weekend rows: []
+store data_end: 2026-10-28 bars min date: 2016-01-04
+outside 2016-01-01..data_end: []
+no bar for symbol/date in store bars: 2
+   (118, 'SIVB', '2023-03-10', 'failure')
+   (119, 'FRC', '2023-05-01', 'failure')
+bar exists but zero volume: 3
+   (2, 'BIIB', '2020-11-06', 'halt')
+   (3, 'BIIB', '2023-06-09', 'halt')
+   (120, 'SBNY', '2023-03-13', 'failure')
+dates not a trading day for any symbol: []
+== 4 duplicates ==
+dup (symbol,date,kind): []
+dup (symbol,date,action): []
+== 5 used by store.py ==
+actions in file not read by store.py: []
+rows with unread action: []
+action counts: {'total_return': 58, 'override_open': 54, 'override_close': 7, 'stopped_trading': 3, 'no_trade': 2, 'override_bar': 1}
+failure kind rows: [(118, 'SIVB', '2023-03-10', 'stopped_trading'), (119, 'FRC', '2023-05-01', 'stopped_trading'), (120, 'SBNY', '2023-03-13', 'stopped_trading')]
+kinds only informational (action read, kind not read): ['bad_print', 'close_print', 'dividend', 'halt', 'merger', 'open_print', 'share_consolidation', 'special_dividend', 'spin_off', 'stock_dividend', 'warrant_dividend']
+== 6 evidence quotes ==
+rows with at least one quote: 9 quotes: 9
+longest quote words: 11
+rows with a quote over 15 words: 0 row numbers (max words): {}
+word-length histogram of quotes: {3: 1, 4: 1, 7: 1, 8: 1, 10: 2, 11: 3}
+rows with evidence over 100 words (whole note, not a quote): [79, 84, 100, 115, 123]

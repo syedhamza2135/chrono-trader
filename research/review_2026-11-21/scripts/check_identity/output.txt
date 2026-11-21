@@ -1,0 +1,104 @@
+rows: membership 799 identity 814 bars 1420646 opens 1420626
+data_end 2026-10-28 | sessions in bars 2721 2016-01-04 2026-10-28
+
+==== CHECK 1: membership dates and null member_to
+rows with member_to present: 296 | member_from > member_to: 0 | member_from == member_to (empty span, member_to is exclusive): 0
+null member_to rows: 503 | distinct entities: 500 | member_from of those rows: 1996-01-02 to 2026-10-06
+rows that start after a null-member_to row of the same entity: 3 | entities with two null rows: 3
+rows active on data_end (member_from <= data_end, member_to null or later): 503 | entities: 500 | of which member_to present: 0
+member_to max: 2026-10-06 | rows with member_to after data_end: 0
+index file components_extended.csv, last snapshot 2026-10-06 : 503 tickers (distinct 503 )
+PLAN L476 says the membership ends with 503 members
+rows whose member_to equals the last snapshot date: 3
+
+==== CHECK 2: membership overlaps and daily member counts
+entities with more than one row: 46 | overlapping row pairs for one entity: 8 | touching spans (not overlap): 39
+   (entity, from1, to1, from2, to2) ('0001166691', '1996-01-02', None, '2015-09-21', '2015-12-14')
+   (entity, from1, to1, from2, to2) ('0001308161', '2004-12-20', '2019-03-19', '2015-09-21', '2019-03-19')
+   (entity, from1, to1, from2, to2) ('0001308161', '2019-03-19', '2019-03-20', '2019-03-19', '2019-03-20')
+   (entity, from1, to1, from2, to2) ('0001336917', '2014-05-01', '2022-06-21', '2016-04-08', '2022-06-21')
+   (entity, from1, to1, from2, to2) ('0001437107', '2010-03-01', '2022-04-11', '2014-08-07', '2022-04-11')
+   (entity, from1, to1, from2, to2) ('0001564708', '2013-07-01', None, '2015-09-21', None)
+   (entity, from1, to1, from2, to2) ('0001652044', '2006-04-03', None, '2014-04-03', None)
+   (entity, from1, to1, from2, to2) ('0001754301', '2019-03-19', None, '2019-03-19', None)
+sessions counted: 2721 2016-01-04 to 2026-10-28
+distinct members per session: min 498 on 2018-11-29 | max 502 on 2020-04-03
+membership rows per session: min 503 | max 507
+sessions with members outside 500..505: 41
+sessions per member count: {498: 2, 499: 39, 500: 2667, 501: 12, 502: 1}
+first 10 outside sessions: [('2016-01-15', 499), ('2016-03-03', 499), ('2016-03-04', 499), ('2016-03-24', 499), ('2016-03-28', 499), ('2016-03-29', 499), ('2016-05-02', 499), ('2016-05-12', 499), ('2016-06-21', 499), ('2016-06-22', 499)]
+outside sessions by year: {2016: 13, 2017: 12, 2018: 16}
+member-flag bars, distinct entities per session: min 498 max 501 | sessions where that differs from the membership table: 62
+
+==== CHECK 3: identity spans
+columns: ['entity_id', 'symbol', 'share_class', 'valid_from', 'valid_to', 'cik']
+empty valid_from: 0 | empty valid_to: 505 | empty share_class: 795
+share_class values: {'': 795, 'A': 10, 'B': 4, 'C': 4, 'A Special': 1}
+valid_from > valid_to: 0 | valid_from == valid_to (one day): 3
+duplicate rows on (entity, symbol, share_class, valid_from, valid_to): 0
+overlapping spans, same entity and share class (ends inclusive): 0
+symbols held by two entities on the same day: 0
+overlapping spans of one symbol within one entity: 0
+entities with two or more share classes listed: 7
+
+==== CHECK 4: joins
+membership entities: 746 | identity entities: 746 | in membership, not identity: 0 | in identity, not membership: 0
+   ids in membership but not identity (up to 20): []
+(4a) membership rows: 799 | calendar days (to data_end) with no covering identity row: 0 | store sessions with none: 0 | membership rows affected: 0
+(4b) bars entity-days: 1409333 | flagged member: 1360407 | covered by a membership row: 1360407
+     member-flag entity-days with no membership row: 0 | entities: 0
+     bars entities not in membership at all: 0
+     covered by membership but member flag false: 0 | entities: 0
+
+==== CHECK 5: membership days with no bar or no open
+membership entity-days (store sessions to data_end): 1360471 | first 2016-01-04
+(5a) entity-days with no bar of any kind: 64 | entities: 28
+(5b) entity-days with no member-flag bar: 64
+(5c) entity-days with a bar but no official open: 519 | row missing in opens: 8 | row present with null open: 511
+     entity-days with no open at all (bar or not): 583
+     class level: member bars 1371711 | with no non-null open: 519 | counts.json member_bars_with_official_open: 1371192
+no bar, first 20 by (entity, date):
+    0000004447 2025-07-18
+    0000004447 2025-07-21
+    0000004447 2025-07-22
+    0000072207 2020-10-05
+    0000072207 2020-10-06
+    0000072207 2020-10-07
+    0000072207 2020-10-08
+    0000072207 2020-10-09
+    0000101778 2024-11-22
+    0000101778 2024-11-25
+    0000203527 2021-04-15
+    0000203527 2021-04-16
+    0000203527 2021-04-19
+    0000718877 2023-10-16
+    0000718877 2023-10-17
+    0000719739 2023-03-10
+    0000719739 2023-03-13
+    0000719739 2023-03-14
+    0000721683 2019-09-18
+    0000721683 2019-09-19
+bar but no open, first 20 by (entity, date):
+    0000001800 2023-01-24
+    0000002969 2023-01-24
+    0000004281 2023-01-24
+    0000004447 2023-01-24
+    0000004962 2021-10-25
+    0000004962 2023-01-24
+    0000004977 2023-01-24
+    0000005272 2023-01-24
+    0000007084 2023-01-24
+    0000010456 2023-01-24
+    0000010795 2023-01-24
+    0000012208 2022-03-08
+    0000012927 2023-01-24
+    0000014272 2023-01-24
+    0000014693 2023-01-24
+    0000016732 2023-01-24
+    0000016918 2021-04-09
+    0000016918 2021-04-28
+    0000016918 2022-03-08
+    0000016918 2023-01-24
+no-bar entity-days by year: {2017: 2, 2019: 8, 2020: 12, 2021: 7, 2022: 4, 2023: 8, 2024: 8, 2025: 9, 2026: 6}
+no-open entity-days, top 8 dates: {'2023-01-24': 267, '2018-01-24': 108, '2022-03-08': 66, '2021-04-09': 17, '2021-04-28': 17, '2018-02-01': 12, '2021-04-13': 7, '2021-04-29': 5}
+no-open entity-days by year: {2018: 121, 2020: 1, 2021: 58, 2022: 68, 2023: 271}

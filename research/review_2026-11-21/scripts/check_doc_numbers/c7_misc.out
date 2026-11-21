@@ -1,0 +1,10 @@
+EQT 2018-11-13 rows 1 actions ['total_return']
+DPS 2018-07-10 rows 1 actions ['total_return']
+CCE 2016-05-31 rows 1 actions ['total_return']
+left open, rows for WYN 2018-06-01 0
+left open, rows for WH 2018-06-01 0
+left open, rows for HLT 2017-01-04 0
+left open, rows for FTI 2021-02-16 0
+stories created_at min/max 2015-01-01 2026-10-29
+membership member_to min (non-null) 2015-01-27 member_from max 2026-10-06
+bars date min 2016-01-04

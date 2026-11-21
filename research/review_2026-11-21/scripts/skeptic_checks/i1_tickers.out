@@ -1,0 +1,37 @@
+CPRI in index file: runs (first snapshot, first snapshot without): [('2016-01-04', '2020-05-12')]
+   identity row: 0001530721 2019-01-02 2020-05-11 -
+KORS in index file: runs (first snapshot, first snapshot without): [('2013-11-13', '2018-09-19')]
+   membership row: 0001530721 2013-11-13 2020-05-12 | same ticker (45)
+   identity row: 0001530721 2013-11-13 2019-01-01 -
+CCE in index file: runs (first snapshot, first snapshot without): [('1998-10-08', '2016-05-31')]
+   membership row: 0001491675 1998-10-08 2016-05-31 | same ticker (17)
+   identity row: 0001491675 1998-10-08 2016-05-30 -
+CCEP in index file: runs (first snapshot, first snapshot without): [('2016-01-04', '2016-05-31')]
+TYC in index file: runs (first snapshot, first snapshot without): []
+   membership row: 0000833444 2015-01-01 2016-09-06 | added: missing from the membership file
+   identity row: 0000833444 2014-12-29 2016-09-05 -
+JCI in index file: runs (first snapshot, first snapshot without): [('1996-01-02', 'None')]
+   membership row: 0000053669 1996-01-02 2016-09-06 | same ticker (21)
+   membership row: 0000833444 2016-09-06 None | same ticker (122)
+   identity row: 0000053669 1996-01-02 2016-09-05 -
+   identity row: 0000833444 2016-09-06 None -
+
+entity 0000053669 membership rows: [('1996-01-02', '2016-09-06', 'JCI')]
+entity 0000833444 membership rows: [('2015-01-01', '2016-09-06', 'TYC'), ('2016-09-06', None, 'JCI')]
+entity 0001491675 membership rows: [('1998-10-08', '2016-05-31', 'CCE')]
+entity 0001530721 membership rows: [('2013-11-13', '2020-05-12', 'KORS')]
+
+sessions 2016-2018 grouped (entities, snapshot tickers, active rows, entities with 2+ rows, snapshot-only, rows-only): sessions
+  (498, 503, 503, 5, ('CPRI',), ('KORS',)) 2
+  (499, 504, 503, 4, ('CCEP', 'CPRI'), ('TYC',)) 6
+  (499, 504, 504, 5, ('CPRI',), ('KORS',)) 7
+  (499, 504, 504, 5, ('CPRI',), ('TYC',)) 4
+  (499, 505, 504, 5, ('CCEP', 'CPRI'), ('TYC',)) 2
+  (499, 505, 504, 5, ('CPRI',), ()) 20
+  (500, 504, 504, 4, ('CCEP', 'CPRI'), ('ACE', 'TYC')) 9
+  (500, 505, 504, 4, ('CCEP', 'CPRI'), ('TYC',)) 51
+  (500, 505, 505, 5, ('CPRI',), ('KORS',)) 62
+  (500, 505, 505, 5, ('CPRI',), ('TYC',)) 64
+  (500, 506, 505, 5, ('CCEP', 'CPRI'), ('TYC',)) 34
+  (500, 506, 505, 5, ('CPRI',), ()) 492
+  (501, 507, 506, 5, ('CPRI',), ()) 1

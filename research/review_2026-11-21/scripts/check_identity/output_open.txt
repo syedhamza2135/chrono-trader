@@ -1,0 +1,5 @@
+open identity rows: 505 | entities: 501 | null member_to rows: 503 | entities: 500
+open identity entities with no null member_to row: ['0001336917']
+null member_to entities with no open identity row: []
+entities where the two counts differ:
+   0001336917 {'open_identity': np.int64(2), 'null_member_to': np.int64(0)} [('UA', 'C', '2016-12-07'), ('UAA', 'A', '2016-12-07')]

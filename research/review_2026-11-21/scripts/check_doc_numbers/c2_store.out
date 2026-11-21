@@ -1,0 +1,16 @@
+bars 1420646 member 1371711 non-member 48935
+bars date min/max 2016-01-04 2026-10-28
+labels 1419403 at_close 222 label == -1: 3
+counts.json agrees: bars True labels True
+  -1 label: ['SIVB'] from 2023-03-09 to 2023-03-09 at_close True
+  -1 label: ['FRC'] from 2023-04-28 to 2023-04-28 at_close True
+  -1 label: ['SBNY'] from 2023-03-10 to 2023-03-10 at_close True
+labels start member / end non-member 125 of which at_close 0
+labels start member / end non-member, end bar missing: 0
+at_close labels 222 distinct company series 222
+exit series: stopped 103 window cut 119 unknown 0
+failed exit labels 3
+companies with a gap between membership rows 6 ['CHK', 'DPS', 'EQT', 'EXE', 'FSLR', 'ILMN', 'KDP', 'PCG']
+rejoin set contains EQT PCG FSLR KDP ILMN CHK: {'EQT': True, 'PCG': True, 'FSLR': True, 'KDP': True, 'ILMN': True, 'CHK': True}
+non-member bars 48935
+membership rows 799 identity rows 814

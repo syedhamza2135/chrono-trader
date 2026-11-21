@@ -1,0 +1,97 @@
+## master tip
+3f45e94
+3f45e94 2026-11-21 00:33
+## dd40a5f commit date in New York time
+2026-11-08 22:52 Pakistan Standard Time
+## commits reachable from master
+13
+## table hashes: exists, subject
+78e0c40 78e0c40 Add the research plan, its review, and the FNSPID probes
+0b87aab 0b87aab Set up Alpaca access and record the first audit results
+130c849 130c849 Add the M0 data pipeline and the price audit
+043080f 043080f Add the news audit and record its results in the plan
+69e777b 69e777b Add a README and note the GitHub remote in the plan
+b7d78d9 b7d78d9 Finish the M0 data audit: identity table, price corrections, split
+3f1825a 3f1825a Correct more of Alpaca's distribution adjustments
+af1aaf9 af1aaf9 Fix the M0 review findings and adopt the checked parts of a research brief
+93d8f70 93d8f70 Build M1: the time wall, the event store and the official opens
+90ecb8a 90ecb8a Fix the second review's ten findings in M1
+658db1c 658db1c Correct three distributions on days outside membership
+2ace1c3 2ace1c3 Start M2: measure the reader's work and pin the ChronoBERT vintages
+## old hashes still known to git (should be refs/original or backups only)
+c409871 commit
+e425969 commit
+212bafa commit
+cd0a0e2 commit
+4d5bb0d commit
+9a1508f commit
+e56e09a commit
+7b4a200 commit
+b2b9441 commit
+c9c09cf commit
+87bacdc commit
+4ebbe24 commit
+## branches
+  backup/pre-rewrite/m1
+  backup/pre-rewrite/m2
+  backup/pre-rewrite/master
++ claude/awesome-panini-89f869
+* claude/full-review-1121-0eb11c
++ claude/full-review-3f8af1
++ claude/lead-07c0a0
++ claude/m1-kickoff-832c2d
+  remotes/origin/claude/awesome-panini-89f869
+  remotes/origin/claude/m1-kickoff-832c2d
+## commits whose message holds Co-Authored-By, reachable from master and claude branches
+0
+## same, from backup/pre-rewrite refs
+refs/heads/backup/pre-rewrite/m1
+refs/heads/backup/pre-rewrite/m2
+refs/heads/backup/pre-rewrite/master
+9
+## Generated with Claude Code lines in master history
+0
+## tests added in dd40a5f
+3
++def test_a_failed_company_is_a_total_loss():
++def test_a_failed_company_exits_at_a_total_loss():
++def test_a_failure_row_within_a_week_of_the_last_trade_marks_a_failed_company():
+## agents
+5
+chrono-checker.md
+chrono-digest.md
+chrono-judge.md
+chrono-scout.md
+chrono-skeptic.md
+## tests summary line
+258 passed, 1 skipped, 6 warnings in 383.13s (0:06:23)
+## skip reason
+20:258 passed, 1 skipped, 6 warnings in 383.13s (0:06:23)
+## incomplete rule
+30:TRAILING, MIN_BARS = 20, 10  # medians over the file's previous 20 bars, judged once there are 10
+31:INCOMPLETE_TRADES = 0.05
+## verify_prints HEADER length
+HEADER entries: 19 ['close_spread', 'listing_exchange', 'open_checked', 'close_checked']
+## m0_review counts
+- **Review result:** 33 findings confirmed (2 major, 31 minor) and 2 refuted. The docs area ran in two halves against
+identity 5
+prices 5
+audit 8
+lookahead 3
+done 8
+plan 12
+major 2
+## m1_kickoff list sizes
+leak review items (lines 108-137): 10
+second review items (lines 151-173): 10
+## store.md diff between 658db1c and dd40a5f
+ research/audit/store.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+--- a/research/audit/store.md
+-- Labels: 1,419,403. 222 end at a last traded close: 103 where the company stopped trading (an acquisition or a failure), and 119 where the store stops keeping
++- Labels: 1,419,403. 222 end at a last traded close: 103 where the company stopped trading (an acquisition or a failure), and 119 where the store stops keeping
+## tests mention universe_preview
+tests/test_leaks.py
+tests/test_prices.py
+## 4 to 6 minutes: pytest seconds
+in 383.13s (0:06:23)

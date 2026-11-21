@@ -1,0 +1,20 @@
+price_events rows 125
+by action {'total_return': 58, 'override_open': 54, 'override_close': 7, 'stopped_trading': 3, 'no_trade': 2, 'override_bar': 1}
+by kind {'open_print': 54, 'spin_off': 46, 'close_print': 7, 'special_dividend': 6, 'failure': 3, 'halt': 2, 'warrant_dividend': 2, 'bad_print': 1, 'stock_dividend': 1, 'share_consolidation': 1, 'dividend': 1, 'merger': 1}
+rows with a value in a price or volume column 62 by action {'override_open': 54, 'override_close': 7, 'override_bar': 1}
+rows with none of them 63 by action {'total_return': 58, 'stopped_trading': 3, 'no_trade': 2} symbols ['AIV', 'AIV', 'AIV', 'APD', 'APTV', 'APTV', 'ARNC', 'BBWI', 'BDX', 'BDX', 'BIIB', 'BIIB', 'BIIB', 'BWA', 'CCE', 'CTVA', 'CTXS', 'DD', 'DHR', 'DHR', 'DOV', 'DPS', 'DTE', 'DWDP', 'EQT', 'FBIN', 'FDX', 'FRC', 'FTV', 'FTV', 'GE', 'GE', 'HON', 'HOT', 'HWM', 'IBM', 'IP', 'IR', 'JCI', 'JCI', 'LH', 'MMM', 'MRK', 'NLOK', 'O', 'OXY', 'OXY', 'PFE', 'PNR', 'RTX', 'SBNY', 'SIVB', 'SKYD', 'SLG', 'TDG', 'TGNA', 'TT', 'UA', 'WDC', 'WRK', 'XRX', 'YUM', 'ZBH']
+total_return rows 58 with the word close in evidence 58
+total_return rows with a price column filled 0
+JWN 2018-03-26 rows 1 actions ['override_bar'] volume filled True
+by action: override_open 54 override_close 7
+rows with a share quoting a headline: evidence containing a quotation mark 0
+distinct failure kind symbols ['FRC', 'SBNY', 'SIVB']
+no_trade symbols ['BIIB', 'BIIB']
+universe_preview rows 550 columns ['year', 'rank', 'entity_id', 'symbol', 'name', 'median_dollar_volume_musd']
+rows per first column value (top) {2016: 50, 2017: 50, 2018: 50}
+ column year distinct 11 values [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+EQT ret 2018-11-13 stated +1.82 | reproduced within 0.01 pp: True | diff pp 0.0
+EQT last member-day label 2018-11-12 stated -0.70 | reproduced within 0.01 pp: True | diff pp 0.002
+DPS ret 2018-07-10 stated +1.84 | reproduced within 0.01 pp: True | diff pp -0.0
+CCE ret 2016-05-31 stated +3.41 | reproduced within 0.01 pp: True | diff pp -0.0
+CCE last member-day label 2016-05-27 stated +0.58 | reproduced within 0.01 pp: False | diff pp 2.43

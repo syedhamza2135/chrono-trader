@@ -1,0 +1,4 @@
+rows whose missing days are at the end of the membership span (last member session is missing): 28 | days: 64
+rows with missing days in the middle of a span: 0 []
+rows with missing days at the start: 0 []
+of the tail rows, ones with member_to null (still a member at data_end): 0 []

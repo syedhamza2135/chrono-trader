@@ -1,0 +1,19 @@
+plan rows 787 unique (symbol, asof) files 787
+print files 787
+print files written from 2026-11-07 18:58:08 to 2026-11-07 19:12:18 span minutes 14.2
+official.parquet rows 1873240
+stock-days with a bar 1877968
+auction records on non-session days 680 dates ['2024-07-20']
+member stock-days with a bar (plan dates) 1371723
+member stock-days without an official open 519
+by date (top 4): {'2023-01-24': 267, '2018-01-24': 108, '2022-03-08': 66, '2021-04-09': 17}
+official opens more than an hour late (all stock-days) 218
+  of which on member stock-days 1
+COF 2016-10-13 rows 1 has open True
+CXO 2017-10-09 rows 1 has open True
+2026-08-20 rows 661 listing exchange counts {'NYSE': 455, 'Nasdaq': 203, 'Cboe BZX': 2, 'NYSE Arca': 1}
+official_prints.csv rows 787 open_checked 787 close_checked 785
+auctions_check.csv (disagreements) exists: True rows 2
+opens checked 808 joined with an auctions row 808 equal 803
+closes checked 806 joined with an auctions row 806 equal 801
+print-check stock-days with no auctions row: []

@@ -1,0 +1,5 @@
+members rows 799 resolved rows 799 member_to dtype object
+member_to types reaching compare: {'None': 503, 'date': 296}
+member_from types: {'date': 799}
+compare ran: missing entities 0 extra entities 0
+reference/memberships.csv rows 799 empty member_to 503 | resolved rows with None member_to 503

@@ -1,0 +1,20 @@
+........................................................................ [ 27%]
+........................................................................ [ 55%]
+........................................................................ [ 83%]
+.......s...................................                              [100%]
+============================== warnings summary ===============================
+D:\venvs\chrono-trader\Lib\site-packages\pandas\core\series.py:848
+D:\venvs\chrono-trader\Lib\site-packages\pandas\core\series.py:848
+D:\venvs\chrono-trader\Lib\site-packages\pandas\core\series.py:848
+D:\venvs\chrono-trader\Lib\site-packages\pandas\core\series.py:848
+  D:\venvs\chrono-trader\Lib\site-packages\pandas\core\series.py:848: Pandas4Warning: Series.values returning an ndarray that drops timezone information for DatetimeTZDtype is deprecated. In a future version, this will return the underlying DatetimeArray instead. Use 'Series.dt.tz_convert(None).to_numpy()' to get a NumPy array of UTC values, or 'Series.array' to get the ExtensionArray.
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#whatsnew-310-deprecations-values for more details.
+    warnings.warn(
+
+tests/test_news_split.py::test_picked_stories_count_from_the_pick_date
+tests/test_news_split.py::test_daily_counts_use_new_york_dates_and_member_days
+  C:\Users\syedh\dev\chrono-trader\.claude\worktrees\full-review-1121-0eb11c\data_pipeline\audit_news.py:67: Pandas4Warning: 'Timestamp' is not supported as a fill value for datetime64[us] dtype. In a future version, calling fillna with an incompatible value will raise. Explicitly cast to a common dtype before filling.
+    members["member_to"] = pd.to_datetime(members.member_to).fillna(pd.Timestamp.max)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+258 passed, 1 skipped, 6 warnings in 383.13s (0:06:23)
