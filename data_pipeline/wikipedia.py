@@ -11,6 +11,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from .settings import DATA_DIR
 
@@ -162,4 +163,4 @@ def changes(wikitext):
 
 
 def today():
-    return datetime.now().date().isoformat()
+    return datetime.now(ZoneInfo("America/New_York")).date().isoformat()  # New York's date

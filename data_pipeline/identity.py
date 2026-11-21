@@ -25,6 +25,7 @@ import csv
 import json
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -58,7 +59,8 @@ def wiki_months(today):
     rows, month = [], SINCE
     while month <= today:
         stamp, text = wp.revision(wp.LIST, month.isoformat())
-        stamp = datetime.fromisoformat(stamp.replace("Z", "+00:00")).date()
+        # The revision's New York date, not its UTC one (review of 21 Nov, L-C2).
+        stamp = datetime.fromisoformat(stamp.replace("Z", "+00:00")).astimezone(ZoneInfo("America/New_York")).date()
         rows += [{"stamp": stamp, **r} for r in wp.constituents(text)]
         month = date(month.year + (month.month == 12), month.month % 12 + 1, 1)
     rows += [{"stamp": today, **r} for r in wp.constituents(wp.current(wp.LIST, today.isoformat()))]

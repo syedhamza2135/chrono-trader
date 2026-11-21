@@ -61,7 +61,7 @@ class Simulator:
     def step(self, day, targets):
         day = pd.Timestamp(day)
         tradable = self.opens.get(day, set())
-        cost = 0.0
+        cost = traded = 0.0
         # 1 and 2: labels that end by today.
         for key in list(self.values):
             p = self.pending.get(key)
@@ -75,6 +75,7 @@ class Simulator:
                 del self.pending[key]
                 if at_close:
                     v = self.values.pop(key)
+                    traded += abs(v)  # the exit sale at the last close (review of 21 Nov, L-S1)
                     cost += abs(v) * self.cost
                     self.cash += v
         equity = self.cash + sum(self.values.values())
@@ -86,7 +87,6 @@ class Simulator:
                 if self._label_from(key, day) is None and (want.get(key, 0.0) or key in self.values):
                     self.forced_sales += key in self.values
                     want[key] = 0.0
-        traded = 0.0
         for key in sorted(set(want) | set(self.values)):
             if key not in tradable:
                 continue
@@ -121,15 +121,19 @@ def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
     full = {**(settings or {}), "cost_bps": cost_bps, "agent": type(agent).__name__,
             "agent_params": getattr(agent, "params", None)}
     seal.check(first, last, full if settings is not None else None)
+    was_allowed = world.allow_sealed
     if pd.Timestamp(last) >= seal.sealed_start():
         world.allow_sealed = True  # the seal holds; views may now open the sealed years
     sim = Simulator(world, cost_bps)
     decisions = []
-    for day in world.clock.between(first, last):
-        targets = agent.decide(world.view(world.clock.decision_time(day)))
-        sim.step(day, targets)
-        if targets is not None and len(targets):
-            decisions.append(targets.assign(date=day))
+    try:
+        for day in world.clock.between(first, last):
+            targets = agent.decide(world.view(world.clock.decision_time(day)))
+            sim.step(day, targets)
+            if targets is not None and len(targets):
+                decisions.append(targets.assign(date=day))
+    finally:
+        world.allow_sealed = was_allowed  # the seal covers this run only (review of 21 Nov, L-S4)
     cols = ["date", "entity_id", "share_class", "prediction", "position"]
     d = pd.concat(decisions, ignore_index=True)[cols] if decisions else pd.DataFrame(columns=cols)
     return Run(d, pd.DataFrame(sim.rows), {"forced_sales": sim.forced_sales, "unmarked": sim.unmarked})

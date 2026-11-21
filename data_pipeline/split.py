@@ -14,7 +14,8 @@ Usage: python -m data_pipeline.split [last day of data, default today]
 """
 import json
 import sys
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import exchange_calendars as xcals
 import pandas as pd
@@ -56,7 +57,7 @@ def main(last_day=None):
     members = pd.read_csv(REFERENCE / "memberships.csv", dtype=str)
     members["member_from"] = pd.to_datetime(members.member_from)
     members["member_to"] = pd.to_datetime(members.member_to)
-    last_day = last_day or str(date.today())
+    last_day = last_day or str(datetime.now(ZoneInfo("America/New_York")).date())  # New York's date
     sessions = xcals.get_calendar("XNYS").sessions_in_range("2016-01-01", last_day)
     out = {
         "rule": "PLAN.md 5.5: warm-up 2016, dev 2017 to 2019, sealed 2020-01-01 to the last trading day before the seal",

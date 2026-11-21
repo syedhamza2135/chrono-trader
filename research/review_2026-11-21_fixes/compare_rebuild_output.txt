@@ -1,0 +1,16 @@
+bars: 1,420,646 rows before, 1,420,646 after, identical: True
+opens: 1,420,626 rows before, 1,420,626 after, identical: True
+stories: 2,239,859 rows before, 2,239,859 after, identical: True
+story_entities: 559,526 rows before, 559,526 after, identical: True
+membership: 799 rows before, 799 after, identical: True
+identity: 814 rows before, 814 after, identical: True
+labels: 1,419,403 rows before, 1,419,403 after, columns equal: True
+  rows only before: 0 only after: 0
+  end differs on: 0
+  at_close differs on: 0
+  end_open_time differs on: 36
+  labels whose value changed: 55
+  of the expected, open_value_time later than the parent's open: 36
+  expected: 55 | changed and expected: 55 | changed, not expected: 0 | expected, not changed: 0
+  largest gap between the new label and the predicted one (points): 4.44e-14
+  end_open_time changed: 36 | all to the predicted time: True | changed outside the expected: 0

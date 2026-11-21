@@ -71,7 +71,8 @@ The build started at 3% of a fresh window. Everything is on the branch `claude/m
    - It agrees with the M0 print check on all 785 opens and 783 closes the check judged on plan stock-days. Two
      print-check days (ARNC on 2020-04-01 and 04-03) are the spun-off Arconic Corp, not a plan stock-day.
    - 521 member stock-days have no official open (267 on 2023-01-24, 108 on 2018-01-24, 66 on 2022-03-08). On
-     LLY's 2018-01-24 and 2019-08-12, the trades tape has no auction print either, so the gaps are in the source.
+     LLY's 2018-01-24, the trades tape has no auction print either, so the gap is in the source. (LLY's 2019-08-12,
+     listed here before, has an official open; only its closing print is missing. Review of 21 Nov, D3.)
    - 246 opens printed more than an hour late. None has an earlier opening print on its listing exchange, and only
      1 is on a member day.
 3. `data_pipeline/store.py`, the event store in `D:\chrono-data\store`. Counts are in `research/audit/store.md`.
@@ -184,7 +185,9 @@ opening gaps) found more. Eight are splits Alpaca adjusted right. Three needed r
 - DPS on 2018-07-10: the $103.75 special dividend paid with the Keurig merger. +1.84% instead of +11.45%.
 - CCE on 2016-05-31: the merger into Coca-Cola European Partners, one share and $14.50 in cash per CCE share (CCE's
   8-K exhibit on SEC EDGAR, and Cahill Gordon & Reindel's notice). +3.41% instead of -24.70%. CCE's last member-day
-  label (2016-05-27) ended here: it was -24.99%, and it is +0.58% with the row.
+  label (2016-05-27) ended here: it was -24.99%, and it is +3.01% with the row (this note said +0.58% before the
+  review of 21 Nov, L-C1). With the review's M-2 fix, which values the ex-date at the opens, it is +3.52% in the
+  store rebuilt on 21 Nov.
 Of the 125 labels that start on a member day and end on a non-member day, EQT's and CCE's were the wrong ones.
 Left open, and none reaches a label or a feature the agents use: Wyndham's 2018-06-01 spin-off of Wyndham Hotels
 (Alpaca applies nothing, and the ratio is in neither the store nor Alpaca's records), Hilton's 2017-01-04 reverse

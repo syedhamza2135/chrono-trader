@@ -135,7 +135,11 @@ def compare(a, b, tol=1e-12):
 
 
 def non_interference(tables, make_agent, first, last, how, seed=0, clock=None, give_world=False):
-    """Run to the decision on session `last`, perturb every record not visible then, run again, compare."""
+    """Run to the decision on session `last`, perturb every record not visible then, run again, compare.
+
+    "Not visible" comes from the wall's own rules (world/rules.py, through late_rows), so a wrong rule passes this
+    check: it shows that an agent can't reach past the rules, not that the rules are right. The rules themselves are
+    checked by their own tests, such as same_day_bars in tests/test_leaks.py (review of 21 Nov, L-T1)."""
     t = (clock or Clock()).decision_time(last)
     a = decisions_until(tables, make_agent, first, last, clock, give_world)
     b = decisions_until(perturb(tables, t, how, seed), make_agent, first, last, clock, give_world)

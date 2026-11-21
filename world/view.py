@@ -7,8 +7,9 @@ Tables:
 - bars: entity_id, share_class, symbol, date, open (the bar's first trade), high, low, close, volume, trades, vwap,
   ret (the close-to-close total return, with corrections), incomplete, member (a member that day), no_trade
 - labels: entity_id, share_class, date, end, label (the open-to-open total return from the official open on `date` to
-  the official open on `end`, or to the close on `end` where `at_close`: a company's last trading day), at_close
-- stories: story_id, created_at, updated_at, headline, symbols
+  the official open on `end`, or to the close on `end` where `at_close`: a company's last trading day), at_close,
+  end_open_time (when the official open on `end` printed; empty where `at_close`)
+- stories: story_id, created_at, updated_at, headline, symbols, n_companies (how many companies the story names)
 - story_entities: story_id, entity_id (the single-firm filter's companies)
 Every table has visible_at, the time its row entered the views.
 """

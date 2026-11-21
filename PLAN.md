@@ -1,6 +1,6 @@
 # Chrono-trader: problem statement and plan
 
-Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`), and the fixes from its review are in (`research/audit/m0_review.md`). The time wall, the reader and the learner aren't built yet.
+Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`), and the fixes from its review are in (`research/audit/m0_review.md`). M1, the time wall, is built and reviewed (`research/m1_kickoff.md`). The reader and the learner aren't built yet.
 
 This is version 2 (30 Oct 2026). It's rebuilt on Alpaca data after the review in `REVIEW.md`. The review's evidence and probe scripts stay in `REVIEW.md` and `research/fnspid_probes/`.
 
@@ -215,10 +215,10 @@ The availability rules are conservative on purpose:
 
 | Record | `available_at` |
 |---|---|
-| News story | Its `updated_at` plus 15 minutes. The text we get is the latest version, and the free plan delivers news about 15 minutes late, so the backtest sees exactly what the live job will see. Stories edited more than 3 days after publishing are dropped, because their timing no longer means anything (0.2% of 2015's stories, and at most 0.5% in any year) |
+| News story | Its `updated_at` plus 15 minutes. The text we get is the latest version, and the free plan delivers news about 15 minutes late, so the backtest sees no more than the live job will. It can see less: live, a story's first version shows before any edit, while the backtest shows the story only from its last edit (review of 21 Nov, L-P1; M5 measures the live lag). Stories edited more than 3 days after publishing are dropped, because their timing no longer means anything (0.2% of 2015's stories, and at most 0.5% in any year) |
 | Daily close, high, low and volume for day d | 16:00 ET on day d. The vendor's bar timestamp (midnight) is never used for timing |
 | Opening price for day d | 9:30 ET on day d. Only the simulator uses it |
-| Return label for day d | The open on day d+1. Dividends and splits inside the window are part of the label |
+| Return label for day d | The next official open, usually day d+1's. Dividends and splits inside the window are part of the label |
 | S&P 500 membership change | Its effective date |
 | SEC filing (later versions) | Acceptance time, or 6:00 am the next business day if accepted after 5:30 pm ET. This rule is uncertain but conservative |
 | Macro value (later versions) | 9:00 ET on the trading day after its `realtime_start` |
@@ -227,7 +227,7 @@ More rules:
 
 - **Daily clock.** Decide at 9:00 ET, fill at the open, and use the open-to-open total return as the label.
 - **New York dates everywhere.** Downloads and the daily job work out dates in New York time. Pakistan runs 9 to 10 hours ahead, and the free plan refuses any request reaching into a session still in progress. The first price download failed for exactly this reason.
-- **Newest usable label.** At 9:00 on day k, the newest outcome the AI can learn from is day k−2's. Day k−1's open-to-open return isn't complete until day k's open, which comes after the decision.
+- **Newest usable label.** At 9:00 on day k, the newest outcome the AI can learn from is day k−2's. Day k−1's open-to-open return isn't complete until day k's open, which comes after the decision. The test is that the label is visible in the view: a label whose window spans a day without an official open ends later, so the k−2 rule alone would take 525 labels on 16 dates (2018-01-23 to 2023-06-08) that aren't visible at 9:00 on day k (review of 21 Nov, L-P3).
 - **Returns only.** Total returns come from day-over-day ratios of adjusted bars, which are safe. Dollar volume comes from raw bars. Adjusted price levels are never used, because back-adjusted prices already include future dividends and splits.
 - **Fit on lived days only.** Everything that gets fitted (scalers, the ridge penalty, which embedding pooling to use) is fitted only on days already lived.
 - **The stock list is picked inside the loop**, each January, from `world.view`. In 2016 it's picked on the first trading day of April from January to March data, because Alpaca's prices start in 2016.
@@ -518,12 +518,18 @@ Outputs: `research/audit/audit.md` (the answers above, question by question), `r
 
 ### 9.4 The event store (Parquet)
 
-- `bars_raw` and `bars_adj`: entity_id, symbol, date, open, high, low, close, volume, trade count, vwap.
-- `stories`: story_id, symbols, created_at, updated_at, available_at, headline, summary, has_content, source, n_symbols.
+Built in M1 by `data_pipeline/store.py` into `DATA_DIR/store`; the counts and each column's rule are in
+`docs/digests/store_tables.md` (rewritten from it in the review of 21 Nov, L-P4). No table stores an availability
+time: `world/rules.py` sets each record's from its raw times.
+- `bars`: entity_id, share_class, symbol, date, open, high, low, close, volume, trades, vwap, ret (the corrected
+  close-to-close total return), incomplete, member, no_trade. One table, raw prices with the adjusted total return.
+- `opens`: entity_id, share_class, date, open, open_time, listing_exchange, official_close (the official auction prints).
+- `labels`: entity_id, share_class, date, end, label, at_close, end_open_time.
+- `stories`: story_id, created_at, updated_at, headline, symbols, n_companies.
 - `story_entities`: story_id, entity_id (only stories passing the single-firm filter).
-- `embeddings`: story_id, vintage_year, emb_last (768 float16), emb_avg (768 float16).
-- `membership`: date, entity_id.
-- `identity`: entity_id, symbol, valid_from, valid_to, cik.
+- `membership`: entity_id, member_from, member_to (one row per spell and share class).
+- `identity`: entity_id, symbol, share_class, valid_from, valid_to, cik.
+- `embeddings` (M2, not built yet): story_id, vintage_year, emb_last (768 float16), emb_avg (768 float16).
 
 All times are stored in UTC and converted to New York time, with daylight saving handled, when the rules are applied.
 
@@ -532,7 +538,7 @@ All times are stored in UTC and converted to New York time, with daylight saving
 1. `v = world.view(9:00 ET on day k)`.
 2. On the first trading day of the year, pick the year's 50 stocks from `v`. (In 2016, do this on the first trading day of April.)
 3. Build features for the 50 stocks from `v`.
-4. On the first trading day of each month, refit the scaler and the ridge on every lived row whose label is known (day k−2 and earlier). Nothing is fitted until 6 months have been lived.
+4. On the first trading day of each month, refit the scaler and the ridge on every lived row whose label is visible in the view (day k−2 and earlier at the latest). Nothing is fitted until 6 months have been lived.
    - Choose the penalty and the embedding pooling by validating on the most recent 20% of lived days (at least 3 months), until 5 years have been lived. After that, use the last 12 months.
    - The training part always ends before the validation part starts, with the k−2 gap at the boundary.
 5. Predict, rank, and set target positions, given the holding-period rule.

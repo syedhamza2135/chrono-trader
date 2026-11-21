@@ -9,6 +9,7 @@ import pytest
 
 from eval.metrics import daily_rank_ic
 from sim import seal
+from sim import simulator
 from sim.simulator import Simulator
 
 D = pd.to_datetime(["2021-03-15", "2021-03-16", "2021-03-17", "2021-03-18"]).astype("datetime64[ns]")
@@ -60,6 +61,7 @@ def test_a_company_that_stops_trading_is_sold_at_its_last_close():
     sim.step(D[1], targets(("A", "", 0.5)))  # the next session: the exit is settled, and there's no open to buy at
     assert ("A", "") not in sim.values
     assert sim.cash == pytest.approx(1 - 0.5 - 0.5 * 5e-4 + 0.4 - 0.4 * 5e-4)  # bought for 0.5, sold at 0.4
+    assert sim.rows[-1]["traded"] == pytest.approx(0.4)  # the exit sale counts as traded (review of 21 Nov, L-S1)
 
 
 def test_a_failed_company_is_a_total_loss():
@@ -145,3 +147,17 @@ def test_the_runner_refuses_sealed_dates_without_a_matching_seal_and_a_clean_tre
     (tmp_path / "PREREG.md").write_text("changed hypotheses")
     with pytest.raises(seal.SealError, match="prereg"):
         seal.check("2020-01-02", "2026-10-28", settings, root=tmp_path, git=FakeGit())
+
+
+def test_a_sealed_run_opens_the_sealed_years_for_that_run_only(monkeypatch):
+    """Review of 21 Nov, L-S4: run() sets allow_sealed while the seal holds and puts it back after."""
+    w = FakeWorld([("A", "", D[0], 10.0)], [])
+
+    class Clock:
+        def between(self, first, last):
+            return []
+    w.clock, w.allow_sealed = Clock(), False
+    monkeypatch.setattr(seal, "check", lambda *a, **k: None)
+    monkeypatch.setattr(seal, "sealed_start", lambda: pd.Timestamp("2020-01-02"))
+    simulator.run(w, object(), "2020-01-02", "2020-01-03")
+    assert w.allow_sealed is False

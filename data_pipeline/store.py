@@ -16,7 +16,12 @@ world/ applies the availability rules, so the rules live in one place (world/rul
   company, class and session that has one. The simulator trades a stock-day only at its official open.
 - labels: for each company, class and session with an official open, the total return from that open to the next
   official open of the same listing (and `end_open_time`, when that open printed, for the availability rule): (close / open) on the first day, the corrected close-to-close returns between,
-  and (open / close) on the end day. The closes cancel, so a wrong close can't move a label. Where no official open
+  and (open / close) on the end day. The closes cancel, so a wrong close can't move a label. On a distribution's
+  ex-date the close-based return doesn't cancel (it adds the distribution's value at the close), so a label that ends
+  there ends with the row's `open_value` instead: what a share held the evening before is worth at the ex-date's
+  official opens, over the series' own previous close (review of 21 Nov, M-2; research/ex_date_opens.py fills it).
+  Its `end_open_time` is the later of the parent's open and `open_value_time`, the last open it uses (the judge's
+  J-3). Where no official open
   follows and the company stopped trading before the data ends, the label ends at its last traded close
   (`at_close`). After an acquisition, that is PLAN's exit at the last available price. After a failure (`failures`:
   SVB, Signature and First Republic), the label is -1, a total loss, so the backtest can't sell at a price from
@@ -94,6 +99,8 @@ def apply_events(s, events):
     """Apply reference/price_events.csv to the company series; return the series and what was applied."""
     s = s.copy()
     s["no_trade"] = False
+    s["open_val"] = np.nan
+    s["open_val_time"] = pd.NaT
     applied = []
     # Every bar the series keeps, member day or not: a member day's label can end on the first day after a removal
     # (EQT spun off Equitrans the day it left the index). Member bars win a clash.
@@ -127,6 +134,9 @@ def apply_events(s, events):
             move_close(i, float(e.close))
         elif e.action == "total_return":
             s.at[i, "ret"] = float(e.total_return)
+            if isinstance(getattr(e, "open_value", None), str) and e.open_value:
+                s.at[i, "open_val"] = float(e.open_value)
+                s.at[i, "open_val_time"] = pd.Timestamp(e.open_value_time).tz_convert("UTC").tz_localize(None)
         elif e.action == "no_trade":
             s.at[i, "no_trade"] = True
         applied.append((e.action, "applied"))
@@ -161,14 +171,19 @@ def failures(s, events, within=pd.Timedelta(days=7)):
 
 def labels(s, opens, data_end, failed=frozenset()):
     """The open-to-open total return of each company, class and session with an official open (see the module).
-    `failed` holds the (entity_id, share_class) pairs from `failures`: their exit label is -1."""
+    `failed` holds the (entity_id, share_class) pairs from `failures`: their exit label is -1. Where the end day has an
+    `open_val` (from `apply_events`), the last piece is open_val / the previous close, not (1 + ret) * open / close,
+    and the label shows no earlier than `open_val_time`."""
     o = opens.reindex(columns=["entity_id", "share_class", "date", "open", "open_time"]).dropna(subset=["open"])
-    x = s[KEY + ["close", "ret", "volume"]].merge(o.rename(columns={"open": "official_open"}), on=KEY, how="left")
+    x = s.reindex(columns=KEY + ["close", "ret", "volume", "open_val", "open_val_time"])
+    x = x.merge(o.rename(columns={"open": "official_open"}), on=KEY, how="left")
     out = []
     for (ent, cls), g in x.groupby(["entity_id", "share_class"], sort=False):
         dates, close = g.date.to_numpy(), g.close.to_numpy(dtype=float)
         oo, ret = g.official_open.to_numpy(dtype=float), g.ret.to_numpy(dtype=float)
+        open_val = g.open_val.to_numpy(dtype=float)
         printed = pd.to_datetime(g.open_time, utc=True).to_numpy()  # when each official open printed
+        val_time = pd.to_datetime(g.open_val_time, utc=True).to_numpy()  # when the last open in open_val printed
         undefined = np.cumsum(np.isnan(ret))  # a label can't cross a day without a return
         growth = np.cumsum(np.log1p(np.nan_to_num(ret)))  # log total return up to each close
         opened = np.flatnonzero(~np.isnan(oo))
@@ -185,10 +200,17 @@ def labels(s, opens, data_end, failed=frozenset()):
                 continue
             if undefined[j] != undefined[i]:
                 continue
-            value = close[i] / oo[i] * np.exp(growth[j] - growth[i]) * (1.0 if at_close else oo[j] / close[j]) - 1
+            shown = printed[j]
+            if not at_close and not np.isnan(open_val[j]):  # an ex-date: its closes don't cancel (M-2)
+                before = growth[j] - np.log1p(np.nan_to_num(ret[j])) - growth[i]  # up to the close before day j
+                value = close[i] / oo[i] * np.exp(before) * open_val[j] / close[j - 1] - 1
+                if pd.notna(val_time[j]) and (pd.isna(shown) or val_time[j] > shown):
+                    shown = val_time[j]
+            else:
+                value = close[i] / oo[i] * np.exp(growth[j] - growth[i]) * (1.0 if at_close else oo[j] / close[j]) - 1
             if at_close and lost:
                 value = -1.0  # a failure: the holding is worth nothing at the exit
-            out.append((ent, cls, dates[i], dates[j], value, at_close, pd.NaT if at_close else printed[j]))
+            out.append((ent, cls, dates[i], dates[j], value, at_close, pd.NaT if at_close else shown))
     lab = pd.DataFrame(out, columns=["entity_id", "share_class", "date", "end", "label", "at_close", "end_open_time"])
     lab["end_open_time"] = pd.to_datetime(lab.end_open_time, utc=True)
     return lab

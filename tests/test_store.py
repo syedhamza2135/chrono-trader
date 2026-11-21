@@ -95,7 +95,7 @@ def event_series():
 
 def events(*rows):
     cols = ["symbol", "date", "kind", "status", "action", "open", "high", "low", "close", "volume", "vwap",
-            "total_return"]
+            "total_return", "open_value", "open_value_time"]
     return pd.DataFrame([dict(zip(cols, r)) for r in rows], columns=cols)
 
 
@@ -111,6 +111,50 @@ def test_a_distributions_true_total_return_replaces_the_vendors():
     s, _ = store.apply_events(event_series(), events(
         ("ABC", "2024-03-13", "spin_off", "wrong", "total_return", None, None, None, None, None, None, "0.0363")))
     assert s.ret.iloc[2] == 0.0363 and s.ret.iloc[1] == pytest.approx(0.10)
+
+
+def spin_off_day(close_on_ex_date, spin_off_close):
+    """ABC closes at 11 on D[1]; on D[2] it opens at 5.5 ex a spin-off that opens at 5.0, and the two close at the
+    given prices. The csv's close-based total return, and the value at the opens as research/ex_date_opens.py gives
+    it, with the spin-off's open printed at 9:41, after ABC's (9:30)."""
+    s = event_series().assign(close=[10.0, 11.0, close_on_ex_date])
+    total = (close_on_ex_date + spin_off_close) / 11 - 1
+    s, _ = store.apply_events(s, events(
+        ("ABC", "2024-03-13", "spin_off", "wrong", "total_return", None, None, None, None, None, None, f"{total}",
+         "10.5", "2024-03-13T13:41:00Z")))
+    o = opens([9.8, 10.8, 5.5]).assign(open_time=pd.to_datetime(
+        ["2024-03-11T13:30:00Z", "2024-03-12T13:30:00Z", "2024-03-13T13:30:00Z"], utc=True))
+    return s, o
+
+
+def test_a_label_that_ends_on_an_ex_date_values_the_distribution_at_the_open():
+    """Review of 21 Nov, M-2: the label from D[1]'s open to D[2]'s is (5.5 + 5.0) / 10.8 - 1, whatever the closes."""
+    s, o = spin_off_day(6.0, 6.0)
+    lab = store.labels(s, o, data_end=D[2])
+    assert lab.label.iloc[1] == pytest.approx((5.5 + 5.0) / 10.8 - 1, abs=1e-12)
+    for close, spin_close in ((5.0, 7.0), (7.0, 5.0)):  # only the split between the two closes moves
+        s2, _ = spin_off_day(close, spin_close)
+        assert store.labels(s2, o, data_end=D[2]).label.iloc[1] == pytest.approx(lab.label.iloc[1], abs=1e-12)
+    assert s.ret.iloc[2] == pytest.approx(12 / 11 - 1)  # the bars keep the close-based return
+    assert lab.end_open_time.iloc[1] == pd.Timestamp("2024-03-13T13:41:00Z")  # the later open (the judge's J-3)
+
+
+def test_an_ex_date_label_divides_by_the_series_own_previous_close():
+    """The judge's J-5: a later correction of the close before the ex-date moves the label's last piece with it, so
+    the closes still cancel. D[1]'s close becomes 11.55, and the label from D[1]'s open is still 10.5 / 10.8 - 1."""
+    s, o = spin_off_day(6.0, 6.0)
+    s.loc[1, "close"], s.loc[1, "ret"], s.loc[2, "ret"] = 11.55, 11.55 / 10 - 1, (s.ret.iloc[2] + 1) * 11 / 11.55 - 1
+    assert store.labels(s, o, data_end=D[2]).label.iloc[1] == pytest.approx(10.5 / 10.8 - 1, abs=1e-12)
+
+
+def test_every_distribution_with_a_value_has_its_value_at_the_opens():
+    """Each total_return row whose evidence adds a distribution's value has its value at the opens and their time."""
+    ev = pd.read_csv(store.REFERENCE / "price_events.csv", dtype=str, keep_default_na=False)
+    tr = ev[ev.action == "total_return"]
+    sums = tr.evidence.str.contains(r"\([^()]*\+[^()]*\) / [\d.]+ - 1")
+    assert sums.sum() == 55
+    for c in ("open_value", "open_value_time"):
+        assert (tr[c][sums] != "").all() and (tr[c][~sums] == "").all()
 
 
 def test_a_rebuilt_bar_replaces_the_whole_bar():

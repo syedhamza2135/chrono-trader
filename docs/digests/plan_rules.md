@@ -1,121 +1,121 @@
-Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to PLAN.md.
+Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to PLAN.md, corrected on 2026-11-21 for the review's fixes (L-P9, research/review_2026-11-21_fixes/fix_digest_lines.py).
 
 ## Status and decisions list (L1-30)
-- L3: Status says M0 and its review fixes are done, and the time wall, the reader and the learner "aren't built yet".
+- L3: Status says M0 and its review fixes are done, M1 (the time wall) is built and reviewed, and the reader and the learner "aren't built yet".
 - L5: This is version 2 (30 Oct 2026), rebuilt on Alpaca data after `REVIEW.md`.
 - L8: 29 Oct 2026: Track A (time-locked reader plus learner) comes first; Track B (time-locked LLM trader) follows on the same harness.
 - L9-11: 30 Oct 2026: data comes from Alpaca (Benzinga news from 2015, daily prices from 2016, delisted companies kept).
-- L11: FNSPID is dropped: timestamps 8 hours early, almost no time of day, a 2020 to 2022 news hole for the biggest stocks, prices omit most acquired companies (`REVIEW.md` C1 to C4).
-- L13-15: 30 Oct 2026: Alpaca access confirmed on a paper account from Pakistan; keys are in `.env`, which git ignores.
-- L16: 30 Oct 2026: the reader reads headlines only.
-- L17: 30 Oct 2026: one share class per company (GOOG/GOOGL); keep the more liquid class.
-- L18: 30 Oct 2026: Benzinga stories only; fiscal.ai was added 18 Oct 2026 and is 59% of the feed since.
-- L19: 30 Oct 2026: the reader runs on the laptop: 511,678 single-firm headlines, 2016 to 2026, 6 to 7 headlines a second, about 22 hours, run a year at a time.
-- L19: A cloud GPU is still faster; M2 picks one.
-- L20: 31 Oct 2026: companies, not tickers. Permanent ID is the SEC CIK, with tickers and share classes by date (`reference/identity.csv`).
-- L20: Prices are fetched per ticker inside those dates; news tags map to companies by date; counted by company the reader needs 500,745 headlines.
-- L21: 31 Oct 2026: price corrections are data, in `reference/price_events.csv`, each with evidence; the simulator and features must apply them.
-- L21: Alpaca adjusted bars get most spin-offs wrong; its daily open is the first trade on any venue.
-- L22: 4 Nov 2026: incomplete bars are missing data. On 2021-04-19, 2021-10-25 and 2022-03-08, bars for 326 to 356 NYSE-listed members a day hold few trades.
-- L22: A bar is flagged (`prices.incomplete`) when its trade count is below 5% of the median of its file's previous 20 bars: 1,035 member bars, counting one more on 2018-03-26.
-- L22: Features treat flagged bars as missing; the stock picker ranks without them.
-- L23: 4 Nov 2026: Alpaca's daily open is the first trade, not the opening auction. Judged within a cent or 0.2%, it misses the listing exchange's auction on 23 of 300 random stock-days and 259 of 787 checked.
-- L23: Beyond the 54 corrections in `price_events.csv`, misses are not corrected one at a time; M1 fetches the official opening auction print for every stock-day the simulator trades.
-- L24: 7 Nov 2026: a research brief was checked before adoption (`research/brief_check.md`).
-- L25: 7 Nov 2026: official opens come from Alpaca's `/v2/stocks/auctions` (free plan), fetched by `data_pipeline/auctions.py` for all 787 bar files: 1,873,240 stock-days on NYSE sessions, about 15 minutes.
-- L25: A stock-day's official open is the listing exchange's largest opening print, as in the M0 print check.
-- L25: The listing exchange is the venue with the largest print on most of the 21 sessions around the day, because one day's records can lack its cross (2026-08-20 has no Nasdaq closing print for Nasdaq stocks).
-- L25: The two agree on all 785 opens and 783 closes the print check judged (`research/audit/auctions.md`).
-- L26: 7 Nov 2026: the simulator trades a stock only at its official open.
-- L26: 519 of 1,371,723 member stock-days have none: 267 on 2023-01-24, 108 on 2018-01-24, 66 on 2022-03-08.
-- L26: On such a day the stock is not traded and a holding waits for its next official open (`research/audit/auctions_missing_opens.csv`).
-- L26: On 8 Nov the owner kept this rule rather than fall back to Alpaca's first trade.
-- L27: 7 Nov 2026: a label runs from one official open to the next, chaining corrected close-to-close total returns, so closes cancel.
-- L27: A company that stops trading exits at its last traded close, and that last label shows at the next session's open; a failure halted before the next open (SVB on 2023-03-10) is not known early.
-- L28: 8 Nov 2026: a failed company is a total loss. SVB Financial, Signature Bank and First Republic (2023): exit label is -1, holding worth nothing at exit.
-- L28: A company that is acquired exits at its last traded close (`failures` in `data_pipeline/store.py`).
-- L29: 7 Nov 2026: the store keeps a company's days outside membership only up to 400 days before a membership and 14 days after.
-- L29: Further away a file's bars can be another security's (IHS Markit's INFO file holds a thin NYSE Arca security in 2025).
-- L30: 7 Nov 2026: a view shows a company's records only near its memberships, so the agent cannot learn it joins or rejoins later.
-- L30: A record dated inside a membership, or up to 14 days after, shows at its own time.
-- L30: A record dated up to 400 days before a membership shows from that membership's start, also for a rejoin (EQT's pre-2022 bars show at the rejoin, not during the 2018 to 2022 gap).
-- L30: Views hold copies with plain string keys; agents may import only `View` (`world/view.py`); `World` is in `world/world.py`.
-- L31: 7 Nov 2026: a label shows when the open that ends it prints: 9:30 on its end date, or later for a delayed opening.
+- L10: FNSPID is dropped: timestamps 8 hours early, almost no time of day, a 2020 to 2022 news hole for the biggest stocks, prices omit most acquired companies (`REVIEW.md` C1 to C4).
+- L12-14: 30 Oct 2026: Alpaca access confirmed on a paper account from Pakistan; keys are in `.env`, which git ignores.
+- L15: 30 Oct 2026: the reader reads headlines only.
+- L16: 30 Oct 2026: one share class per company (GOOG/GOOGL); keep the more liquid class.
+- L17: 30 Oct 2026: Benzinga stories only; fiscal.ai was added 18 Oct 2026 and is 59% of the feed since.
+- L18: 30 Oct 2026: the reader runs on the laptop: 511,678 single-firm headlines, 2016 to 2026, 6 to 7 headlines a second, about 22 hours, run a year at a time.
+- L18: A cloud GPU is still faster; M2 picks one.
+- L19: 31 Oct 2026: companies, not tickers. Permanent ID is the SEC CIK, with tickers and share classes by date (`reference/identity.csv`).
+- L19: Prices are fetched per ticker inside those dates; news tags map to companies by date; counted by company the reader needs 500,745 headlines.
+- L20: 31 Oct 2026: price corrections are data, in `reference/price_events.csv`, each with evidence; the simulator and features must apply them.
+- L20: Alpaca adjusted bars get most spin-offs wrong; its daily open is the first trade on any venue.
+- L21: 4 Nov 2026: incomplete bars are missing data. On 2021-04-19, 2021-10-25 and 2022-03-08, bars for 326 to 356 NYSE-listed members a day hold few trades.
+- L21: A bar is flagged (`prices.incomplete`) when its trade count is below 5% of the median of its file's previous 20 bars: 1,035 member bars, counting one more on 2018-03-26.
+- L21: Features treat flagged bars as missing; the stock picker ranks without them.
+- L22: 4 Nov 2026: Alpaca's daily open is the first trade, not the opening auction. Judged within a cent or 0.2%, it misses the listing exchange's auction on 23 of 300 random stock-days and 259 of 787 checked.
+- L22: Beyond the 54 corrections in `price_events.csv`, misses are not corrected one at a time; M1 fetches the official opening auction print for every stock-day the simulator trades.
+- L23: 7 Nov 2026: a research brief was checked before adoption (`research/brief_check.md`).
+- L24: 7 Nov 2026: official opens come from Alpaca's `/v2/stocks/auctions` (free plan), fetched by `data_pipeline/auctions.py` for all 787 bar files: 1,873,240 stock-days on NYSE sessions, about 15 minutes.
+- L24: A stock-day's official open is the listing exchange's largest opening print, as in the M0 print check.
+- L24: The listing exchange is the venue with the largest print on most of the 21 sessions around the day, because one day's records can lack its cross (2026-08-20 has no Nasdaq closing print for Nasdaq stocks).
+- L24: The two agree on all 785 opens and 783 closes the print check judged (`research/audit/auctions.md`).
+- L25: 7 Nov 2026: the simulator trades a stock only at its official open.
+- L25: 519 of 1,371,723 member stock-days have none: 267 on 2023-01-24, 108 on 2018-01-24, 66 on 2022-03-08.
+- L25: On such a day the stock is not traded and a holding waits for its next official open (`research/audit/auctions_missing_opens.csv`).
+- L25: On 8 Nov the owner kept this rule rather than fall back to Alpaca's first trade.
+- L26: 7 Nov 2026: a label runs from one official open to the next, chaining corrected close-to-close total returns, so closes cancel.
+- L26: A company that stops trading exits at its last traded close, and that last label shows at the next session's open; a failure halted before the next open (SVB on 2023-03-10) is not known early.
+- L27: 8 Nov 2026: a failed company is a total loss. SVB Financial, Signature Bank and First Republic (2023): exit label is -1, holding worth nothing at exit.
+- L27: A company that is acquired exits at its last traded close (`failures` in `data_pipeline/store.py`).
+- L28: 7 Nov 2026: the store keeps a company's days outside membership only up to 400 days before a membership and 14 days after.
+- L28: Further away a file's bars can be another security's (IHS Markit's INFO file holds a thin NYSE Arca security in 2025).
+- L29: 7 Nov 2026: a view shows a company's records only near its memberships, so the agent cannot learn it joins or rejoins later.
+- L29: A record dated inside a membership, or up to 14 days after, shows at its own time.
+- L29: A record dated up to 400 days before a membership shows from that membership's start, also for a rejoin (EQT's pre-2022 bars show at the rejoin, not during the 2018 to 2022 gap).
+- L29: Views hold copies with plain string keys; agents may import only `View` (`world/view.py`); `World` is in `world/world.py`.
+- L30: 7 Nov 2026: a label shows when the open that ends it prints: 9:30 on its end date, or later for a delayed opening.
 
 ## 1. Problem statement (L33-56)
-- L35: Build an AI that lives through market history once, in order, and learns from what it lives through.
-- L37: Each trading day it sees only what was public before it decides. Track A uses prices and news; later versions add SEC filings and economic data as they stood that day.
-- L39: It reads news with a language model whose training ended before that day.
-- L39: It can study its own past as often as it likes and can never see a day it has not lived.
-- L41: The question: does it get better with experience, on days it could not have known about?
-- L45-50: Four properties must hold together: (1) weights cannot know the future; (2) data is point-in-time, each record carrying when it became public; (3) it learns in one pass, only from outcomes already happened, in order; (4) automated tests show changing the future cannot change a past decision.
-- L52: Frontier models never decide. They may write code, tests and reports. They make no decision on a replayed day and write no lessons, priors, rubrics or features that carry later knowledge.
-- L54: Track A learns which stocks to rank above others, from news and recent prices. Holding time, bet size and long/short rules are set by us.
-- L56: The headline result is the learning evidence in section 5.5, not a profit number.
+- L34: Build an AI that lives through market history once, in order, and learns from what it lives through.
+- L36: Each trading day it sees only what was public before it decides. Track A uses prices and news; later versions add SEC filings and economic data as they stood that day.
+- L38: It reads news with a language model whose training ended before that day.
+- L38: It can study its own past as often as it likes and can never see a day it has not lived.
+- L40: The question: does it get better with experience, on days it could not have known about?
+- L44-49: Four properties must hold together: (1) weights cannot know the future; (2) data is point-in-time, each record carrying when it became public; (3) it learns in one pass, only from outcomes already happened, in order; (4) automated tests show changing the future cannot change a past decision.
+- L51: Frontier models never decide. They may write code, tests and reports. They make no decision on a replayed day and write no lessons, priors, rubrics or features that carry later knowledge.
+- L53: Track A learns which stocks to rank above others, from news and recent prices. Holding time, bet size and long/short rules are set by us.
+- L55: The headline result is the learning evidence in section 5.5, not a profit number.
 
 ## 2. What exists, and the gap (L58-78)
-- L60-66: A table compares frontier-LLM agents, experience-learning agents, time-locked models, live benchmarks and leak checkers, with what each solves and leaves open.
-- L68-72: ChronoBERT's real-time test already meets properties 1 to 3: each year's news read by the previous year's model, ridge refit monthly on past data only. Track A builds on it.
+- L59-65: A table compares frontier-LLM agents, experience-learning agents, time-locked models, live benchmarks and leak checkers, with what each solves and leaves open.
+- L67-71: ChronoBERT's real-time test already meets properties 1 to 3: each year's news read by the previous year's model, ridge refit monthly on past data only. Track A builds on it.
 - L74-77: Not found elsewhere: an open harness with a machine-checked no-leak guarantee; learning measured against frozen copies; trading costs plus a live forward test on the same source; Track B.
 
 ## 3. Research findings that shape the design (L80-186)
-- L84: Prompting does not remove leakage; masking names and dates fails (Lopez-Lira, Tang, Zhu).
-- L85: Sarkar and Vafa found lookahead bias in two forecasting tasks.
-- L86: Glasserman and Lin: in-sample gain faded out of sample, strongest for large firms.
-- L87: Dated Data: a model's real cutoff can differ from the stated one, so we check the reader's cutoff ourselves.
-- L88: Profit Mirage: five GPT-4o agents on NASDAQ-100; total return fell 50% to 72% and Sharpe 51% to 62% from 2021 to 2024; no random baseline.
-- L92-98: Time-locked model table: ChronoBERT 149M encoder, 1,024-token context, yearly 1999 to 2024 (26 models), `manelalab`, MIT; the reader for this project.
+- L83: Prompting does not remove leakage; masking names and dates fails (Lopez-Lira, Tang, Zhu).
+- L84: Sarkar and Vafa found lookahead bias in two forecasting tasks.
+- L85: Glasserman and Lin: in-sample gain faded out of sample, strongest for large firms.
+- L86: Dated Data: a model's real cutoff can differ from the stated one, so we check the reader's cutoff ourselves.
+- L87: Profit Mirage: five GPT-4o agents on NASDAQ-100; total return fell 50% to 72% and Sharpe 51% to 62% from 2021 to 2024; no random baseline.
+- L93-99: Time-locked model table: ChronoBERT 149M encoder, 1,024-token context, yearly 1999 to 2024 (26 models), `manelalab`, MIT; the reader for this project.
 - L94: ChronoGPT 1.55B decoder, 1,792-token context, yearly 1999 to 2024.
 - L95: ChronoGPT-Instruct about 1.55B; got 0 of 76 major events after its cutoff right.
 - L96: DatedGPT: twelve 1.3B models, yearly 2013 to 2024; public weights not confirmed.
 - L97: PIT models: up to 4B, 1T tokens, yearly checkpoints (December, November in 2015) 2013 to 2024, `Diamegs`; do not cover 1999 to 2012.
-- L100: Cutoffs are the authors' best effort; a misdated document can let later text in, hence our own cutoff check (5.2).
-- L102: No pre-1999 model reads news by year, so 1999 stays the earliest start for vintage reading.
+- L99: Cutoffs are the authors' best effort; a misdated document can let later text in, hence our own cutoff check (5.2).
+- L101: No pre-1999 model reads news by year, so 1999 stays the earliest start for vintage reading.
 - L105-108: Read, then learn: Sharpe 4.80 (ChronoBERT embeddings plus monthly ridge); Llama 3.1 8B scored 4.90; difference not significant (p = 0.315). Setup: Dow Jones Newswire 2008 to mid-2023, next-day returns, equal-weighted long-short daily, no costs.
-- L109: Ask for an opinion: ChronoGPT-Instruct Sharpe 0.95; Llama 3.2 3B 1.76.
-- L111: Design rule: read with the time-locked model, decide with a learner trained on lived outcomes.
-- L115: Published Sharpe ratios will not carry over (equal-weighted, exact timestamps, before costs); across 50 large stocks after costs the signal will be much weaker.
-- L116: Replacing both sides of the book daily trades 200% of capital; at 5 bps a side that is about 25% a year.
-- L117-119: FINSABER (20 years, 100+ stocks): LLM advantages fade. StockBench: most LLM agents do not beat buy-and-hold. Alpha Arena season 1: 4 of 6 frontier models lost money.
+- L108: Ask for an opinion: ChronoGPT-Instruct Sharpe 0.95; Llama 3.2 3B 1.76.
+- L110: Design rule: read with the time-locked model, decide with a learner trained on lived outcomes.
+- L114: Published Sharpe ratios will not carry over (equal-weighted, exact timestamps, before costs); across 50 large stocks after costs the signal will be much weaker.
+- L115: Replacing both sides of the book daily trades 200% of capital; at 5 bps a side that is about 25% a year.
+- L118-120: FINSABER (20 years, 100+ stocks): LLM advantages fade. StockBench: most LLM agents do not beat buy-and-hold. Alpha Arena season 1: 4 of 6 frontier models lost money.
 - L123: News: Benzinga via Alpaca `GET /v1beta1/news`; 2,260,406 stories from 1 Jan 2015 to 29 Oct 2026.
-- L125: Fields: id, headline, summary, content, author, created_at, updated_at, symbols, source, url.
-- L126: Paging is 50 stories per page; date filter and sort both use update time.
-- L127: Benzinga only until 18 Oct 2026, with a blank `source` until 4 Jan 2022; since then fiscal.ai adds press releases and analyst-rating notes.
-- L128: Symbols are the tickers in use at publication (PCLN, FB); class shares are spelled several ways.
-- L129: Live stream is a WebSocket `wss://stream.data.alpaca.markets/v1beta1/news` with the same fields.
-- L130: Stories can change after publishing; the API returns the latest version.
+- L124: Fields: id, headline, summary, content, author, created_at, updated_at, symbols, source, url.
+- L125: Paging is 50 stories per page; date filter and sort both use update time.
+- L126: Benzinga only until 18 Oct 2026, with a blank `source` until 4 Jan 2022; since then fiscal.ai adds press releases and analyst-rating notes.
+- L127: Symbols are the tickers in use at publication (PCLN, FB); class shares are spelled several ways.
+- L128: Live stream is a WebSocket `wss://stream.data.alpaca.markets/v1beta1/news` with the same fields.
+- L129: Stories can change after publishing; the API returns the latest version.
 - L131-135: Checked 30 Oct 2026: stories back to 1 Jan 2015; true UTC; `summary` empty before recent years; content on 34% to 76% of stories.
-- L137-138: Prices: `GET /v2/stocks/bars`, daily bars from 2016, raw by default; `adjustment` can be split, dividend, spin-off or all.
+- L138-139: Prices: `GET /v2/stocks/bars`, daily bars from 2016, raw by default; `adjustment` can be split, dividend, spin-off or all.
 - L139: `asof` follows renames (FB became META 2022-06-09); `asof=-` turns it off.
-- L141: Histories follow a symbol, not a company: FOXA is 21st Century Fox until 2019-03-18; Under Armour's UA is class A until 2016-12-06 and class C after; DWDP is Dow Chemical before 2017-09-01.
-- L141: A company's member days come only from inside the dates the identity table gives each ticker; readers outside those dates keep only the company's own bars.
-- L142: The daily open is the day's first trade on any exchange; on 2023-01-24 NYSE opened LLY, MA, XOM and 12 others late, 8% to 24% from Alpaca's open.
-- L142: It misses on ordinary days too (23 of 300 random stock-days), so M1 fetches official opens.
-- L142: The daily close matches the official closing auction with a few exceptions.
-- L143: Spin-off adjustments are unreliable: of 73 distributions with adjusted and raw moves differing by more than 4%, 31 are off by more than 1 percentage point (up to 88), and 17 more on member days are not adjusted at all (16 spin-offs and warrant dividends, plus Under Armour's class C dividend).
-- L143: Corteva's 2026 Vylor spin-off is left as an 84% loss.
-- L144: Delisted symbols stay in the database (Celgene, Monsanto, Time Warner return 2016 bars with `asof` set inside 2016).
-- L145: Bar timestamp is midnight New York time, for example `2016-01-04T05:00:00Z`.
-- L147-152: Free (Basic) plan: history from 2016, 200 calls a minute, latest 15 minutes held back, real-time quotes from IEX only, 30 symbols on a WebSocket.
-- L154: News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 a month and is not needed.
-- L157: The corporate-actions API only goes back to April 2020; for 2016 to 2020 dividends and splits come from comparing raw and adjusted bars.
-- L158: Known forum quirks: blended histories (`Q`, ADEA/XPER) and missing adjustments.
-- L159: S&P 500 membership comes from `fja05680/sp500` (MIT); since 2019 compiled from Wikipedia, so check coverage up to 2026.
-- L161: Later: SEC filing accepted after 5:30 pm ET counts as filed the next business day.
-- L162: Later: ALFRED macro as of day T uses the latest vintage published by that day; never today's revised series, never the first release.
-- L166: Kaggle about 30 free GPU hours a week (third-party report, docs not checked).
-- L167: Modal: $30 a month free credit, T4 about $0.59 an hour.
-- L168: Laptop: i5-1035G1, 4 cores, 7.8 GB RAM, no NVIDIA GPU; reading news takes about 21 hours.
-- L169-173: Disk: C: tight (about 8.7 GB free on 30 Oct 2026); data, model cache, pip cache, temp and the Python environment live on D:; `.venv` links to `D:\venvs\chrono-trader`.
-- L175: ChronoBERT is ModernBERT-base: 22 layers, 768 hidden size, float32 about 600 MB per vintage.
-- L176: On CPU load with `attn_implementation="sdpa"` or `"eager"`; pin transformers and test both.
-- L177: Benchmark 30 Oct 2026 (transformers 5.22): both modes work; 6 to 7 headlines a second; median 21 tokens.
-- L178: A T4 cannot run FlashAttention 2.
-- L179: GitHub Actions runs the daily forward-test job, scheduled early, and skips any day it cannot finish before the open.
-- L183: Annual Sharpe standard error is about 1/sqrt(T) with T in years; the sealed period is about 7 years, so Sharpe must exceed about 0.75 to be told from luck.
-- L184: Daily rank IC is the more powerful test; one day's IC with 50 stocks has noise about 0.15; the 7-year average has standard error about 0.004 (estimate). IC is the primary skill metric.
-- L185: The deflated Sharpe ratio corrects for picking the best of many dev versions; the sealed run is a single pre-registered test; Holm's correction covers the pre-registered hypotheses.
-- L186: The probability of backtest overfitting estimates how likely the chosen dev version is a fluke.
+- L140: Histories follow a symbol, not a company: FOXA is 21st Century Fox until 2019-03-18; Under Armour's UA is class A until 2016-12-06 and class C after; DWDP is Dow Chemical before 2017-09-01.
+- L140: A company's member days come only from inside the dates the identity table gives each ticker; readers outside those dates keep only the company's own bars.
+- L141: The daily open is the day's first trade on any exchange; on 2023-01-24 NYSE opened LLY, MA, XOM and 12 others late, 8% to 24% from Alpaca's open.
+- L141: It misses on ordinary days too (23 of 300 random stock-days), so M1 fetches official opens.
+- L141: The daily close matches the official closing auction with a few exceptions.
+- L142: Spin-off adjustments are unreliable: of 73 distributions with adjusted and raw moves differing by more than 4%, 31 are off by more than 1 percentage point (up to 88), and 17 more on member days are not adjusted at all (16 spin-offs and warrant dividends, plus Under Armour's class C dividend).
+- L142: Corteva's 2026 Vylor spin-off is left as an 84% loss.
+- L143: Delisted symbols stay in the database (Celgene, Monsanto, Time Warner return 2016 bars with `asof` set inside 2016).
+- L144: Bar timestamp is midnight New York time, for example `2016-01-04T05:00:00Z`.
+- L146-151: Free (Basic) plan: history from 2016, 200 calls a minute, latest 15 minutes held back, real-time quotes from IEX only, 30 symbols on a WebSocket.
+- L153: News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 a month and is not needed.
+- L156: The corporate-actions API only goes back to April 2020; for 2016 to 2020 dividends and splits come from comparing raw and adjusted bars.
+- L157: Known forum quirks: blended histories (`Q`, ADEA/XPER) and missing adjustments.
+- L158: S&P 500 membership comes from `fja05680/sp500` (MIT); since 2019 compiled from Wikipedia, so check coverage up to 2026.
+- L160: Later: SEC filing accepted after 5:30 pm ET counts as filed the next business day.
+- L161: Later: ALFRED macro as of day T uses the latest vintage published by that day; never today's revised series, never the first release.
+- L165: Kaggle about 30 free GPU hours a week (third-party report, docs not checked).
+- L166: Modal: $30 a month free credit, T4 about $0.59 an hour.
+- L167: Laptop: i5-1035G1, 4 cores, 7.8 GB RAM, no NVIDIA GPU; reading news takes about 21 hours.
+- L168-172: Disk: C: tight (about 8.7 GB free on 30 Oct 2026); data, model cache, pip cache, temp and the Python environment live on D:; `.venv` links to `D:\venvs\chrono-trader`.
+- L174: ChronoBERT is ModernBERT-base: 22 layers, 768 hidden size, float32 about 600 MB per vintage.
+- L175: On CPU load with `attn_implementation="sdpa"` or `"eager"`; pin transformers and test both.
+- L176: Benchmark 30 Oct 2026 (transformers 5.22): both modes work; 6 to 7 headlines a second; median 21 tokens.
+- L177: A T4 cannot run FlashAttention 2.
+- L178: GitHub Actions runs the daily forward-test job, scheduled early, and skips any day it cannot finish before the open.
+- L182: Annual Sharpe standard error is about 1/sqrt(T) with T in years; the sealed period is about 7 years, so Sharpe must exceed about 0.75 to be told from luck.
+- L183: Daily rank IC is the more powerful test; one day's IC with 50 stocks has noise about 0.15; the 7-year average has standard error about 0.004 (estimate). IC is the primary skill metric.
+- L184: The deflated Sharpe ratio corrects for picking the best of many dev versions; the sealed run is a single pre-registered test; Holm's correction covers the pre-registered hypotheses.
+- L185: The probability of backtest overfitting estimates how likely the chosen dev version is a fluke.
 
 ## 4. How the plan changed (L188-199)
 - L191: Stocks: the 50 most-traded S&P 500 members over the previous year, re-picked each January inside the agent loop from data available then (was 20 hand-picked stocks).
@@ -136,13 +136,13 @@ Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to P
 - L218: Stories edited more than 3 days after publishing are dropped (0.2% of 2015's stories, at most 0.5% in any year).
 - L219: Daily close, high, low and volume for day d are available at 16:00 ET on day d; the vendor's midnight stamp is never used for timing.
 - L220: Opening price for day d is available at 9:30 ET on day d; only the simulator uses it.
-- L221: Return label for day d is available at the open on day d+1; dividends and splits inside the window are part of the label.
+- L221: Return label for day d is available at the next official open, usually day d+1's; dividends and splits inside the window are part of the label.
 - L222: S&P 500 membership change is available on its effective date.
 - L223: SEC filing (later): acceptance time, or 6:00 am the next business day if accepted after 5:30 pm ET (uncertain but conservative).
 - L224: Macro value (later): 9:00 ET on the trading day after its `realtime_start`.
 - L228: Daily clock: decide at 9:00 ET, fill at the open, label is the open-to-open total return.
 - L229: Dates are New York dates everywhere; the free plan refuses any request reaching into a session in progress.
-- L230: At 9:00 on day k the newest outcome the AI can learn from is day k-2's.
+- L230: At 9:00 on day k the newest outcome the AI can learn from is day k-2's at the latest; the test is that the label is visible in the view (525 labels on 16 dates are not visible by then).
 - L231: Total returns come from day-over-day ratios of adjusted bars; dollar volume comes from raw bars; adjusted price levels are never used.
 - L232: Everything fitted (scalers, ridge penalty, embedding pooling) is fitted only on days already lived.
 - L233: The stock list is picked inside the loop each January from `world.view`; in 2016 it is picked on the first trading day of April from January to March data.
@@ -159,7 +159,7 @@ Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to P
 - L262-267: Blind spots and cover: wrong source timestamps by the timestamp anchor test; source survivorship by the survivorship audit; wrong-vintage embeddings by the vintage test; our own hindsight by the seal and forward test.
 
 ## 5.2 The reader (L269-289)
-- L271-276: Input is the headline only. `summary` is empty on every 2015 to 2020 story sampled; content on 34% to 76%; typical length about 2,000 characters in 2015 to 6,400 in 2026. Content is an exploratory dev variant at most.
+- L272-277: Input is the headline only. `summary` is empty on every 2015 to 2020 story sampled; content on 34% to 76%; typical length about 2,000 characters in 2015 to 6,400 in 2026. Content is an exploratory dev variant at most.
 - L277: Source is Benzinga only: a blank or `benzinga` label.
 - L278: Single-firm filter: only stories about at most 2 companies, counted after the identity table maps tickers to entities (GOOG and GOOGL count once).
 - L278: Counted by company 963 of Berkshire's 2,210 stories pass; by ticker 684. One sampled story carried 89 symbols.
@@ -170,15 +170,15 @@ Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to P
 - L280: Output is two 768-number embeddings per story (last layer, and average of all layers), float16 Parquet.
 - L282-284: Cutoff check: for each vintage V, measure masked-word loss on headlines from years V-1 to V+2; it should jump after V; compare against vintage V+1. Probe named events ("Brexit" before 2016, "COVID" before 2020). Flag any vintage that knows too much.
 - L285: Masking diagnostic: rerun with company names and dates masked. It is a diagnostic, not a leak test. The leak guarantees stay the vintage rule, the cutoff check and non-interference tests.
-- L287-289: Known limits: ModernBERT's 2024 tokenizer vocabulary (tiny theoretical leak channel); ChronoBERT's design was chosen in 2025 knowing what worked on 2008 to 2023 news.
+- L288-290: Known limits: ModernBERT's 2024 tokenizer vocabulary (tiny theoretical leak channel); ChronoBERT's design was chosen in 2025 knowing what worked on 2008 to 2023 news.
 
 ## 5.3 Track A: the learner (L291-315)
-- L294-297: Features per stock per day: average embedding of new stories and count; fading memory of older stories; returns over 1, 5, 20 and 60 days; volatility; change in trading volume.
+- L295-298: Features per stock per day: average embedding of new stories and count; fading memory of older stories; returns over 1, 5, 20 and 60 days; volatility; change in trading volume.
 - L298: Market-wide and macro features are left out on purpose.
 - L299: Model: ridge regression refit every month on all lived days; it is the batch learner and the live agent.
-- L300-302: Dev variants: averaged monthly coefficients; more weight on recent data; River online models. `PREREG.md` decides whether the batch-versus-sequential comparison becomes a sealed hypothesis.
+- L301-303: Dev variants: averaged monthly coefficients; more weight on recent data; River online models. `PREREG.md` decides whether the batch-versus-sequential comparison becomes a sealed hypothesis.
 - L304: The ridge is kept as running sums (X'X and X'y), so the learner can only add lived days.
-- L305-306: Main test: long top 10, short bottom 10 of the 50. Easier version: hold the top 10, long-only.
+- L306-307: Main test: long top 10, short bottom 10 of the 50. Easier version: hold the top 10, long-only.
 - L308: Holding period (1, 3 or 5 days) and a turnover band are dev variables.
 - L309: Costs are 5 bps per side, sensitivity at 0, 5, 10 and 20 bps; results shown before and after costs.
 - L310: Report the long-short book's market beta and sector tilt; sector-neutral ranking is a dev variant.
@@ -209,7 +209,7 @@ Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to P
 - L347: H3 (reading): live agent's IC beats both the price-only twin and the shuffled-news placebo; paired, one-sided, Newey-West.
 - L349: Holm's correction across H1 to H3. Sharpe after costs, drawdowns, turnover, exposures, regime and shock results, and coefficient life are reported, not tested.
 - L351: Every random part (placebo, random-ranking baseline) runs with several seeds and the report shows the spread.
-- L353-356: MVP succeeds if every leak test passes and every planted leak is caught, H2 holds, and H3 holds.
+- L354-357: MVP succeeds if every leak test passes and every planted leak is caught, H2 holds, and H3 holds.
 - L358: A clean "it didn't learn" is a valid result, reported as-is.
 
 ## 6. Cost (L360-366)
@@ -266,7 +266,7 @@ Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to P
 - L447: Gap between `created_at` and `updated_at` shows how often and how late stories change.
 - L450-454: Price questions: survivorship at each January (Celgene, Monsanto, Time Warner); identity (renames, reused tickers); corporate actions (raw to adjusted ratios, review every one-day move above 25% in a big stock); blended histories (pairs with identical return series); membership complete to 2026.
 - L456: Early results 30 Oct 2026 from `research/alpaca_check.py` and `research/alpaca_news_probe.py`, on samples: Apple (Jan 2015, Jan 2016, Jun 2018), JPMorgan (Jun 2016, Mar 2020), Microsoft (Sep 2026).
-- L460-469: Early answers: news free at 200 requests a minute; stories from 1 Jan 2015 (Apple 255 that month); true UTC, all 8 anchor headlines inside their windows; summary present on 186 of 306 stories in Sep 2026.
+- L461-470: Early answers: news free at 200 requests a minute; stories from 1 Jan 2015 (Apple 255 that month); true UTC, all 8 anchor headlines inside their windows; summary present on 186 of 306 stories in Sep 2026.
 - L465: Edits: 2.4% of Apple's Jan 2015 stories edited more than a day later (up to 14 days); none in later samples.
 - L466: Stories with at most 2 symbols: 64% (Apple, Jan 2015) down to 37% (Microsoft, Sep 2026); one story had 89 symbols.
 - L469: Alpaca filters by update time; timing always comes from each story's own fields.
@@ -316,94 +316,96 @@ Digest of PLAN.md at commit dd40a5f, written 2026-11-21. Line numbers refer to P
 - L517: Outputs: `research/audit/audit.md`, `reference/identity.csv` (with `entities.csv`, `memberships.csv`, `identity_fixes.csv`), `reference/price_events.csv`, `reference/split.json`.
 
 ## 9.4 The event store (L519-528)
-- L521: `bars_raw` and `bars_adj`: entity_id, symbol, date, open, high, low, close, volume, trade count, vwap.
-- L522: `stories`: story_id, symbols, created_at, updated_at, available_at, headline, summary, has_content, source, n_symbols.
-- L523: `story_entities`: story_id, entity_id (only stories passing the single-firm filter).
-- L524: `embeddings`: story_id, vintage_year, emb_last (768 float16), emb_avg (768 float16).
-- L525: `membership`: date, entity_id.
-- L526: `identity`: entity_id, symbol, valid_from, valid_to, cik.
-- L528: All times are stored in UTC and converted to New York time, with daylight saving handled, when rules are applied.
+- L521-523: The store is built in M1 by `data_pipeline/store.py` into `DATA_DIR/store`; counts and column rules are in `docs/digests/store_tables.md`. No table stores an availability time; `world/rules.py` sets it from raw times.
+- L524-525: `bars`: entity_id, share_class, symbol, date, open, high, low, close, volume, trades, vwap, ret, incomplete, member, no_trade (one table).
+- L526: `opens`: entity_id, share_class, date, open, open_time, listing_exchange, official_close.
+- L527: `labels`: entity_id, share_class, date, end, label, at_close, end_open_time.
+- L528: `stories`: story_id, created_at, updated_at, headline, symbols, n_companies.
+- L529: `story_entities`: story_id, entity_id (only stories passing the single-firm filter).
+- L530-531: `membership`: entity_id, member_from, member_to; `identity`: entity_id, symbol, share_class, valid_from, valid_to, cik.
+- L532: `embeddings` (M2, not built yet): story_id, vintage_year, emb_last (768 float16), emb_avg (768 float16).
+- L534: All times are stored in UTC and converted to New York time, with daylight saving handled, when rules are applied.
 
 ## 9.5 The daily loop, 9:00 ET on trading day k (L530-539)
-- L532: `v = world.view(9:00 ET on day k)`.
-- L533: On the first trading day of the year, pick the year's 50 stocks from `v` (2016: first trading day of April).
-- L534: Build features for the 50 stocks from `v`.
-- L535: On the first trading day of each month, refit the scaler and ridge on every lived row whose label is known (day k-2 and earlier); nothing is fitted until 6 months have been lived.
-- L536: Choose penalty and embedding pooling by validating on the most recent 20% of lived days (at least 3 months) until 5 years have been lived; after that use the last 12 months.
-- L537: Training ends before validation starts, with the k-2 gap at the boundary.
-- L538: Predict, rank and set target positions given the holding-period rule.
-- L539: `sim` fills at day k's open and charges costs.
-- L539: Log one row per stock: date, entity_id, prediction, position, config hash.
+- L538: `v = world.view(9:00 ET on day k)`.
+- L539: On the first trading day of the year, pick the year's 50 stocks from `v` (2016: first trading day of April).
+- L540: Build features for the 50 stocks from `v`.
+- L541: On the first trading day of each month, refit the scaler and ridge on every lived row whose label is visible in the view (day k-2 and earlier at the latest). Nothing is fitted until 6 months have been lived.
+- L542: Choose penalty and embedding pooling by validating on the most recent 20% of lived days (at least 3 months) until 5 years have been lived; after that use the last 12 months.
+- L543: Training ends before validation starts, with the k-2 gap at the boundary.
+- L544: Predict, rank and set target positions given the holding-period rule.
+- L545: `sim` fills at day k's open and charges costs.
+- L546: Log one row per stock: date, entity_id, prediction, position, config hash.
 
 ## 9.6 Features (L542-555)
-- L546: news_count: filtered stories available since the last decision.
-- L547: news_new: mean embedding of those stories (zeros and a flag if none).
-- L548: news_memory: exponentially weighted mean of past story embeddings, half-life 5 trading days.
-- L549: r1, r5, r20, r60: log total returns up to the last close, from adjusted-bar ratios.
-- L550: vol20: standard deviation of daily returns over 20 days.
-- L551: dvol_ratio: log of 5-day over 60-day average dollar volume, from raw bars.
-- L553: Bars flagged incomplete count as missing for every feature built from volume, range or VWAP.
-- L555: Target: log total return from day k's open to day k+1's open, minus that day's average across the 50 stocks.
+- L552: news_count: filtered stories available since the last decision.
+- L553: news_new: mean embedding of those stories (zeros and a flag if none).
+- L554: news_memory: exponentially weighted mean of past story embeddings, half-life 5 trading days.
+- L555: r1, r5, r20, r60: log total returns up to the last close, from adjusted-bar ratios.
+- L556: vol20: standard deviation of daily returns over 20 days.
+- L557: dvol_ratio: log of 5-day over 60-day average dollar volume, from raw bars.
+- L559: Bars flagged incomplete count as missing for every feature built from volume, range or VWAP.
+- L561: Target: log total return from day k's open to day k+1's open, minus that day's average across the 50 stocks.
 
 ## 9.7 The learner (L557-563)
-- L559: Scale features using means and variances from lived rows only.
-- L560: Ridge refit monthly from running sums over an expanding window; variants: averaged monthly coefficients and recency weighting.
-- L561: Penalties from 10^-2 to 10^4, validated as in 9.5.
-- L562: Compute in float64; fixed ordering; `PYTHONHASHSEED=0`; tests run with a single BLAS thread.
-- L563: The monthly ridge is the batch learner and the live agent; River online models run on identical data in the dev years; `PREREG.md` decides whether that becomes a sealed hypothesis.
+- L565: Scale features using means and variances from lived rows only.
+- L566: Ridge refit monthly from running sums over an expanding window; variants: averaged monthly coefficients and recency weighting.
+- L567: Penalties from 10^-2 to 10^4, validated as in 9.5.
+- L568: Compute in float64; fixed ordering; `PYTHONHASHSEED=0`; tests run with a single BLAS thread.
+- L569: The monthly ridge is the batch learner and the live agent; River online models run on identical data in the dev years; `PREREG.md` decides whether that becomes a sealed hypothesis.
 
 ## 9.8 Portfolio and costs (L565-571)
-- L567: Main version: long top 10, short bottom 10, equal-weighted, dollar-neutral, filled at the open.
-- L568: Long-only version: hold top 10, compared with SPY and holding all 50 equally.
-- L569: Holding period 1, 3 or 5 days, plus optional turnover band (keep a holding until it drops out of the top or bottom 15); dev variables, each a trial.
-- L570: Costs: 5 bps per side on traded value (an assumption); report at 0, 5, 10 and 20 bps, before and after costs.
-- L571: Delisted or acquired companies leave at the last available price; a failed company is a total loss with exit label -1.
+- L573: Main version: long top 10, short bottom 10, equal-weighted, dollar-neutral, filled at the open.
+- L574: Long-only version: hold top 10, compared with SPY and holding all 50 equally.
+- L575: Holding period 1, 3 or 5 days, plus optional turnover band (keep a holding until it drops out of the top or bottom 15); dev variables, each a trial.
+- L576: Costs: 5 bps per side on traded value (an assumption); report at 0, 5, 10 and 20 bps, before and after costs.
+- L577: Delisted or acquired companies leave at the last available price; a failed company is a total loss with exit label -1.
 
 ## 9.9 Comparison runs (L573-582)
-- L576-582: Same harness for: the live agent; sequential learners (dev years); frozen twins, one per year end, end-of-2019 twin pre-registered; price-only twin; shuffled-news placebo; long-short baselines (random ranking, 12-1 momentum, 5-day reversal); long-only baselines (SPY buy-and-hold, all 50 equally).
+- L583-589: Same harness for: the live agent; sequential learners (dev years); frozen twins, one per year end, end-of-2019 twin pre-registered; price-only twin; shuffled-news placebo; long-short baselines (random ranking, 12-1 momentum, 5-day reversal); long-only baselines (SPY buy-and-hold, all 50 equally).
 
 ## 9.10 Metrics and the report (L584-594)
-- L586: Daily rank IC (Spearman across the 50 stocks) by quarter with Newey-West t-stats; primary skill metric.
-- L587: Frozen-twin gaps: paired daily IC differences by year after each snapshot.
-- L588: H1 to H3 with Holm's correction, sealed years only.
-- L589: Long-short and long-only: return, volatility, Sharpe before and after costs, maximum drawdown, turnover, beta, sector tilt.
-- L590: Deflated Sharpe for the chosen dev version using the number of trials in `runs/trials.csv`.
-- L591: Seed spread for the placebo and random ranking.
-- L592-593: Regimes and shocks, and coefficient life: reported, not tested.
-- L594: Charts: IC over time, frozen-twin gaps, equity curves against matched baselines, cost sensitivity.
+- L592: Daily rank IC (Spearman across the 50 stocks) by quarter with Newey-West t-stats; primary skill metric.
+- L593: Frozen-twin gaps: paired daily IC differences by year after each snapshot.
+- L594: H1 to H3 with Holm's correction, sealed years only.
+- L595: Long-short and long-only: return, volatility, Sharpe before and after costs, maximum drawdown, turnover, beta, sector tilt.
+- L596: Deflated Sharpe for the chosen dev version using the number of trials in `runs/trials.csv`.
+- L597: Seed spread for the placebo and random ranking.
+- L599-600: Regimes and shocks, and coefficient life: reported, not tested.
+- L600: Charts: IC over time, frozen-twin gaps, equity curves against matched baselines, cost sensitivity.
 
 ## 9.11 Tests (L596-612)
-- L600: Non-interference (property-based): for random days t inside the dev years, scrambling, shifting or deleting every record available after t leaves every position up to t identical and every prediction within 1e-12.
-- L601: Planted leaks: a future return, a future headline, a scaler fitted on all data, a stock list made with future data, a vendor bar timestamp as close time; each must make a test fail.
-- L602: Label embargo: every training row's label was realized before the decision that used it.
-- L603: Availability rules: each source's rule holds, including `updated_at` plus 15-minute news delay, early closes and daylight-saving changes.
-- L604: Timestamp anchors: Benzinga's "Pre-Market", "Mid-Day" and "After-Hours" headlines land in their windows.
-- L605: Vintage rule: every story was read by a model from an earlier year.
-- L606: Survivorship audit: every S&P 500 member on each January has bars or is a listed known gap.
-- L607: Identity: no two entities share a return series; every symbol maps to exactly one entity on each date.
-- L608: Large moves: every one-day move above 25% in a listed stock has been reviewed.
-- L609: Import boundary: `agent` imports nothing except `world.view`.
-- L610: Reverse import boundary: `world`, `sim` and `eval` import nothing from `agent`.
-- L611: Trading days: decision days equal the trading days in the price data; no decisions on holidays.
-- L612: Seal: the runner refuses sealed dates without a matching `seal.lock` (settings, `PREREG.md`, commit) and a clean git tree.
+- L606: Non-interference (property-based): for random days t inside the dev years, scrambling, shifting or deleting every record available after t leaves every position up to t identical and every prediction within 1e-12.
+- L607: Planted leaks: a future return, a future headline, a scaler fitted on all data, a stock list made with future data, a vendor bar timestamp as close time; each must make a test fail.
+- L608: Label embargo: every training row's label was realized before the decision that used it.
+- L609: Availability rules: each source's rule holds, including `updated_at` plus 15-minute news delay, early closes and daylight-saving changes.
+- L610: Timestamp anchors: Benzinga's "Pre-Market", "Mid-Day" and "After-Hours" headlines land in their windows.
+- L611: Vintage rule: every story was read by a model from an earlier year.
+- L612: Survivorship audit: every S&P 500 member on each January has bars or is a listed known gap.
+- L613: Identity: no two entities share a return series; every symbol maps to exactly one entity on each date.
+- L614: Large moves: every one-day move above 25% in a listed stock has been reviewed.
+- L615: Import boundary: `agent` imports nothing except `world.view`.
+- L616: Reverse import boundary: `world`, `sim` and `eval` import nothing from `agent`.
+- L617: Trading days: decision days equal the trading days in the price data; no decisions on holidays.
+- L618: Seal: the runner refuses sealed dates without a matching `seal.lock` (settings, `PREREG.md`, commit) and a clean git tree.
 
 ## 9.12 The seal (L614-619)
-- L616: `seal.lock` records the settings hash, the `PREREG.md` hash and the git commit.
-- L617: The runner refuses any sealed-year date unless all three match and the working tree is clean.
-- L618: One sealed run; a second needs an explicit flag and is logged as another trial.
-- L619: The feature list is part of the seal.
+- L622: `seal.lock` records the settings hash, the `PREREG.md` hash and the git commit.
+- L623: The runner refuses any sealed-year date unless all three match and the working tree is clean.
+- L624: One sealed run; a second needs an explicit flag and is logged as another trial.
+- L625: The feature list is part of the seal.
 
 ## 9.13 Rough sizes (L621-629)
-- L623: Price bars (measured): 787 plan rows, 719 companies, 1,574 files, 179 MB on 7 Nov; first download about 10 minutes.
-- L624: News (measured): 2,260,406 stories Jan 2015 to Oct 2026 (2,243,739 Benzinga's), 251 MB, about 4.5 hours.
-- L625: Trading list: 50 stocks x about 2,700 trading days is about 135,000 stock-days.
-- L626: Embeddings 3 KB per story, about 1.5 GB for 500,745 headlines; processed a year at a time inside 7.8 GB RAM.
-- L627: Vintages 2014 to 2024: 11 models at about 600 MB, roughly 6.6 GB, downloaded wherever the reader runs.
-- L628: Headlines median 21 tokens; at 6 to 7 a second, 500,745 take about 21 hours.
-- L629: Ridge fits are small; a full Track A replay should take minutes.
+- L629: Price bars (measured): 787 plan rows, 719 companies, 1,574 files, 179 MB on 7 Nov; first download about 10 minutes.
+- L630: News (measured): 2,260,406 stories Jan 2015 to Oct 2026 (2,243,739 Benzinga's), 251 MB, about 4.5 hours.
+- L631: Trading list: 50 stocks x about 2,700 trading days is about 135,000 stock-days.
+- L632: Embeddings 3 KB per story, about 1.5 GB for 500,745 headlines; processed a year at a time inside 7.8 GB RAM.
+- L633: Vintages 2014 to 2024: 11 models at about 600 MB, roughly 6.6 GB, downloaded wherever the reader runs.
+- L634: Headlines median 21 tokens; at 6 to 7 a second, 500,745 take about 21 hours.
+- L635: Ridge fits are small; a full Track A replay should take minutes.
 
 ## Sources (L631-702)
-- L631-702: Reference list only (time-locked models, leakage evidence, agents and benchmarks, return predictability, Alpaca docs and forum posts, other data, methods and compute). Not digested line by line.
+- L637-708: Reference list only (time-locked models, leakage evidence, agents and benchmarks, return predictability, Alpaca docs and forum posts, other data, methods and compute). Not digested line by line.
 
 ## OPEN items stated by PLAN
 - OPEN: L19 and L364: reader compute (laptop, Kaggle or Modal) is picked in M2.

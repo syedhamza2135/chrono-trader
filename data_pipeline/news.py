@@ -10,6 +10,7 @@ Usage: python -m data_pipeline.news [first_month YYYY-MM]
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -69,7 +70,7 @@ def run_month(y, m, is_current):
 def main():
     first = sys.argv[1] if len(sys.argv) > 1 else FIRST_MONTH
     OUT.mkdir(parents=True, exist_ok=True)
-    today = date.today()
+    today = datetime.now(ZoneInfo("America/New_York")).date()  # New York's date, not the machine's
     todo = list(months(first, today))
     print(f"{len(todo)} months from {first} to {today:%Y-%m}", flush=True)
     with ThreadPoolExecutor(max_workers=3) as pool:

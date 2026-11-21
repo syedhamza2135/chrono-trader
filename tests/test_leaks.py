@@ -7,6 +7,7 @@ leak put in on purpose; the test passes only if a check catches it. Planted leak
 
 Run with: python -m pytest tests
 """
+import os
 import sys
 from pathlib import Path
 
@@ -303,6 +304,17 @@ def test_non_interference_on_the_real_store(real_tables):
     """A short run in the dev years: every record not visible at the decision on 2017-03-15 scrambled."""
     agent = lambda: ReversalAgent(warmup=10)
     assert leaks.non_interference(real_tables, agent, "2017-02-01", "2017-03-15", "scramble", seed=7) == []
+
+
+@needs_store
+@pytest.mark.skipif(os.environ.get("CHRONO_SLOW_LEAKS") != "1", reason="slow: set CHRONO_SLOW_LEAKS=1 to run it")
+def test_non_interference_across_the_dev_years_on_the_real_store(real_tables):
+    """Review of 21 Nov, L-T4: three runs spread over the dev years after June 2017, each under all three
+    perturbations (PLAN L606 asks for random days in the dev years with all three). Opt-in, as it takes a while."""
+    agent = lambda: ReversalAgent(warmup=10)
+    for first, last in (("2017-10-02", "2017-11-14"), ("2018-07-09", "2018-08-21"), ("2019-04-29", "2019-06-12")):
+        for how in leaks.HOW:
+            assert leaks.non_interference(real_tables, agent, first, last, how, seed=11) == [], (last, how)
 
 
 @needs_store

@@ -7,8 +7,10 @@
 
 An AST check can't be complete. The non-interference and planted-leak tests (tests/test_leaks.py) catch leaks through
 what a run is handed, but not reads from disk: the files are the same in both runs. Those are stopped only here, by
-name (`read_*`, `read`, `io`, `get_engine` and the rest), so a new way to read files must be added to FORBIDDEN. A
-real guarantee would run decide() in a process that can't see DATA_DIR.
+name (`read_*`, `read`, `io`, `get_engine` and the rest), so a new way to read files must be added to FORBIDDEN. Every
+name counts: an attribute, a variable, each part of an imported module's path, and both the imported name and its
+alias in `from x import a as b` (the review of 21 Nov, M-1, got past the check with `from pandas import read_parquet
+as rp`). A real guarantee would run decide() in a process that can't see DATA_DIR or reference/, a later option.
 
 Run with: python -m pytest tests
 """
@@ -23,8 +25,11 @@ FORBIDDEN = {"open", "exec", "eval", "compile", "__import__", "globals", "locals
              "delattr", "load", "loads", "loadtxt", "genfromtxt", "fromfile", "memmap", "read_text", "read_bytes",
              "base", "World", "world", "gc", "sys", "os", "importlib", "inspect", "pickle", "pyarrow",
              "io", "get_engine", "read", "HDFStore", "open_memmap", "ParquetFile", "parquet", "feather", "pathlib",
-             "Path", "urlopen", "requests", "subprocess", "socket", "shutil", "as_strided", "stride_tricks"}
-FORBIDDEN_PREFIXES = ("read_", "_mgr", "_data", "_pa_array", "_ndarray")
+             "Path", "urlopen", "requests", "subprocess", "socket", "shutil", "as_strided", "stride_tricks",
+             "fromregex", "npyio", "ctypes", "builtins", "tempfile", "glob", "mmap", "urllib", "zipfile", "lib",
+             # Code in a string (the judge of 21 Nov, J-1): a query string and a string annotation both run code.
+             "query", "get_type_hints", "ForwardRef", "_evaluate", "singledispatch"}
+FORBIDDEN_PREFIXES = ("read_", "load_", "_mgr", "_data", "_pa_array", "_ndarray")
 
 
 def statements(path):
@@ -60,15 +65,27 @@ def agent_import_problems(path):
     return bad
 
 
+def forbidden(name):
+    dunder = name.startswith("__") and name.endswith("__") and name not in ("__init__", "__name__")
+    return name in FORBIDDEN or name.startswith(FORBIDDEN_PREFIXES) or dunder or name == "__builtins__"
+
+
 def agent_name_problems(path):
+    """Every forbidden name: a variable, an attribute, and in an import each part of the module's path, the imported
+    name and its alias, so `from pandas import read_parquet as rp` is caught at the import."""
     bad = []
     for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-        name = node.id if isinstance(node, ast.Name) else node.attr if isinstance(node, ast.Attribute) else None
-        if name is None:
+        if isinstance(node, ast.Name):
+            names = [node.id]
+        elif isinstance(node, ast.Attribute):
+            names = [node.attr]
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            module = (node.module or "").split(".") if isinstance(node, ast.ImportFrom) else []
+            module = [] if module == ["world", "view"] else module  # the one import allowed, checked above
+            names = module + [part for a in node.names for part in a.name.split(".") + [a.asname or ""]]
+        else:
             continue
-        dunder = name.startswith("__") and name.endswith("__") and name not in ("__init__", "__name__", "__dict__")
-        if name in FORBIDDEN or name.startswith(FORBIDDEN_PREFIXES) or dunder or name == "__builtins__":
-            bad.append(f"{name} on line {node.lineno}")
+        bad += [f"{name} on line {node.lineno}" for name in names if name and forbidden(name)]
     return bad
 
 
@@ -111,3 +128,43 @@ def test_the_checks_catch_the_ways_round_them():
         probe.unlink()
     assert imports == ["from world.view ['View', 'World']", "from world ['rules']", "import os"]
     assert {n.split(" ")[0] for n in names} >= {"World", "load", "vars", "base", "io", "get_engine", "read"}
+
+
+LEAKY_AGENT = """import numpy as np
+from pandas import read_parquet as rp
+from numpy import load as ld
+from numpy import fromregex
+from scipy.sparse import load_npz
+import typing
+import pandas as pd
+from world.view import View
+from .reversal import ReversalAgent
+
+
+class DiskReader(ReversalAgent):
+    def score(self, frame, view):
+        lab = rp("D:/chrono-data/store/labels.parquet")
+        future = lab[lab.date == view.today].set_index("entity_id").label
+        extra = ld("x.npy") + np.fromregex("y.txt", "z", [("a", "U9")]) + fromregex("y.txt", "z", [("a", "U9")])
+        sneaky = pd.__dict__["read_" + "csv"]("labels.csv")  # module globals, by a built string
+        rows = frame.query("entity_id == @pd.read_csv('labels.csv').entity_id[0]", engine="python")
+        hints = typing.get_type_hints(self.score)  # a string annotation runs as code
+        return super().score(frame, view) + 100 * frame.entity_id.map(future).fillna(0).to_numpy() + extra
+"""
+
+
+def test_the_checks_catch_an_agent_that_reads_future_labels_from_a_file():
+    """The review of 21 Nov, M-1: this agent passes non-interference under all three perturbations, since the file
+    is the same in both runs, so the name check is what stops it. Each way it reads a file is caught at the import or
+    the call: an aliased read_parquet, an aliased numpy load, numpy's fromregex by attribute and by import, and the
+    judge's J-1 and J-2: scipy's load_npz, a module's __dict__, a query string and typing.get_type_hints."""
+    probe = ROOT / "agent" / "_probe_leaky_for_test.py"
+    probe.write_text(LEAKY_AGENT, encoding="utf-8")
+    try:
+        names = agent_name_problems(probe)
+    finally:
+        probe.unlink()
+    caught = {n.split(" ")[0] for n in names}
+    assert {"read_parquet", "load", "fromregex", "load_npz", "__dict__", "query", "get_type_hints"} <= caught
+    lines = {int(n.split(" ")[-1]) for n in names}
+    assert {2, 3, 4, 5} <= lines  # each import is caught where it is made, before any call
