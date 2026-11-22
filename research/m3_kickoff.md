@@ -225,6 +225,61 @@ measured numbers above; usage from past milestones: M1's two reviews took about 
 - **The full suite after steps 1 and 2:** 385 pass and 1 skips (the slow leak test), in 12 minutes 18 seconds on 22
   Nov. It was 344 and 1 before M3. AGENTS.md's count (344) needs the same update in the commit.
 
+**Step 3, built on 22 Nov** (the owner: "Yes, start step 3"; uncommitted): `agent/track_a.py`, class `TrackA`. Its
+docstring states every rule. Tests: `tests/test_track_a.py`.
+- **What it does.** The toy agent's pick (it reproduces M0's list). The PLAN 9.6 features, the news ones in both
+  poolings. The target. Running sums (n, sum of x, x'x, sum of y, x'y) per pooling in float64. A monthly refit from
+  6 lived months on, choosing the penalty (10^-2 to 10^4, one per decade) and the pooling on the validation part,
+  then the scaler and the ridge on all the sums. Long 10 and short 10, or long-only. Hold 1, 3 or 5 and a turnover
+  band. 2016 watch-only. `news=False` gives the price-only twin for step 4.
+- **Choices where PLAN is silent**, each the simplest one that can't leak:
+  - Returns are over the stock's own last n bars (dated before today, within 200 calendar days), with missing
+    returns skipped. vol20 is the standard deviation (ddof 0) of the last 20 log returns. dvol_ratio uses the last
+    5 and 60 bars, without incomplete ones.
+  - A story becomes available to a stock when both its embedding and its link to that stock are in the view. On
+    the first decision, "since the last decision" means since the previous session's 9:00.
+  - news_memory includes today's new stories (age 0). Ages are counted in sessions. It is zeros, with no flag,
+    before a stock's first story. It is started on the first decision from the stories the view holds. A test
+    shows that equals the memory kept day by day.
+  - The target is demeaned over the stocks that have a label that day. A day's rows enter the learner at a monthly
+    refit, once every label is in the view or 10 sessions have passed.
+  - "6 months lived" counts from the first decision (2016-04-01), so the first fit is on 2016-10-03.
+  - The validation score is the mean daily rank IC (PLAN's primary metric). Ties go to the last-layer pooling, then
+    to the larger penalty. With fewer than 20 training days there is no fit.
+  - The k-2 gap: the lived day before the validation part is held out. So is any earlier day whose label showed at
+    or after the first validation decision (judge S1).
+  - A missing feature is 0 before scaling, in the sums and in scoring (judge S2). Features are rounded to float32
+    once, so stored and summed rows agree.
+  - Before the first fit there is no decision. In 2016 every position is 0 and no book is kept.
+  - With the 90-day window, a story whose link to a stock shows more than 90 days after its embedding never counts
+    for that stock.
+- **The owner's rulings (22 Nov, "Yes, keep and commit"):** validation stays on the mean daily rank IC, and the
+  penalty grid stays at one value per decade, 10^-2 to 10^4. Both were open in PLAN.
+- **The judge** (Opus, high effort, at 25% of the window; `research/audit/m3_agent_judge.md`): no must-change. The
+  agent can't see a record after t, or a label before it was realized, when it decides. Fixed:
+  - S1: the gap was one lived day, so a training label that showed late could still train the model the validation
+    scored. Late labels are now held out, with a unit test.
+  - S2: a missing value counted as raw 0 in the sums but as the mean at scoring. Now 0 in both.
+  - S3: the embargo test now also checks the validation boundary.
+  - S4: the split test now checks the exact rows held out.
+  - S5: the same-output test now also runs with another hash seed.
+  - Notes N2 (tie order in the docstring), N3 (no 2016 book carries into 2017), N5 (an age can't go below 0) and N6
+    (one pair per story and company).
+  - N1 (labels settle only at the monthly refit) is documented. N4, N7 and N8 needed nothing.
+- **Tests** (`tests/test_track_a.py`, 22). Each feature and the target against a hand computation. The ridge from
+  the sums against a direct solve. The rank IC. The split, with a late label held out. The embargo at every refit
+  and at the validation boundary. No fit before six lived months, and 2016 watch-only. The policy, hold and band.
+  The same output in three runs (hash seeds 0, 0 and 1, one BLAS thread). Non-interference in all three modes on
+  the made-up world (the news agent, the price-only twin, and hold 3 with a band of 15) and on the real store with
+  the embeddings of stories available before 2017-04-01. The import boundary is `tests/test_boundaries.py`, which
+  passes on the new file.
+- **The timed run** (`python research/track_a_timing.py`, alone on the laptop after the fixes; log
+  `D:\chrono-data\runs\m3_step3_timing\timing.log`). `World.load` took 21 s. The run from 2016-01-04 to 2019-12-31
+  took 12.3 minutes, with 817 decision days (2016-10-03 on), 40,850 rows and 39 refits. The process peak was 3.49 GB.
+  It printed no IC or return, so it tuned nothing, and it is not a dev trial.
+- **The full suite after step 3:** 407 pass and 1 skips, in 25 minutes 7 seconds on 22 Nov. The real-store leak
+  tests take most of it. AGENTS.md (385, about 12 minutes) needs the same update in the commit.
+
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
 it runs a judge.

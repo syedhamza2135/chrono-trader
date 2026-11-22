@@ -47,7 +47,7 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Commands
 
-- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (385 pass and 1 skip, in about 12
+- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (407 pass and 1 skip, in about 25
   minutes on 22 Nov; the skip is the slow leak test, which runs only with `CHRONO_SLOW_LEAKS=1`). In a worktree with no `.venv` link, use
   `D:\venvs\chrono-trader\Scripts\python.exe`.
 - The time wall: agents get only `world.view.View` (`World` is in `world/world.py`); `sim.simulator.run(world, agent, first, last)` is the daily loop,
