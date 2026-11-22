@@ -350,6 +350,85 @@ docstring states every rule. Tests: `tests/test_track_a.py`.
   - Equal weight stays rebalanced daily.
   - The price-only twin gets no frozen twins.
 
+**Step 5, built on 23 Nov** (the owner: "Yes, start step 5"; uncommitted). The metrics and the dev report writer.
+No real dev result was computed: every test runs on made-up or hand-built data.
+- **Where it lives.**
+  - `eval/stats.py`: Newey-West, the normal distribution, a book's statistics, the deflated Sharpe.
+  - `eval/metrics.py`: IC by quarter, the twin gaps, the books, costs, beta, sector tilt, the seed spread, regimes
+    and coefficient life.
+  - `eval/switch_day.py`: the switch-day check.
+  - `eval/charts.py`: the SVG charts.
+  - `eval/report.py`: the writer for `research/m3_dev_report.md`.
+  - `sim/simulator.py`: `replay` trades a finished run's own targets again at another cost.
+  - The tests are in `tests/test_report.py`.
+- **Choices where PLAN is silent**, each the standard or simplest one:
+  - Newey-West uses the Bartlett kernel, with the lag floor(4 (T / 100) ^ (2 / 9)) from Newey and West (1994),
+    the usual default. That gives 6 for the 754 dev sessions. A difference of means is the least-squares slope on a
+    dummy, with the same standard errors. p-values use the normal distribution.
+  - Sharpe is measured over zero, since the store has no cash rate. Long-short books are self-financing. There are
+    252 sessions a year. The annual return is geometric. Turnover is the day's traded value (buys plus sells) over
+    the pre-trade equity.
+  - Costs: `sim.simulator.replay` trades a run's own targets again through a fresh simulator at 0, 5, 10 and
+    20 bps. Costs change no decision, so this is that run at that cost exactly, and a test checks it against real
+    runs at 0 and 20 bps. "Before costs" is the 0 bps replay. A first try rescaled the equity rows instead. It was
+    off by up to 2.2e-5 a day at 20 bps on made-up data, so it was dropped.
+  - Beta is the least-squares slope of the book's daily return on SPY's open-to-open return (Alpaca's adjusted
+    opens), matching the simulator's marks at the open, with Newey-West errors.
+  - Sector tilt is the net target weight per sector, averaged over the days the book holds anything. Sectors come
+    from Wikipedia's list as it stood on each date (step 1). It uses the agent's targets, not the filled holdings.
+  - The deflated Sharpe follows Bailey and Lopez de Prado (2014), on daily Sharpe ratios. N is the number of rows
+    in `runs/trials.csv` (PLAN 9.10). The variance of the trials' Sharpe ratios comes from the trials shown in the
+    report (the chosen version and its variants). One trial, or no spread, gives a bar of 0.
+  - Regimes are read from SPY's adjusted closes before each session:
+    - trend is up when the last close is above its 200-session mean (Faber 2007 uses the 10-month mean);
+    - volatility is high when the last 20 sessions' standard deviation is above its median over the period;
+    - a shock is the session a correction starts (a close 10% or more below the highest close so far, the usual
+      definition), plus the 19 sessions after it. A new one can start only after a new high.
+  - Coefficient life is each frozen twin's mean daily IC by quarter since its snapshot.
+  - The seed spread gives each seed's mean IC, t and Sharpe, then their min, max, mean and standard deviation.
+  - The charts are plain SVG, since the venv has no plotting library: IC over time (a 63-session mean), the
+    cumulative twin gaps, equity against the baselines for both books, and equity by cost.
+- **The switch-day check** follows `cutoff.md` 10.2. Its rules are quoted in the module's docstring. Four details
+  the text leaves open are read this way:
+  - A year's first 20 sessions come from the calendar, whether or not there was a prediction.
+  - The pooled difference is the slope on a first-20 dummy, with Newey-West errors over the pooled days in date
+    order.
+  - "Its standard errors" in (b) are that year's own Newey-West error.
+  - The years counted in (b) are those with days in both parts.
+- **The Opus judge** (`research/audit/m3_report_judge.md`) found nothing that must change, 3 should-change items
+  and 8 nits. It checked Newey-West against a separate double loop (to 2e-16), the deflated Sharpe against Bailey
+  and Lopez de Prado, the replay's exactness, and the switch-day code against 10.2 line by line. Fixed:
+  - The deflated Sharpe's N is the larger of the ledger's rows and the trials shown, since one run can hold several
+    trials. The report warns when fewer than 2 trials' Sharpe ratios give the spread.
+  - The switch-day check runs on 2017 to 2019 (`switch_years`), not on every year from the report's first date.
+  - The twin replay test now freezes a real twin over a year end and compares its replays at 5 and 20 bps.
+  - Regimes use no later close: the volatility line is an expanding median, and the shock walk starts at SPY's
+    first close (a test changes later closes and checks earlier labels stay). A missing close gives no trend label.
+  - Sector tilt is shown for both books. The report names two limits: normal p-values for short quarters, and a lag
+    of 6 that is shorter than a 20-day block. The no-effect test now draws new noise for each day, and the vol test
+    checks the median line by hand.
+- **The Sonnet checker** passed 8 of 9 checks. It recomputed every hand-worked number in plain Python, checked
+  line lengths, the names cited, the licensing and the import boundary, and ran `tests/test_report.py`. The one
+  fail was a literal em-dash in a test assertion, now written as an escape. Two long docstring sentences were split.
+  It could not check the 2.2e-5 figure above: that came from the failed test of the first try (2.17e-5), whose code
+  is gone.
+- **The full suite after step 5:** 472 pass and 1 skip, in 52 minutes 20 seconds on 23 Nov (pytest exit 0). That
+  is 26 new tests in `tests/test_report.py`. It took longer than step 4's 32 to 36 minutes, with nothing else
+  running in this session; the cause was not measured. AGENTS.md (446, 32 to 36 minutes) needs the same update in
+  the commit.
+- **For the owner (PLAN leaves these open):**
+  - The report has no cash return for Sharpe. Should it subtract one (for example the 3-month T-bill), or stay over
+    zero?
+  - The deflated Sharpe's variance needs the Sharpe ratio of every trial. Should step 6 log one ledger row per
+    variant, so that N and the variance count the same trials?
+  - Should the charts go into git next to the report, or stay on D:? They show only derived equity and IC, no raw
+    prices.
+- **The owner's rulings, 23 Nov** (the lead's three picks, and the commit: "Yes, commit step 5"):
+  - Sharpe is measured over zero, as built. The report labels it "over zero, no cash rate".
+  - Step 6 logs one ledger row per variant, so the deflated Sharpe's N matches the trials.
+  - The charts stay out of git for now. `eval.report.write` puts them on D:, in
+    `D:\chrono-data\runs\m3_dev_report_charts` by default, with the other run outputs.
+
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
 it runs a judge.
