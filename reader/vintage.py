@@ -5,7 +5,8 @@ The year comes from created_at, not from when the story became available: a stor
 2019-12-31 becomes available in 2020, but the 2019 vintage could have trained on it, so it gets the 2018 vintage."""
 import pandas as pd
 
-FIRST, LAST = 2014, 2024  # the vintages PLAN 9.13 lists
+FIRST, LAST = 2015, 2024  # the vintages that read news: 2015's stories are left out (M2 decision 2), so the 2014
+# vintage, which PLAN 9.13 also lists, serves only the cutoff check (reader/cutoff.py)
 
 
 def vintage_for(created_at):

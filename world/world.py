@@ -11,7 +11,13 @@ its memberships would tell the agent it joins, or rejoins, later. So for a recor
 - otherwise never.
 
 Each table is sorted by visible_at, and a view holds copies of each table's prefix: nothing reachable from a view
-holds a later record. Views on or after the sealed start (reference/split.json) need `allow_sealed`, which the
+holds a later record.
+
+Embeddings (review finding M-3): one row per story, with story_id, vintage_year, available_at and the two vectors.
+A row becomes visible with its story (rules.embedding). The World refuses the whole table, with an error, if any row
+has no kept story, has a vintage other than the rule's (reader/vintage.py), repeats a story, or stores an
+available_at other than its story's: a row left over from before its story was edited (review finding L-P7), or
+timed by mistake. The vectors are held as arrays sorted by visible_at, and a view gets copies of the visible rows. Views on or after the sealed start (reference/split.json) need `allow_sealed`, which the
 runner sets only after the seal holds (sim/seal.py), or a data audit sets explicitly.
 """
 import json
@@ -86,8 +92,11 @@ def known_from(entity_ids, dates, sp):
     return out
 
 
-def visible_at(table, df, sp, stories=None):
-    """The visible_at (int64 nanoseconds) of each row of one of the store's tables, given the companies' spells."""
+def visible_at(table, df, sp, stories=None, story_entities=None):
+    """The visible_at (int64 nanoseconds) of each row of one of the store's tables, given the companies' spells.
+    An embedding shows when its story's first company link does (judge J-1): the job reads only stories that name a
+    store company, so an embedding seen before any link would tell the agent a hidden company is named, which in a
+    gap before a rejoin says the company rejoins. A story with no link gives NEVER."""
     if table == "bars":
         return np.maximum(_ns(rules.bar(df.date)), known_from(df.entity_id, df.date, sp))
     if table == "labels":
@@ -95,6 +104,17 @@ def visible_at(table, df, sp, stories=None):
         return np.maximum(_ns(rules.label(df.end, df.at_close, end_open)), known_from(df.entity_id, df.date, sp))
     if table == "stories":
         return _ns(rules.story(df.updated_at))
+    if table == "embeddings":
+        st = stories.drop_duplicates("story_id").set_index("story_id")
+        available = pd.Series(_ns(rules.embedding(st.updated_at)), index=st.index)
+        se = story_entities[story_entities.story_id.isin(st.index)]
+        links = pd.Series(visible_at("story_entities", se, sp, stories), index=se.story_id.to_numpy())
+        first = links.groupby(level=0).min()
+        at = np.maximum(first.to_numpy(dtype="int64"), available.reindex(first.index).to_numpy(dtype="int64"))
+        pos = pd.Index(first.index).get_indexer(df.story_id.to_numpy())
+        if len(at) == 0:
+            return np.full(len(df), NEVER, dtype="int64")
+        return np.where(pos >= 0, at[np.maximum(pos, 0)], NEVER).astype("int64")
     if table == "story_entities":
         st = stories.drop_duplicates("story_id").set_index("story_id")
         available = pd.Series(_ns(rules.story(st.updated_at)), index=st.index)
@@ -132,8 +152,78 @@ class _Sorted:
         return self.df.iloc[: int(np.searchsorted(self.at, ns, side="right"))].copy(deep=True)
 
 
+class Embeddings:
+    """The embeddings a view holds (View.embeddings): rows (a DataFrame), and last and avg (arrays of their own,
+    aligned with rows). Nothing here shares memory with the World's arrays. Defined here, not in world/view.py, so
+    the module agents may import still defines View only (tests/test_boundaries.py)."""
+
+    def __init__(self, rows, last, avg):
+        if not (len(rows) == len(last) == len(avg)):
+            raise ValueError("rows, last and avg must have one entry per embedding")
+        self.rows, self.last, self.avg = rows, last, avg
+
+    def __len__(self):
+        return len(self.rows)
+
+    @classmethod
+    def empty(cls, dim=0):
+        rows = pd.DataFrame({"story_id": pd.Series(dtype="int64"), "vintage_year": pd.Series(dtype="int64"),
+                             "available_at": pd.Series(dtype="datetime64[ns, UTC]"),
+                             "visible_at": pd.Series(dtype="datetime64[ns, UTC]")})
+        return cls(rows, np.zeros((0, dim), np.float16), np.zeros((0, dim), np.float16))
+
+
+def _vectors(col):
+    """A column of vectors (lists or arrays, one per row) as one new 2-D array: no row stays a view into a shared
+    buffer that holds other rows."""
+    if len(col) == 0:
+        return np.zeros((0, 0), np.float16)
+    return np.stack([np.asarray(x) for x in col]).copy()
+
+
+def embedding_problems(embeddings, stories):
+    """Why the World must refuse an embeddings table built for these (kept) stories: an empty list if none."""
+    from reader.vintage import breaches
+    out = []
+    st = stories.drop_duplicates("story_id").set_index("story_id")
+    known = embeddings.story_id.isin(st.index)
+    if not known.all():
+        out.append(f"{int((~known).sum())} rows have no kept story")
+    if embeddings.story_id.duplicated().any():
+        out.append(f"{int(embeddings.story_id.duplicated().sum())} rows repeat a story")
+    k = embeddings[known]
+    bad = breaches(k[["story_id", "vintage_year"]], stories)
+    if len(bad):
+        out.append(f"{len(bad)} rows were not read by the vintage the rule names")
+    want = _ns(rules.embedding(k.story_id.map(st.updated_at)))
+    have = _ns(pd.to_datetime(k.available_at, utc=True))
+    if (want != have).any():
+        out.append(f"{int((want != have).sum())} rows store an available_at other than their story's")
+    return out
+
+
+class _SortedEmbeddings:
+    """The embeddings sorted by visible_at: the rows, and the two vectors as arrays in the same order."""
+
+    def __init__(self, df, visible_at):
+        order = np.argsort(visible_at, kind="stable")
+        df = df.iloc[order].reset_index(drop=True)
+        self.at = np.asarray(visible_at, dtype="int64")[order]
+        self.rows = pd.DataFrame({"story_id": df.story_id.astype("int64"),
+                                  "vintage_year": df.vintage_year.astype("int64"),
+                                  "available_at": pd.to_datetime(df.available_at, utc=True),
+                                  "visible_at": pd.to_datetime(self.at, utc=True)})
+        self.last, self.avg = _vectors(df.emb_last), _vectors(df.emb_avg)
+
+    def upto(self, ns):
+        """Detached copies of the rows visible at ns."""
+        k = int(np.searchsorted(self.at, ns, side="right"))
+        return Embeddings(self.rows.iloc[:k].copy(deep=True), self.last[:k].copy(), self.avg[:k].copy())
+
+
 class World:
-    def __init__(self, bars, labels, opens, stories, story_entities, membership, clock=None, allow_sealed=False):
+    def __init__(self, bars, labels, opens, stories, story_entities, membership, clock=None, allow_sealed=False,
+                 embeddings=None):
         self.clock = clock or Clock()
         self.allow_sealed = allow_sealed
         self._sealed = sealed_start()
@@ -153,6 +243,13 @@ class World:
         self.stories = _Sorted(stories, visible_at("stories", stories, self._spells))
         se = story_entities[story_entities.story_id.isin(stories.story_id)].reset_index(drop=True)
         self.story_entities = _Sorted(se, visible_at("story_entities", se, self._spells, stories))
+        self.embeddings = None
+        if embeddings is not None:
+            found = embedding_problems(embeddings, stories)
+            if found:
+                raise ValueError("the embeddings table is refused: " + "; ".join(found))
+            self.embeddings = _SortedEmbeddings(embeddings, visible_at("embeddings", embeddings, self._spells,
+                                                                       stories, se))
         self.opens = _plain(opens).sort_values(["entity_id", "share_class", "date"]).reset_index(drop=True)
         self.data_end = pd.Timestamp(labels.end.max()) if len(labels) else None
 
@@ -172,7 +269,8 @@ class World:
         ns = t.as_unit("ns").value
         members, joined = self.members_at(ns)
         return View(t, self.clock.sessions, members, joined, self.bars.upto(ns), self.labels.upto(ns),
-                    self.stories.upto(ns), self.story_entities.upto(ns))
+                    self.stories.upto(ns), self.story_entities.upto(ns),
+                    self.embeddings.upto(ns) if self.embeddings is not None else Embeddings.empty())
 
     @classmethod
     def load(cls, store=None, clock=None, allow_sealed=False):

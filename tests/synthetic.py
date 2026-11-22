@@ -57,3 +57,17 @@ def make_tables(seed=0, n=60):
     bars.loc[gap, "member"] = True
     return {"bars": bars, "labels": labels, "opens": opens, "stories": stories, "story_entities": story_entities,
             "membership": membership}
+
+
+def make_embeddings(tables, dim=8, seed=0):
+    """An embeddings table for make_tables' stories, as M2's reader writes it: story_id, vintage_year (the rule's),
+    available_at (rules.embedding of the story's updated_at), and two made-up float16 vectors of `dim` values."""
+    from reader.vintage import vintage_for
+    from world import rules
+    rng = np.random.default_rng(seed)
+    st = tables["stories"]
+    n = len(st)
+    return pd.DataFrame({"story_id": st.story_id.to_numpy(), "vintage_year": vintage_for(st.created_at).to_numpy(),
+                         "available_at": rules.embedding(st.updated_at).to_numpy(),
+                         "emb_last": list(rng.normal(0, 1, (n, dim)).astype(np.float16)),
+                         "emb_avg": list(rng.normal(0, 5, (n, dim)).astype(np.float16))})

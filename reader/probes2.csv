@@ -1,0 +1,81 @@
+probe_id,event_date,sentence,answer,wrong,source
+q2016a,2016-02-07,"In February, the {} won Super Bowl 50.",Broncos,Panthers|Patriots|Steelers|Packers,Wikipedia: Super Bowl 50
+q2016b,2016-04-03,The leak of files from the law firm Mossack Fonseca became known as the {} Papers.,Panama,Pentagon|Swiss|Jersey|Delaware,Wikipedia: Panama Papers
+q2016c,2016-05-02,{} won the English Premier League at odds of 5000 to 1.,Leicester,Watford|Burnley|Norwich|Southampton,Wikipedia: 2015–16 Leicester City F.C. season
+q2016d,2016-06-13,Microsoft agreed to buy the professional networking site {}.,LinkedIn,Monster|Indeed|Twitter|Facebook,Wikipedia: LinkedIn
+q2016e,2016-09-22,"In September, {} said hackers had stolen data from at least 500 million of its user accounts.",Yahoo,Twitter|eBay|Facebook|Google,Wikipedia: Yahoo data breaches
+q2016f,2016-09-02,Samsung recalled its Galaxy Note {} phones because their batteries could catch fire.,7,5|4|3|2,Wikipedia: Samsung Galaxy Note 7
+q2016g,2016-07-10,"In July, {} won football's European Championship, beating the hosts France in the final.",Portugal,Germany|Spain|Italy|England,Wikipedia: UEFA Euro 2016 final
+q2016h,2016-09-14,Bayer agreed to buy the seed company {}.,Monsanto,Pioneer|KWS|Sakata|Bunge,Wikipedia: Monsanto (Bayer deal announced September 2016)
+q2017a,2017-02-17,"Kraft Heinz made a surprise takeover bid for {}, which rejected it.",Unilever,Mondelez|Reckitt|Diageo|ConAgra,Wikipedia: Unilever (Kraft Heinz bid of February 2017)
+q2017b,2017-03-13,Intel agreed to buy the Israeli self-driving technology company {}.,Mobileye,Innoviz|Elbit|Valens|Argus,Wikipedia: Mobileye (Intel deal announced March 2017)
+q2017c,2017-09-20,Hurricane {} devastated Puerto Rico in September.,Maria,Sandy|Andrew|Matthew|Rita,Wikipedia: Hurricane Maria
+q2017d,2017-04-09,Security officers dragged a passenger off a sold-out {} Express flight in April.,United,American|Southwest|Spirit|Alaska,Wikipedia: United Express Flight 3411 incident
+q2017e,2017-08-25,Hurricane {} flooded Houston in late August.,Harvey,Allison|Rita|Andrew|Ivan,Wikipedia: Hurricane Harvey
+q2017f,2017-09-07,The credit bureau {} said hackers had stolen data on about 143 million Americans.,Equifax,Experian|TransUnion|Moody's|FICO,Wikipedia: 2017 Equifax data breach
+q2017g,2017-11-06,Broadcom made an unsolicited bid of about 100 billion dollars for the chipmaker {}.,Qualcomm,NXP|Nvidia|Micron|Marvell,Wikipedia: Qualcomm (Broadcom bid of November 2017)
+q2017h,2017-12-03,CVS agreed to buy the health insurer {}.,Aetna,Cigna|Magellan|Premera|Assurant,Wikipedia: Aetna (CVS deal announced December 2017)
+q2018a,2018-01-03,Researchers disclosed two serious chip flaws called Spectre and {}.,Meltdown,Heartbleed|Stagefright|Poodle|Dirty Cow,Wikipedia: Meltdown (security vulnerability)
+q2018b,2018-03-18,A self-driving test car operated by {} struck and killed a pedestrian in Arizona.,Uber,Tesla|Google|Cruise|Intel,Wikipedia: Death of Elaine Herzberg
+q2018c,2018-05-09,Walmart agreed to buy a majority stake in the Indian online retailer {}.,Flipkart,Tata Cliq|BigBazaar|Lenskart|Fabfurnish,Wikipedia: Flipkart (Walmart deal announced May 2018)
+q2018d,2018-06-12,"In June, Donald Trump met North Korea's leader Kim Jong Un in {}.",Singapore,Beijing|Seoul|Geneva|Tokyo,Wikipedia: 2018 North Korea–United States Singapore Summit
+q2018e,2018-07-10,"In July, twelve boys and their football coach were rescued from a flooded cave in {}.",Thailand,Vietnam|Cambodia|Malaysia|Myanmar,Wikipedia: Tham Luang cave rescue
+q2018f,2018-10-02,The journalist Jamal Khashoggi was killed inside the Saudi consulate in {}.,Istanbul,Cairo|Paris|London|Dubai,Wikipedia: Assassination of Jamal Khashoggi
+q2018g,2018-10-28,IBM agreed to buy the open-source software company {}.,Red Hat,SUSE|Canonical|MongoDB|GitLab,Wikipedia: Red Hat (IBM deal announced October 2018)
+q2018h,2018-11-08,The Camp Fire destroyed most of the town of {} in northern California.,Paradise,Auburn|Lincoln|Chester|Concord,Wikipedia: Camp Fire (2018)
+q2019a,2019-01-03,Bristol-Myers Squibb agreed to buy the biotech company {}.,Celgene,Biogen|Amgen|Alexion|Vertex,Wikipedia: Celgene (Bristol-Myers Squibb deal announced January 2019)
+q2019b,2019-10-30,"In October, the {} won baseball's World Series for the first time.",Nationals,Brewers|Rays|Padres|Mariners,Wikipedia: 2019 World Series
+q2019c,2019-06-18,Facebook announced plans for a digital currency called {}.,Libra,Ripple|Monero|Zcash|Stellar,Wikipedia: Diem (digital currency)
+q2019d,2019-06-25,AbbVie agreed to buy the drug maker {}.,Allergan,Gilead|Regeneron|Perrigo|Incyte,Wikipedia: Allergan (AbbVie deal announced June 2019)
+q2019e,2019-07-24,"In July, {} became the British prime minister.",Boris Johnson,Jeremy Hunt|Philip Hammond|David Davis|Liam Fox,Wikipedia: 2019 Conservative Party leadership election
+q2019f,2019-09-23,"The British travel company {} collapsed, stranding about 150,000 British holidaymakers abroad.",Thomas Cook,TUI|Jet2|EasyJet|Ryanair,Wikipedia: Thomas Cook Group (collapse September 2019)
+q2019g,2019-06-10,Salesforce agreed to buy the data visualization company {}.,Tableau,Qlik|Domo|Spotfire|MicroStrategy,Wikipedia: Tableau Software (Salesforce deal announced June 2019)
+q2019h,2019-11-25,LVMH agreed to buy the American jeweler {}.,Tiffany,Harry Winston|Signet|Zales|Blue Nile,Wikipedia: Tiffany & Co. (LVMH deal announced November 2019)
+q2020a,2020-01-13,Visa agreed to buy the financial technology startup {}.,Plaid,Stripe|Venmo|Robinhood|Chime,Wikipedia: Plaid Inc. (Visa deal announced January 2020)
+q2020b,2020-03-08,"In March, Saudi Arabia started an oil price war with {}.",Russia,Iran|Qatar|Venezuela|Norway,Wikipedia: 2020 Russia–Saudi Arabia oil price war
+q2020c,2020-04-20,"On 20 April, the price of US crude oil futures fell below {} for the first time.",zero,twenty|thirty|fifty|forty,Wikipedia: 2020 Russia–Saudi Arabia oil price war (WTI futures negative on 20 April 2020)
+q2020d,2020-09-10,The short seller Hindenburg Research accused the electric truck maker {} of fraud.,Nikola,Rivian|Workhorse|Navistar|Arrival,Wikipedia: Nikola Corporation
+q2020e,2020-10-27,AMD agreed to buy the chipmaker {}.,Xilinx,Microsemi|Synaptics|Qorvo|Rambus,Wikipedia: Xilinx (AMD deal announced October 2020)
+q2020f,2020-08-04,"In August, a huge explosion of stored ammonium nitrate devastated the port of {}.",Beirut,Piraeus|Mersin|Aqaba|Tartus,Wikipedia: 2020 Beirut explosion
+q2020g,2020-12-01,Salesforce agreed to buy the workplace messaging company {}.,Slack,Zoom|Dropbox|Asana|Twilio,Wikipedia: Slack Technologies (Salesforce deal announced December 2020)
+q2020h,2020-12-13,Hackers broke into US government agencies through network software made by {}.,SolarWinds,Symantec|McAfee|NetScout|Infoblox,Wikipedia: 2020 United States federal government data breach
+q2021a,2021-02-15,A winter storm in February knocked out power to millions of homes in {}.,Texas,California|Florida|Ohio|Michigan,Wikipedia: 2021 Texas power crisis
+q2021b,2021-03-11,A digital artwork by the artist {} sold at Christie's for about 69 million dollars.,Beeple,Hockney|Basquiat|Kusama|Murakami,Wikipedia: Everydays: the First 5000 Days
+q2021c,2021-03-23,The container ship Ever {} blocked the Suez Canal for six days.,Given,Green|Golden|Grace|Lucky,Wikipedia: 2021 Suez Canal obstruction
+q2021d,2021-03-26,The collapse of the investment firm {} caused billions of dollars of losses at Credit Suisse and Nomura.,Archegos,Baupost|Coatue|Maverick|Appaloosa,Wikipedia: Archegos Capital Management
+q2021e,2021-05-07,"A ransomware attack shut down the {} Pipeline, which carries fuel along the US East Coast.",Colonial,Dakota|Trans|Alaska|Atlantic,Wikipedia: Colonial Pipeline ransomware attack
+q2021f,2021-05-17,AT&T agreed to combine WarnerMedia with {}.,Discovery,Netflix|Disney|CBS|Sony,Wikipedia: Warner Bros. Discovery
+q2021g,2021-06-09,"In June, {} passed a law making Bitcoin legal tender, the first country to do so.",El Salvador,Estonia|South Korea|Lithuania|Honduras,Wikipedia: Bitcoin in El Salvador
+q2021h,2021-11-10,The electric truck maker {} raised about 12 billion dollars in its stock market debut in November.,Rivian,Nikola|Lordstown|Lucid|Canoo,Wikipedia: Rivian
+q2022a,2022-01-18,Microsoft agreed to buy the video game publisher {} for about 69 billion dollars.,Activision Blizzard,Bandai Namco|CD Projekt|Take-Two Interactive|Sega Sammy,Wikipedia: Acquisition of Activision Blizzard by Microsoft
+q2022b,2022-03-08,Google agreed to buy the cybersecurity firm {}.,Mandiant,Fortinet|Sophos|Rapid7|Tenable,Wikipedia: Mandiant (Google deal announced March 2022)
+q2022c,2022-05-09,The stablecoin {} lost its peg to the dollar and collapsed in May.,TerraUSD,Paxos|FRAX|Neutrino|Gemini Dollar,Wikipedia: Terra (blockchain)
+q2022d,2022-05-26,Broadcom agreed to buy the cloud software company {}.,VMware,Citrix|Salesforce|ServiceNow|Workday,Wikipedia: VMware (Broadcom deal announced May 2022)
+q2022e,2022-08-16,"In August, Joe Biden signed the Inflation {} Act.",Reduction,Control|Relief|Protection|Recovery,Wikipedia: Inflation Reduction Act
+q2022f,2022-03-27,"At the Oscars in March, {} slapped Chris Rock on stage.",Will Smith,Eddie Murphy|Kevin Hart|Tom Cruise|Mel Gibson,Wikipedia: Will Smith–Chris Rock slapping incident
+q2022g,2022-09-15,Adobe agreed to buy the design software startup {}.,Figma,Canva|Sketch|Framer|Miro,Wikipedia: Figma (Adobe deal announced September 2022)
+q2022h,2022-11-11,The crypto exchange {} filed for bankruptcy in November.,FTX,Binance|Coinbase|Kraken|Gemini,Wikipedia: Bankruptcy of FTX
+q2023a,2023-01-24,The short seller Hindenburg Research accused the Indian conglomerate {} of fraud.,Adani,Tata|Reliance|Wipro|Essar,Wikipedia: Adani Group (Hindenburg Research report of January 2023)
+q2023b,2023-02-06,Google announced a chatbot called {} to compete with ChatGPT.,Bard,Alexa|Watson|Tay|Zo,Wikipedia: Gemini (chatbot) (announced as Bard in February 2023)
+q2023c,2023-08-01,"In August, {} cut the credit rating of the United States from AAA.",Fitch,Moody's|DBRS|Kroll|Morningstar,"Wikipedia: United States federal government credit-rating downgrades (Fitch, August 2023)"
+q2023d,2023-02-03,"In February, a train carrying toxic chemicals derailed in East {}, Ohio.",Palestine,Liverpool|Cleveland|Dayton|Columbus,"Wikipedia: East Palestine, Ohio, train derailment"
+q2023e,2023-05-01,Regulators seized First Republic Bank and sold most of it to {}.,JPMorgan,Bank of America|Barclays|Comerica|M&T,Wikipedia: First Republic Bank (failure May 2023)
+q2023f,2023-06-09,Sales figures showed that {} had overtaken Bud Light as the best-selling beer in the United States.,Modelo,Coors|Corona|Michelob|Stella,Wikipedia: Modelo Especial (overtook Bud Light; first reported June 2023)
+q2023g,2023-10-11,Exxon Mobil agreed to buy the shale oil producer {}.,Pioneer,Diamondback|EOG|Coterra|Matador,Wikipedia: Pioneer Natural Resources (Exxon deal announced October 2023)
+q2023h,2023-12-18,US Steel agreed to be bought by {}.,Nippon Steel,Hyundai Steel|Jindal Steel|Voestalpine|Dongkuk Steel,Wikipedia: U.S. Steel (Nippon Steel deal announced December 2023)
+q2024a,2024-01-05,"In January, a door panel blew out of a Boeing jet flown by {} Airlines.",Alaska,United|Delta|American|Southwest,Wikipedia: Alaska Airlines Flight 1282
+q2024b,2024-01-09,Hewlett Packard Enterprise agreed to buy the networking company {}.,Juniper,Arista|Extreme|Riverbed|Gigamon,Wikipedia: Juniper Networks (HPE deal announced January 2024)
+q2024c,2024-08-06,Kamala Harris picked {} as her running mate in August.,Walz,Whitmer|Newsom|Polis|Inslee,Wikipedia: Tim Walz 2024 vice presidential campaign
+q2024d,2024-02-19,{} agreed to buy the credit card company Discover.,Capital One,JPMorgan|Wells Fargo|Goldman Sachs|Barclays,Wikipedia: Discover Financial (Capital One deal announced February 2024)
+q2024e,2024-07-23,"Google offered about 23 billion dollars for the cloud security startup {}, which turned it down.",Wiz,Orca|Okta|Sysdig|Tanium,Wikipedia: Wiz (company) (Google offer reported July 2024)
+q2024f,2024-07-19,A faulty software update from the security firm {} crashed millions of Windows computers in July.,CrowdStrike,Kaspersky|F-Secure|Netskope|Palo Alto Networks,Wikipedia: 2024 CrowdStrike-related IT outages
+q2024g,2024-08-13,Starbucks hired the chief executive of {} as its new boss in August.,Chipotle,Papa John's|Domino's|Dunkin|Qdoba,Wikipedia: Brian Niccol
+q2024h,2024-08-24,"In August, French police arrested the founder of the messaging app {}.",Telegram,WhatsApp|Viber|WeChat|Discord,Wikipedia: Pavel Durov (arrested in France August 2024)
+q2025a,2025-01-07,"In January, the {} fire destroyed thousands of homes in Los Angeles.",Palisades,Skirball|Sesnon|La Tuna|Kincade,Wikipedia: Palisades Fire
+q2025b,2025-01-10,Constellation Energy agreed to buy the power producer {}.,Calpine,NRG|Talen|Entergy|Dominion,Wikipedia: Calpine (Constellation deal announced January 2025)
+q2025c,2025-04-28,"In April, a power cut blacked out most of {} and Portugal.",Spain,France|Italy|Morocco|Greece,Wikipedia: 2025 Iberian Peninsula blackout
+q2025d,2025-07-16,"In July, a stadium kiss camera at a Coldplay concert caught the chief executive of the software company {}.",Astronomer,Snowflake|Databricks|Datadog|Confluent,"Wikipedia: Kiss cam (Coldplay concert at Gillette Stadium, July 2025)"
+q2025e,2025-08-25,"In August, Donald Trump said he was firing the Federal Reserve governor {}.",Cook,Barr|Jefferson|Fischer|Williams,Wikipedia: Lisa Cook (attempted removal August 2025)
+q2025f,2025-02-21,"In February, hackers stole about 1.5 billion dollars of crypto from the exchange {}.",Bybit,Binance|Coinbase|Kraken|OKX,Wikipedia: Bybit (hack of February 2025)
+q2025g,2025-07-29,Union Pacific agreed to buy the railroad {}.,Norfolk Southern,CSX|Canadian National|Canadian Pacific|Conrail,Wikipedia: Norfolk Southern Railway (Union Pacific deal announced July 2025)
+q2025h,2025-08-22,The US government agreed to take a stake of about 10% in the chipmaker {}.,Intel,AMD|Arm|Samsung|IBM,Wikipedia: Intel (US government stake August 2025)

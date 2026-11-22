@@ -10,10 +10,12 @@ their pins ("The download", at the end). The rest of the build starts after a fr
 
 ## Where things stand
 
-- **M1 is built, reviewed twice and fixed** on the branch `claude/m1-kickoff-832c2d` (commits `b2b9441`, `c9c09cf`,
-  `87bacdc`), open as PR #1 and not merged. Master is still `7b4a200`.
-- **M2 starts from M1's tip.** This note is on the branch `claude/awesome-panini-89f869`, in the worktree
-  `.claude\worktrees\awesome-panini-89f869`, fast-forwarded to `87bacdc`. Nothing is committed.
+- **M1 is built, reviewed twice and fixed** on the branch `claude/m1-kickoff-832c2d` (commits `93d8f70`, `90ecb8a`,
+  `658db1c`), open as PR #1 and not merged. Master is still `af1aaf9`. (These are the ids after the 8 Nov history
+  rewrite; the old-to-new table is in `research/m1_kickoff.md`, section "Session 4".)
+- **M2 starts from M1's tip.** This note was first written on the branch `claude/awesome-panini-89f869`, in the
+  worktree `.claude\worktrees\awesome-panini-89f869`, fast-forwarded to `658db1c`. On 21 Nov it was carried onto
+  master `7081fba` by a cherry-pick (review finding L-P6, approved by the owner); the old branch is left as it was.
 - **New files, uncommitted:** this note, `research/m2_counts.py` (which stories, counts only) and
   `research/bench_reader.py` (speed, value ranges and a masked-word loss pilot on real headlines). Neither script
   prints a headline.
@@ -251,17 +253,98 @@ with its tests:
 1. `reader/vintages.json` and the download of the 10 vintages, each checked against its SHA-256. **Done on 8 Nov**
    ("The download", at the end), except a test for `reader/download.py`'s checks.
 2. The cutoff check (`reader/cutoff.py`): the two-vintage pilot, then the full check (1 to 2 hours on the laptop).
-   The owner reviews any failure or flag before step 4.
-3. The reader job (`reader/embed.py`), tested on synthetic data.
+   The owner reviews any failure or flag before step 4. Results and the rules fixed before them:
+   `research/audit/cutoff.md`. Review finding M-4 (`research/review_2026-11-21.md`): the check had no outcome for
+   "too weak". Until the owner rules, each vintage ends as pass, fail or too weak by the rules in `cutoff.md`, and a
+   failing or too-weak vintage is reported, not replaced; the replacement rule in section 5 waits for the owner's yes.
+   (The skeptic's point stands too: a failing 2015 vintage has no replacement, since 2014 can never pass.)
+   **Ran on 21 Nov** (`reader/cutoff.py`, N = 2,000 a year, 41 cells, 22 probes): no vintage passes. Nine fail and
+   2020 is too weak. The losses are dominated by quality shifts across the whole vintage, which the checks can't
+   tell from a leak, and four probes are flagged. Nothing is replaced; step 3 waits for the owner
+   (`research/audit/cutoff.md`, section 6). The owner chose a redesign. Sizing it from the saved cells
+   (`research/cutoff_design.py`, `cutoff.md` section 7) showed nothing under 10 hours can decide: check B's honest
+   value is about zero, and check A needs about 23 hours and more 2017 headlines than exist. No new run.
+   The owner then chose "Stronger probes": the cutoff is settled on 80 new named-event probes with equal token
+   counts (`reader/probes2.csv`), by rules frozen, judged and fixed before any score (`cutoff.md` section 8). The
+   loss check and the first 22 probes stay as the record and decide nothing. **Ran on 21 Nov:** no vintage fails,
+   2016 passes, and the other nine are too weak, since only 7 of 72 probes were informative. One flag (q2023c on
+   2022) is for the owner. Nothing is replaced; step 3 waits for the owner (`cutoff.md` section 8.10).
+   **The owner accepted all 11 vintages as published on 21 Nov** ("Accept, go on"; `cutoff.md` section 9). **Known
+   limit:** only the 2016 vintage is supported by evidence. The other nine that read news are too weak to judge, the
+   q2023c flag on the 2022 vintage was seen and accepted, and 2026 was never checked. Any result that leans on the
+   news must carry this limit.
+   **Two planned checks** catch a leak downstream, written with their warnings before any result
+   (`cutoff.md` section 10; plans only, nothing run): an older-vintage rerun after the main run (every story read
+   again by the vintage one year older, about 14 more hours, started only on the owner's word), and a switch-day
+   check in M3's evaluation (the news effect in each year's first 20 sessions against the rest of the year).
+3. **Before the reader job (review finding M-3):** give each embedding row its story's visible time, and serve
+   embeddings to agents only through `world.view.View`, so non-interference and the planted leaks cover news
+   features. This is a plan gap, not a live defect: the table doesn't exist yet. Then the reader job
+   (`reader/embed.py`), tested on synthetic data.
+   **Done on 21 Nov.** The M-3 fix:
+   - `world/rules.py`: `embedding(updated_at)`, the story's own time (its `updated_at` plus 15 minutes).
+   - Every embedding row stores that time as `available_at`. `World(..., embeddings=...)` refuses the whole table
+     if a row has no kept story, repeats a story, was read by a vintage other than the rule's, or stores an
+     `available_at` other than its story's. The last check catches a row left stale by a later edit, at row level
+     (L-P7).
+   - A view shows an embedding only once its story is visible (`View.embeddings`: rows plus two arrays, copied, so
+     nothing in a view reaches later rows).
+   - `eval/leaks.py` perturbs late embeddings in all three modes, so non-interference covers news features.
+   - Tests: `tests/test_embeddings_wall.py` (29; without the fix the module fails at once, since
+     `rules.embedding` doesn't exist). It covers an honest agent that reads embeddings, a planted leak that reads
+     the next day's, and a planted wrong rule caught by an independent check. Plus `tests/test_embed.py` (7) for
+     the job, whose last test feeds the job's own rows to the World.
+   - `reader/vintage.py`'s `FIRST` is now 2015, so a 2015 story can't be embedded (decision 2). M-4 needs nothing
+     more here: the owner accepted the vintages, so nothing is replaced. L-P8: `select`, `embed_ids` and
+     `part_table` work on any set of stories, for M5's morning job. L-P5 stays with step 5.
+   **The smoke run** (`python -m reader.embed smoke 128`; check: `python research/check_smoke.py`, output in
+   `D:\chrono-data\reader\smoke_check.log`). 256 stories, the first 128 of the 2015 and 2024 vintages, at 8.1 to
+   8.7 headlines a second.
+   - Every row's vintage and `available_at` match the rules, and the World's checks find nothing.
+   - Every vector is finite. `emb_last` reaches 27.3 and `emb_avg` 740.5.
+   - Token counts match a fresh tokenization.
+   - The headlines read again one at a time differ from the batch by at most 0.0073 and 0.124: float16 rounding
+     at those magnitudes.
+   - Another vintage gives other vectors.
+   - The 3 pairs of identical vectors are 3 pairs of stories with identical headlines.
+   **The judge** (22 Nov, Opus at high effort, at 0% of the 5-hour window; `research/audit/embed_judge.md`). No
+   embedding shows before its story, and no wrong-vintage row gets past the World. One must-change:
+   - J-1. Timed by its story alone, an embedding reopened M1's rejoin leak. The job reads only stories that name a
+     store company, so an embedded story with no visible link names a hidden company. In a gap before a rejoin,
+     that says the company rejoins. The judge counted 1,989 such stories in the store, about 6 companies (the
+     same six as M1's review). Non-interference missed it (J-2). **Fixed:** an embedding now shows when its
+     story's first company link shows, and never for a story with no link (`world/world.py`, `visible_at`).
+     `eval/leaks.py` uses the same rule. In shift mode, a late embedding follows its story's time. Four new tests
+     plant the judge's case: a world where E43 rejoins, against one where it never does. They show equal views,
+     equal decisions for an agent that counts unlinked embeddings, and a gap story whose embedding stays hidden.
+     All four fail under the old rule (checked by patching it back). Two tests that asserted the old behaviour
+     now assert "embeddings equal the linked stories".
+   - J-4. **Fixed before the run:** each vintage's `manifest.json` records the pinned weights (repo and commit), so
+     a restart or a finish under other pins stops.
+   - Open notes, for step 5: J-3 (`World.load` doesn't read `embeddings.parquet` yet), J-5 (an edit that keeps
+     `updated_at` passes the set hash; optionally hash the headline bytes too), J-6 (a test for a refused 2015
+     row; refuse repeated story ids; L-P8's later-of-two times for M5's job).
 4. The run, vintage by vintage: about 14 hours, over a few nights. The first vintage (33,251 headlines, about an
    hour) checks the speed estimate.
+   **Started at 20:41 New York on 21 Nov** (`python -m reader.embed run`, a detached process; log
+   `D:\chrono-data\reader\run.log`, its pid in `run.pid`). The first four parts ran at 20.0 to 20.6 headlines a
+   second, with the test suite running alongside, more than twice the smoke run's speed. At that speed the 502,712
+   stories take about 7 hours, so it should end around 04:00 New York on 22 Nov. If it stops, the same command
+   resumes at the first missing part. Then `python -m reader.embed finish`.
 5. The finish: the table, `embeddings.json`, the tests on the real table, `research/audit/reader.md` (counts and
-   timings only), and the PLAN (5.2, 9.3, 9.13) and README updates.
+   timings only), and the PLAN (5.2, 9.3, 9.13) and README updates. Review finding L-P5: the PLAN updates also cover
+   L167, L364, L434 and L548, which are stale after M2's decisions (2015 news left out, the 2014 vintage for the
+   cutoff check only, 14 hours not 21). Review finding L-P7: the completeness test checks story ids only, so
+   `embeddings.json` records a hash of `story_id` with `updated_at`, and the test compares it, to catch a story
+   whose text changed.
 6. **One review agent**, after step 5, hunting for leaks in the reader and the cutoff check, with usage checked
    before and after. M1's two reviews took about 20% and 26% of a window. Then the fixes, and the owner decides on
    the commit.
 
 The main session builds steps 1 to 5 in order, since each needs the one before.
+
+For M5, not M2 (review finding L-P8): M2 has no way to embed one morning's new stories for the forward test. M5
+needs a small job that reads each new story with the vintage the rule names, before the morning's decision.
 
 ## Running it inside the usage limits
 

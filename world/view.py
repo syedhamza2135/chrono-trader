@@ -11,6 +11,9 @@ Tables:
   end_open_time (when the official open on `end` printed; empty where `at_close`)
 - stories: story_id, created_at, updated_at, headline, symbols, n_companies (how many companies the story names)
 - story_entities: story_id, entity_id (the single-firm filter's companies)
+- embeddings (an Embeddings): rows (story_id, vintage_year, available_at), and last and avg, two arrays with one row
+  per row of rows: each story's headline read by its vintage (M2's reader; PLAN 5.2), as the mean of the last layer
+  and the mean over all layers. Empty when the World was built without embeddings.
 Every table has visible_at, the time its row entered the views.
 """
 from .clock import NY
@@ -20,7 +23,7 @@ class View:
     """The records visible at time t, and the S&P 500 members at t. today is t's New York date, and sessions are the
     NYSE sessions up to today."""
 
-    def __init__(self, t, sessions, members, joined, bars, labels, stories, story_entities):
+    def __init__(self, t, sessions, members, joined, bars, labels, stories, story_entities, embeddings):
         self.t = t
         self.today = t.tz_convert(NY).tz_localize(None).normalize()
         self.sessions = sessions[sessions <= self.today].copy()
@@ -30,3 +33,4 @@ class View:
         self.labels = labels
         self.stories = stories
         self.story_entities = story_entities
+        self.embeddings = embeddings
