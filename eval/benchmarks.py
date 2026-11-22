@@ -33,3 +33,13 @@ def sector_on(sectors, entity_ids, day):
         before = runs[runs.valid_from <= day]
         out[e] = (before.iloc[-1] if len(before) else runs.iloc[0]).sector
     return out
+
+
+def spy_buy_and_hold(spy, first, last):
+    """SPY bought at the open of `first` and held (PLAN 5.3, the long-only baseline): date and equity, its value at
+    each session's open from Alpaca's adjusted opens (the bar's first trade; SPY has no official auction prints in the
+    store), so it lines up with the simulator's marks at the open. Starts at 1.0."""
+    s = spy[(spy.date >= pd.Timestamp(first)) & (spy.date <= pd.Timestamp(last))].sort_values("date")
+    if s.empty:
+        return pd.DataFrame({"date": pd.Series(dtype="datetime64[ns]"), "equity": pd.Series(dtype=float)})
+    return pd.DataFrame({"date": s.date.to_numpy(), "equity": (s.adj_open / s.adj_open.iloc[0]).to_numpy()})

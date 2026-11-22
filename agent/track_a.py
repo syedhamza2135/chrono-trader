@@ -38,6 +38,8 @@ saw in its own memory.
   trade_from (2016 is watch-only, PLAN 5.5) every position is 0 and no book is kept, so the first trading day starts
   fresh (judge N3). Before the first fit it makes no decision.
 - news=False gives the price-only twin (PLAN 9.9): no news features at all.
+- freeze() gives a frozen twin (PLAN 5.3, 9.9; M3 step 4): a copy of the agent's state with learning off. It keeps
+  picking each year, updating its news memory and trading, but never refits, so it decides with the fit it had.
 
 `fits` records each refit's decision time and the latest visible_at of its training labels, for the embargo test.
 """
@@ -142,6 +144,8 @@ class TrackA:
         self.fit = None  # {"pooling", "penalty", "mean", "std", "beta"}
         self.fits = []
         self.positions, self.since_trade = {}, None
+        self.learning = True
+        self._today_index = None
 
     # The stock list (the toy agent's rule)
     def pick(self, v):
@@ -281,7 +285,8 @@ class TrackA:
                 self.sums[pool].add(x, y)
             latest = got.visible_at[have].max()
             self.latest_label = latest if self.latest_label is None else max(self.latest_label, latest)
-            self.recent.append((date, y, Xs, latest))
+            self.recent.append((date, y, {pool: x.astype(np.float32) for pool, x in Xs.items()}, latest))  # exact:
+            # the rows were rounded to float32 when they were made, so this halves their memory and changes nothing
             self.lived_days += 1
         self.pending = still
         self.recent.sort(key=lambda r: r[0])
@@ -305,11 +310,11 @@ class TrackA:
         held = gap + val
         best = None
         for pool in self.poolings:
-            Xh = np.vstack([r[2][pool] for r in held])
+            Xh = np.vstack([r[2][pool] for r in held]).astype(np.float64)
             yh = np.concatenate([r[1] for r in held])
             train = self.sums[pool].minus(Xh, yh)
             mean, std, zz, zy = train.scaled()
-            Xv = np.vstack([r[2][pool] for r in val])
+            Xv = np.vstack([r[2][pool] for r in val]).astype(np.float64)
             Zv = (Xv - mean) / std
             yv = np.concatenate([r[1] for r in val])
             day = np.concatenate([[i] * len(r[1]) for i, r in enumerate(val)])
@@ -325,8 +330,23 @@ class TrackA:
                           "pooling": pool, "penalty": lam, "val_days": n_val, "gap_days": len(gap),
                           "held_rows": int(sum(len(r[1]) for r in held)), "first_val_t": first_val_t,
                           "train_latest_label": train_latest, "val_ic": best[0]})
-        keep = n_val + 1 + 21 * (self.recent_val_months + 1)  # enough rows for next month's validation part
+        keep = n_val + 64  # next month's validation part, its gap and any late labels need at most this many
         self.recent = self.recent[-keep:]
+
+    def freeze(self):
+        """A frozen twin: the same rules and the state lived so far, with learning off. Built field by field (an agent
+        may not import copy), so nothing in it is shared with this agent."""
+        twin = TrackA(**{k: v for k, v in self.params.items()})
+        twin.picks, twin.fits = list(self.picks), list(self.fits)
+        twin.pick_year, twin.month, twin.first_day = self.pick_year, self.month, self.first_day
+        twin.last_t, twin.dim, twin._today_index = self.last_t, self.dim, self._today_index
+        twin.memory = {e: [m[0].copy(), m[1].copy(), m[2]] for e, m in self.memory.items()}
+        twin.lived_days, twin.latest_label = self.lived_days, self.latest_label
+        twin.fit = None if self.fit is None else {k: (x.copy() if isinstance(x, np.ndarray) else x)
+                                                  for k, x in self.fit.items()}
+        twin.positions, twin.since_trade = dict(self.positions), self.since_trade
+        twin.learning = False
+        return twin
 
     def split(self, n_val):
         """(gap, val, first_val_t, train_latest): the validation part is the last n_val kept days; the gap is the day
@@ -382,13 +402,14 @@ class TrackA:
             self.picks, self.pick_year = self.pick(v), v.today.year
         if self.month != (v.today.year, v.today.month):
             self.month = (v.today.year, v.today.month)
-            if v.today >= self.first_day + pd.DateOffset(months=self.fit_after_months):
+            if self.learning and v.today >= self.first_day + pd.DateOffset(months=self.fit_after_months):
                 self.refit(v)
         live = [p for p in self.picks if p[0] in v.members]
         if not live:
             return None
         X = self.features(v, live, new)
-        self.pending.append((v.today, pd.DataFrame(live, columns=KEY), X))
+        if self.learning:
+            self.pending.append((v.today, pd.DataFrame(live, columns=KEY), X))
         if self.fit is None:
             return None
         pred = self.score(X)

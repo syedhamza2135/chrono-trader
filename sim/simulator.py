@@ -138,3 +138,69 @@ def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
     cols = ["date", "entity_id", "share_class", "prediction", "position"]
     d = pd.concat(decisions, ignore_index=True)[cols] if decisions else pd.DataFrame(columns=cols)
     return Run(d, pd.DataFrame(sim.rows), {"forced_sales": sim.forced_sales, "unmarked": sim.unmarked})
+
+
+def _fresh(base):
+    """A simulator with base's read-only lookups (official opens, labels) and a new, empty book."""
+    sim = Simulator.__new__(Simulator)
+    sim.cost, sim.opens, sim.labels, sim.data_end = base.cost, base.opens, base.labels, base.data_end
+    sim.cash, sim.values, sim.pending = 1.0, {}, {}
+    sim.unmarked = sim.forced_sales = 0
+    sim.rows = []
+    return sim
+
+
+def _own_view(v):
+    """A view of the agent's own: shallow copies of the tables (pandas copies on write, so an agent that changes one
+    changes only its own) and read-only vectors, so no agent can reach another's decisions through a shared view."""
+    from world.view import View
+    from world.world import Embeddings
+    e = v.embeddings
+    last, avg = e.last.view(), e.avg.view()
+    last.flags.writeable = avg.flags.writeable = False
+    return View(v.t, v.sessions.copy(), v.members, v.joined, v.bars.copy(deep=False), v.labels.copy(deep=False),
+                v.stories.copy(deep=False), v.story_entities.copy(deep=False),
+                Embeddings(e.rows.copy(deep=False), last, avg))
+
+
+def run_many(world, agents, first, last, cost_bps=COST_BPS, settings=None, freeze=()):
+    """The daily loop for several agents at once (M3 step 4): each session's view is built once and every agent
+    decides on its own copy of it, each with its own simulator. `agents` maps names to agents, in a fixed order. For
+    each name in `freeze`, at the first session of each new year a frozen twin (the agent's `freeze()`, learning off)
+    joins as "<name>_frozen_<year just ended>" and trades from that session on. The seal covers every agent's
+    settings. Returns {name: Run}, the twins included, and gives the same decisions as one `run` per agent."""
+    agents = dict(agents)
+    full = {**(settings or {}), "cost_bps": cost_bps, "embedding_window_days": getattr(world, "embedding_window_days",
+                                                                                         None),
+            "agents": {n: {"agent": type(a).__name__, "agent_params": getattr(a, "params", None)}
+                       for n, a in agents.items()}, "freeze": list(freeze)}
+    seal.check(first, last, full if settings is not None else None)
+    was_allowed = world.allow_sealed
+    if pd.Timestamp(last) >= seal.sealed_start():
+        world.allow_sealed = True
+    base = Simulator(world, cost_bps)
+    sims = {n: _fresh(base) for n in agents}
+    decisions = {n: [] for n in agents}
+    year = None
+    try:
+        for day in world.clock.between(first, last):
+            if year is not None and day.year != year:
+                for n in freeze:
+                    twin = f"{n}_frozen_{year}"
+                    agents[twin], sims[twin], decisions[twin] = agents[n].freeze(), _fresh(base), []
+            year = day.year
+            v = world.view(world.clock.decision_time(day))
+            for n, agent in agents.items():
+                targets = agent.decide(_own_view(v))
+                sims[n].step(day, targets)
+                if targets is not None and len(targets):
+                    decisions[n].append(targets.assign(date=day))
+    finally:
+        world.allow_sealed = was_allowed
+    cols = ["date", "entity_id", "share_class", "prediction", "position"]
+    out = {}
+    for n in agents:
+        d = pd.concat(decisions[n], ignore_index=True)[cols] if decisions[n] else pd.DataFrame(columns=cols)
+        out[n] = Run(d, pd.DataFrame(sims[n].rows), {"forced_sales": sims[n].forced_sales,
+                                                     "unmarked": sims[n].unmarked})
+    return out

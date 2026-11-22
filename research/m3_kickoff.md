@@ -280,6 +280,76 @@ docstring states every rule. Tests: `tests/test_track_a.py`.
 - **The full suite after step 3:** 407 pass and 1 skips, in 25 minutes 7 seconds on 22 Nov. The real-store leak
   tests take most of it. AGENTS.md (385, about 12 minutes) needs the same update in the commit.
 
+**Step 4, built on 22 Nov** (the owner: "Yes, start step 4"; uncommitted). The comparison harness:
+- **Where it lives.** `world`, `sim` and `eval` may import nothing from `agent` (PLAN 9.1), so every twin, the
+  placebo and the baselines are agents in `agent/`, and the loop takes them as arguments.
+  - `agent/track_a.py`: `freeze()` gives a frozen twin.
+  - `agent/placebo.py`: `Placebo(agent, seed)`.
+  - `agent/baselines.py`: `RandomRanking(seed)`, `Momentum`, `Reversal`, `EqualWeight`.
+  - `sim/simulator.py`: `run_many`.
+  - `eval/benchmarks.py`: `spy_buy_and_hold`.
+  - `eval/trials.py`: the ledger.
+- **One pass.** `run_many(world, agents, first, last, freeze=("live",))` builds each session's view once. Every
+  agent decides on its own shallow copy, with its own simulator, and the seal covers every agent's settings. pandas
+  copies on write, and the vectors are read-only, so an agent that changes its view changes only its own copy. A
+  test plants such an agent. Another test shows each agent gets exactly the decisions and equity it gets from
+  `sim.simulator.run` alone.
+- **Choices where PLAN is silent**, each the simplest one that can't leak:
+  - A frozen twin is taken before the first session of each new year, from the live agent's state after its last
+    December decision. Learning is off: no refit, and no rows kept. It still picks each year, keeps its news memory
+    and trades, on a book of its own that starts on that session. Only the live agent gets twins, named
+    `live_frozen_<year>`. In the dev years they are the 2016, 2017 and 2018 twins; the pre-registered end-of-2019
+    twin first trades in 2020.
+  - The placebo groups the (story, company) pairs by the decision they first reach. It permutes the companies within
+    each group with a generator seeded by (seed, that session's date). Stories, times and the day's amount of news
+    stay the same, and a pair is shuffled the same way in every later view while its embedding is in the window (a
+    test checks both). It permutes among every company with news that day, not only the 50 picks.
+  - Random ranking draws one score per pick from a generator seeded by (seed, date). Momentum (12-1) is the log
+    return over the stock's bars [-252:-21] within 400 days. Reversal is minus r5. Equal weight holds every live pick
+    at 1 / n, rebalanced daily. All the baselines use Track A's picks and have 2016 watch-only. Seeds 1 to 5 for both
+    random parts (decision 6).
+  - SPY buy-and-hold is valued at Alpaca's adjusted opens (the first trade), since the store has no official
+    auction prints for SPY.
+  - The memory change in `agent/track_a.py`. Rows kept for validation are stored as float32, which is exact, since
+    they were rounded to float32 when made. Only the rows the next validation needs are kept (n_val + 64 days, not
+    n_val + 274). Seven agents of this kind run at once, so this cuts their memory.
+  - The ledger. Each run is a row of `runs/trials.csv`: run id, New York time, commit, dirty, settings hash, dates,
+    agents and the output folder. Its settings go to `runs/settings/<hash>.json`. Both hold names, dates and
+    parameters only, and are for git. Outputs go to `D:\chrono-data\runs\<run id>`. `.gitignore` now ignores
+    everything in `runs/` but those two.
+- **The timed pass** (`python research/m3_compare_timing.py`, alone on the laptop; log
+  `D:\chrono-data\runs\m3_step4_timing\timing.log`). It prints times and counts only, so it is not a trial.
+  `World.load` took 19 s. One pass from 2016-01-04 to 2019-12-31 fed 18 agents (the 15 above plus 3 frozen twins)
+  in 95.2 minutes, with a process peak of 4.41 GB. Step 3's run of the live agent alone took 12.3 minutes. So the
+  plan's guess of about 10 minutes for one pass was wrong. The agents' own work sets the time, not the views: seven
+  Track A agents each fit and keep their own news memory. The live agent's decisions equal step 3's
+  run exactly (817 decision days, 40,850 rows). The baselines decide from their first pick on 2016-04-01 (945 days).
+- **Tests.** `tests/test_comparison.py` has 15 tests, 39 cases with their parameters. Every twin, the placebo and
+  each baseline pass `non_interference` in all three modes on synthetic tables, and the placebo also passes on the
+  real store with embeddings (scramble). No judge ran, since step 4 does not change the time wall: it adds agents
+  and a loop that hands each agent a copy of the same view.
+- **The Sonnet checker** passed all 8 of its checks: no em-dashes, `.gitignore` keeps outputs out and the ledger in,
+  the import boundary, the timing numbers, every name cited, the old keep value (n_val + 274), the test count, and
+  sentence length. Its one finding, a 47-word sentence in the timed-pass bullet, is fixed. It also noted that the
+  settings file holds whatever the caller passes. Step 6, the first caller, must pass names, dates and parameters
+  only, as the ledger's docstring says.
+- **The full suite after step 4:** 446 pass and 1 skip, in 31 minutes 45 seconds on 23 Nov. A rerun after the owner's rulings gave the same, in 35 minutes 33 seconds. AGENTS.md (407, about
+  25 minutes) needs the same update in the commit.
+- **For the owner (PLAN leaves these open):**
+  - Should the placebo permute among every company with news that day (built), or only among the 50 picks?
+  - Should equal weight be rebalanced daily (built), or bought once a year at the pick and held?
+  - Should the price-only twin get frozen twins too? Only the live agent has them now.
+- **The owner's rulings, 23 Nov:** "Yes. Make the recommended choices (as long as they are better)".
+  - The placebo stays all-companies, as built. The picks-only version was checked first and failed the "better"
+    check. The check sampled every 10th session from 2017 to 2019 (76 days) and used each day's new (story, company)
+    pairs as Track A forms them. A permutation never changes a company's number of links, so the picks' news counts
+    stay nearly equal either way: 2,637 pick pairs live, 2,633 shuffled among all companies, and 2,624 among the
+    picks only. The all-companies shuffle moves 95.7% of pick pairs to another company, against 88.6% for picks
+    only, so it leaves less true news in the placebo. That makes it the cleaner test for H3. The picks-only code and
+    the check are kept outside git, in the lead's notes folder.
+  - Equal weight stays rebalanced daily.
+  - The price-only twin gets no frozen twins.
+
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
 it runs a judge.
