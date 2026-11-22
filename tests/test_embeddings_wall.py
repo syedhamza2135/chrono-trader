@@ -37,8 +37,9 @@ def test_every_row_carries_its_storys_availability_time():
 
 @pytest.mark.parametrize("day", DAYS)
 def test_a_view_shows_exactly_the_embeddings_of_the_linked_stories_it_shows(day):
-    """An embedding shows once its story and one of its company links do (judge J-1), not with the story alone."""
-    v = world().view(Clock().decision_time(day))
+    """An embedding shows once its story and one of its company links do (judge J-1), not with the story alone. With
+    every row served (no window): the window's own tests are in tests/test_embedding_window.py."""
+    v = world(embedding_window_days=None).view(Clock().decision_time(day))
     assert len(v.embeddings) > 0
     assert set(v.embeddings.rows.story_id) == set(v.story_entities.story_id)
     assert set(v.embeddings.rows.story_id) <= set(v.stories.story_id)
@@ -176,7 +177,8 @@ def test_changing_every_later_record_and_embedding_changes_no_decision(how):
 @pytest.mark.parametrize("day", ["2016-12-30", "2017-03-15"])
 def test_the_perturbed_embeddings_at_t_are_the_original_ones(how, day):
     t = Clock().decision_time(day)
-    a, b = World(**TABLES).view(t), World(**leaks.perturb(TABLES, t, how, seed=5)).view(t)
+    full = {"embedding_window_days": None}  # every visible row, not only the window's (judge W-4)
+    a, b = World(**TABLES, **full).view(t), World(**leaks.perturb(TABLES, t, how, seed=5), **full).view(t)
     oa, ob = np.argsort(a.embeddings.rows.story_id.to_numpy()), np.argsort(b.embeddings.rows.story_id.to_numpy())
     pd.testing.assert_frame_equal(a.embeddings.rows.iloc[oa].reset_index(drop=True),
                                   b.embeddings.rows.iloc[ob].reset_index(drop=True))

@@ -25,7 +25,7 @@ import pandas as pd
 from reader.vintage import vintage_for
 from world import rules
 from world.clock import Clock
-from world.world import World, spells, visible_at
+from world.world import EMBEDDING_WINDOW_DAYS, World, spells, visible_at
 
 HOW = ("scramble", "shift", "delete")
 SHIFT = pd.Timedelta(days=7)
@@ -133,10 +133,12 @@ def perturb(tables, t, how, seed=0):
     return out
 
 
-def decisions_until(tables, make_agent, first, last, clock=None, give_world=False):
-    """Every decision from `first` to `last` of a fresh agent, from a World built on `tables`. The agent gets no
-    World unless `give_world` (only a planted leak asks for it). Views refuse the sealed years."""
-    world = World(**tables, clock=clock)
+def decisions_until(tables, make_agent, first, last, clock=None, give_world=False,
+                    embedding_window_days=EMBEDDING_WINDOW_DAYS):
+    """Every decision from `first` to `last` of a fresh agent, from a World built on `tables` with the given embedding
+    window (the World's default, as the runs use). The agent gets no World unless `give_world` (only a planted leak
+    asks for it). Views refuse the sealed years."""
+    world = World(**tables, clock=clock, embedding_window_days=embedding_window_days)
     agent = make_agent(world) if give_world else make_agent()
     rows = []
     for day in world.clock.between(first, last):
@@ -167,13 +169,15 @@ def compare(a, b, tol=1e-12):
     return problems
 
 
-def non_interference(tables, make_agent, first, last, how, seed=0, clock=None, give_world=False):
+def non_interference(tables, make_agent, first, last, how, seed=0, clock=None, give_world=False,
+                     embedding_window_days=EMBEDDING_WINDOW_DAYS):
     """Run to the decision on session `last`, perturb every record not visible then, run again, compare.
 
     "Not visible" comes from the wall's own rules (world/rules.py, through late_rows), so a wrong rule passes this
     check: it shows that an agent can't reach past the rules, not that the rules are right. The rules themselves are
     checked by their own tests, such as same_day_bars in tests/test_leaks.py (review of 21 Nov, L-T1)."""
     t = (clock or Clock()).decision_time(last)
-    a = decisions_until(tables, make_agent, first, last, clock, give_world)
-    b = decisions_until(perturb(tables, t, how, seed), make_agent, first, last, clock, give_world)
+    a = decisions_until(tables, make_agent, first, last, clock, give_world, embedding_window_days)
+    b = decisions_until(perturb(tables, t, how, seed), make_agent, first, last, clock, give_world,
+                        embedding_window_days)
     return compare(a, b)

@@ -13,7 +13,8 @@ Tables:
 - story_entities: story_id, entity_id (the single-firm filter's companies)
 - embeddings (an Embeddings): rows (story_id, vintage_year, available_at), and last and avg, two arrays with one row
   per row of rows: each story's headline read by its vintage (M2's reader; PLAN 5.2), as the mean of the last layer
-  and the mean over all layers. Empty when the World was built without embeddings.
+  and the mean over all layers, for the rows visible in the World's embedding window up to t (90 days by default;
+  world/world.py). Empty when the World was built without embeddings.
 Every table has visible_at, the time its row entered the views.
 """
 from .clock import NY

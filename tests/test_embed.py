@@ -137,7 +137,8 @@ def test_the_jobs_rows_pass_the_time_wall(monkeypatch, tmp_path):
     _run(monkeypatch, st, tmp_path)
     rows = _all_rows(tmp_path)
     assert embedding_problems(rows, tables["stories"]) == []
-    w = World(**tables, embeddings=rows[["story_id", "vintage_year", "available_at", "emb_last", "emb_avg"]])
+    w = World(**tables, embeddings=rows[["story_id", "vintage_year", "available_at", "emb_last", "emb_avg"]],
+              embedding_window_days=None)  # every row; the window has its own tests
     v = w.view(pd.Timestamp("2017-03-15 14:00", tz="UTC"))
     assert set(v.embeddings.rows.story_id) == set(v.story_entities.story_id) & set(rows.story_id)
 

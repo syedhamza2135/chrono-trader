@@ -117,9 +117,10 @@ class Simulator:
 def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
     """The daily loop from the session `first` to the session `last`: decide at 9:00, fill at the open. Dates in the
     sealed years need a matching seal (sim/seal.py) on the run's whole settings: the caller's, the costs, and the
-    agent's class and parameters."""
+    agent's class and parameters, and the World's embedding window (M3 decision 1)."""
     full = {**(settings or {}), "cost_bps": cost_bps, "agent": type(agent).__name__,
-            "agent_params": getattr(agent, "params", None)}
+            "agent_params": getattr(agent, "params", None),
+            "embedding_window_days": getattr(world, "embedding_window_days", None)}
     seal.check(first, last, full if settings is not None else None)
     was_allowed = world.allow_sealed
     if pd.Timestamp(last) >= seal.sealed_start():
