@@ -596,7 +596,10 @@ before 1 January of the event's year.
 **The second freeze.** Frozen again at 16:21 New York on 21 Nov 2026, still before any vintage scored a probe of
 `reader/probes2.csv` (`D:\chrono-data\reader\cutoff` held no `probes2` folder). At that time:
 - `reader/probes2.csv` had SHA-256 `eed31d911b049213de6d53f71a0f56a2b38618183e3fc9bf0936d6305c1bd5bd`;
-- `reader/cutoff.py` had SHA-256 `8bae55f5b4ecc5a499e2bab767c27de273f85b2cc8322da9af7dc41c3e153b3e`;
+- `reader/cutoff.py` had SHA-256 `8bae55f5b4ecc5a499e2bab767c27de273f85b2cc8322da9af7dc41c3e153b3e`. That is the
+  hash of the Windows working copy, with CRLF line ends (`core.autocrlf` is true). The committed blob, with LF
+  line ends, has SHA-256 `7004534124287875504bd044498c0d36696d3adbc3ffb3ece99c32b1418336ce`
+  (`git show 3d1df9b:reader/cutoff.py | sha256sum`; review finding C-2). The two differ only in line ends;
 - `tests/test_cutoff.py` passed (27 tests, among them the real-tokenizer length check).
 These are the files the run uses. The table in 8.2 shows the list as of this freeze.
 
@@ -626,8 +629,8 @@ had the SHA-256s in 8.8, both at the run and at the report.
 So no vintage fails, 2016 passes, and the other nine are too weak. Nothing is replaced.
 
 **What the numbers show (a reading, not part of the rules).**
-- No vintage scores like a later vintage on two events of the year it reads. Where a probe could tell, the vintage
-  before the event looks like the older ones. Examples: Hurricane Maria (q2017c) scores -8.79 at 2016 and -3.14 at
+- No vintage scores like a later vintage on two events of the year it reads. In 5 of the 7 informative
+  cells, the vintage before the event looks like the older ones; the other 2 flag (q2017f and q2023c). Examples: Hurricane Maria (q2017c) scores -8.79 at 2016 and -3.14 at
   2017; Harvey (q2017e) -12.07 at 2016 and -0.50 at 2017; Bard (q2023b) -6.96 at 2022 and -3.21 at 2023; the
   Colonial Pipeline (q2021e) -5.82 at 2020 and -3.44 at 2021.
 - But the probes seldom have the power to pass a vintage. Only 7 of 72 are informative for the vintage just before

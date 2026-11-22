@@ -337,6 +337,14 @@ What the non-interference test can't see, and what covers each gap:
    - From the next trading day, a GitHub Actions job runs the same code on the same Alpaca source every morning.
    - It commits the day's decisions before the open. GitHub's server-side run times are the proof; OpenTimestamps is optional.
    - Results are scored daily. This is the only test that's free of our own hindsight.
+   - **Entry rules for M5, from the M2 review of 22 Nov 2026** (`research/review_m2_2026-11-22.md`):
+     - E-1: the morning job's reader reuses `reader/embed.py`. Each part's manifest records the library and code
+       versions as well as the vintage: the token cap, batch size, pooling, tokenizer file ids, torch and
+       transformers versions, and a hash of `embed_ids`. A resume or a morning run whose versions differ from the
+       manifest's stops, so vectors made two ways are never mixed.
+     - C-1: any rules frozen in future, such as a probe list or a scoring rule, are committed (or their hashes sent
+       to the owner) before anything is scored, and the scoring command refuses to run unless the files match that
+       record.
 
 The seal locks the feature list. Anything added afterwards can only be judged by the forward test.
 

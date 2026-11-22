@@ -45,8 +45,9 @@ each vintage's `manifest.json` and the store's files.
 
 - `python -m reader.embed finish` checked every part's story ids and `available_at` against the current store,
   then wrote `D:\chrono-data\store\embeddings.parquet` (502,712 rows, 1,480,328,055 bytes) and `embeddings.json`
-  (3,108 bytes). The story set's SHA-256, a hash of each `story_id` with its `updated_at` (review finding L-P7), is
-  `6e28201d...` both in the run's first log line and in `embeddings.json`.
+  (3,108 bytes then; 3,281 after the arrays step added its `arrays` entry, review finding D-1). The story set's
+  SHA-256, a hash of each `story_id` with its `updated_at` (review finding L-P7), is `6e28201d...` both in the
+  run's first log line and in `embeddings.json`.
 - `embeddings.json` also records each vintage's pinned repo, commit and weights hash, the cap (256 tokens), the
   part size, and the versions (torch 2.15.0+cpu, transformers 5.22.0). Each vintage's `manifest.json` records the
   pinned repo and commit that read it (judge J-4).
