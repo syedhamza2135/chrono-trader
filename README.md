@@ -22,6 +22,12 @@ M1, the time wall, is built and merged, and the findings of two reviews are fixe
 - **The time wall:** `world/` (the clock, the availability rules, `World.view(t)`), `sim/` (fills at the official open, costs, exits, the seal), `eval/` (the daily rank IC and the non-interference check) and a toy agent in `agent/`.
 - **The tests in PLAN 9.11,** including the planted leaks and both import boundaries.
 
+M2, the reader, has its table (PLAN.md, section 5.2; state and decisions in [research/m2_kickoff.md](research/m2_kickoff.md)):
+
+- **The vintages:** all 11 ChronoBERT vintages (2014 to 2024), pinned by commit and weights hash in [reader/vintages.json](reader/vintages.json), on D:.
+- **The cutoff check:** only the 2016 vintage is supported by evidence; the other nine that read news are too weak to judge, and the owner accepted all 11 as published, a known limit. Audit: [research/audit/cutoff.md](research/audit/cutoff.md).
+- **The embeddings:** 502,712 stories, each read by the vintage the rule names, in `D:\chrono-data\store\embeddings.parquet`, served to agents only through `World.view(t)`. Audit: [research/audit/reader.md](research/audit/reader.md). Reviews: [research/audit/embed_judge.md](research/audit/embed_judge.md).
+
 Nothing is trained yet.
 
 ## Setup
@@ -46,7 +52,7 @@ Run these from the repo root with the venv's Python.
 | `python research/alpaca_check.py` | Checks that the keys reach Alpaca's news and prices. It prints counts only |
 | `python -m data_pipeline.membership` | Extends the fja05680 membership file to today with Wikipedia's change log, and writes `research/audit/membership.md` |
 | `python -m data_pipeline.identity` | Builds the identity tables in `reference/` from Wikipedia's monthly lists and the hand-checked `reference/identity_fixes.csv`, and writes `research/audit/identity.md` |
-| `python -m pytest tests` | Checks the identity tables, the price and news audits' rules, the split, the print check, and M1: the auctions, the store's rules, the time wall, the simulator, the seal, the import boundaries and the leak tests (3 to 7 minutes). Tests that need the store skip without it, and the slow leak test runs only with `CHRONO_SLOW_LEAKS=1` |
+| `python -m pytest tests` | Checks the identity tables, the price and news audits' rules, the split, the print check, M1 (the auctions, the store's rules, the time wall, the simulator, the seal, the import boundaries and the leak tests) and M2 (the cutoff check's rules, the reader job, the embeddings' time wall and the real embeddings table). About 10 minutes. Tests that need the store or the embeddings skip without them, and the slow leak test runs only with `CHRONO_SLOW_LEAKS=1` |
 | `python -m data_pipeline.bars` | Downloads daily bars for each company's tickers, as the identity table dates them. It writes the download plan and resumes |
 | `python -m data_pipeline.news` | Downloads every news headline, one file per month. About 4.5 hours, and it resumes |
 | `python -m data_pipeline.audit_prices` | Writes `research/audit/prices.md` and its CSVs (about 3 minutes), including `incomplete_bars.csv`: member bars with a trade count below 5% of the median of the file's previous 20 bars |
@@ -57,6 +63,15 @@ Run these from the repo root with the venv's Python.
 | `python research/verify_prints.py IN OUT` | Checks daily bars against the listing exchange's official opening and closing auction prints, to within a cent or 0.2%. OUT has 19 columns, including `listing_exchange`, `open_checked` and `close_checked`. It resumes an OUT with the same columns and refuses one with other columns, so write to a new file |
 | `python research/identity_evidence.py` | Looks up local evidence for identity questions (Wikipedia revisions, change log, news tags, bars) |
 | `python research/bench_chronobert.py` | Times ChronoBERT on the CPU |
+| `python -I reader/download.py [year ...]` | Downloads the pinned ChronoBERT vintages into `D:\chrono-data\hf` and checks every file against `reader/vintages.json` (all 11 by default; it resumes) |
+| `python -m reader.cutoff sample \| pilot \| run N \| report N` | The cutoff check: draws the fixed sample, runs the pilot, reads every (vintage, year) cell and the named-event probes, and prints every number of `research/audit/cutoff.md`. Outputs in `D:\chrono-data\reader\cutoff` |
+| `python -m reader.cutoff probes2 \| report-probes2` | The stronger probes (`reader/probes2.csv`, frozen by its SHA-256) and their report (`research/audit/cutoff.md`, section 8) |
+| `python -m reader.embed smoke N` | Reads the first N stories of the 2015 and 2024 vintages into `D:\chrono-data\reader\smoke`; check them with `python research/check_smoke.py` |
+| `python -m reader.embed run` | Reads every story from 2016 on with the vintage the rule names, part by part, into `D:\chrono-data\reader\v{vintage}`. About 6 hours on the laptop; it resumes at the first missing part and keeps the laptop from idle sleep |
+| `python -m reader.embed finish` | Checks every part against its manifest and the store, then writes `embeddings.parquet`, `embeddings.json` and the two `.npy` arrays to the store |
+| `python -m reader.embed arrays` | Writes the `.npy` arrays again from `embeddings.parquet` (`World.load` maps them read-only) |
+| `python research/reader_stats.py` | The run's counts, speeds and disk use, for `research/audit/reader.md` |
+| `python research/world_memory.py` | `World.load`'s time and memory with the embeddings, and the cost of a view in each period |
 
 ## Data and licensing
 

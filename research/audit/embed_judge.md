@@ -126,3 +126,101 @@ Scripts (made-up frames, plus counts only from the store) are in the judge's scr
   old rule. The "embeddings equal stories" assertions now read "embeddings equal linked stories".
 - J-4: fixed. `manifest.json` records each vintage's pinned repo and commit, before the full run started.
 - J-3, J-5 and J-6: left as notes for step 5 (`research/m2_kickoff.md`, step 3).
+
+
+## Second judge: World.load and the mapped arrays (J-3)
+
+Scope: the uncommitted change against e53c114 (`world/world.py`, `reader/embed.py`, `tests/test_embed.py`, the new
+`tests/test_embeddings_store.py`). The question: through the time wall, can an agent reach an embedding row or vector
+not visible at t, or the World's arrays? Scripts (made-up frames from `tests/synthetic.py`, and counts only on the
+store) are in the session scratchpad as `j3_checks.py` and `j3_store_arrays.py`.
+
+Verdict: no leak through the wall. A view holds only gathered copies of the rows visible at t, aligned with their
+vectors, and nothing in it reaches a map or the World. Two things must or should change first: two wall tests now
+fail, and the arrays check binds the vectors to the story ids only, not to the rows' content.
+
+### J3-1. Two wall tests fail after the rename (must-change)
+
+- Where: `tests/test_embeddings_wall.py:69-72` and `:149-151` use `w.embeddings.last`. The class now keeps
+  `_last` and `_avg` in store order (`world/world.py:217-221`). Both tests raise AttributeError. So the DataFrame
+  path's "a view shares no memory with the World" test and the planted `FutureEmbedding` leak test (`:212-215`) no
+  longer run. The suite is red (2 failed, 45 passed for test_embed, test_embeddings_wall and test_boundaries).
+- Check: `python -m pytest tests/test_embed.py tests/test_embeddings_wall.py tests/test_boundaries.py -q`.
+- Fix: use `w.embeddings._last` and `_avg` in the memory test. In `FutureEmbedding`, take
+  `e._last[e.order, 0]`, since `e.rows` is sorted and `e._last` is not; `e._last[:, 0]` would pair a row with
+  another story's vector.
+
+### J3-2. The arrays check covers the story ids, not the vectors (should-change)
+
+- Where: `load_embeddings` accepts the .npy files when the parquet's story-id sequence hashes to
+  `arrays.ids_sha256` and the lengths match (`world/world.py:254-258`). `cmd_finish` replaces the parquet
+  (`reader/embed.py:269`) before it rewrites `embeddings.json` (`:270-278`, with `import torch`, `transformers`
+  and `cutoff.PINS` lookups in between). If finish stops there, the old json keeps its old `arrays` entry. A rerun
+  over the same story set gives the same id sequence, so the World serves the old vectors with the new rows. A rerun
+  after a vintage repin (the reason one would rerun) would then show vectors read by the old weights. The same holds
+  if `cmd_arrays` replaces one .npy and not the other (`:308`), as the json still carries the old entry.
+- Check: `j3_checks.py` part 3 rewrites the parquet with the same ids in the same order and other vectors, and keeps
+  the json. `load_embeddings` accepts it and returns the old vectors. Part 4: the same ids reversed are refused, so
+  order is covered.
+- Fix: in `cmd_finish`, drop `arrays` from `embeddings.json` before `os.replace` of the parquet, and in `cmd_arrays`
+  before the first `os.replace`; better also record the parquet's size and footer hash in `arrays` and check them.
+- No test covers it.
+
+### J3-3. The leak tools need the DataFrame path (note)
+
+- Where: `eval/leaks.py:63` calls `.copy()` on each table and `late_rows` (`:50-52`) reads `story_id` from it.
+  Given an `Embeddings`, `perturb` raises AttributeError (`j3_checks.py` part 6). The real-store non-interference
+  tests build their tables without embeddings (`tests/test_leaks.py:283-286`), and the full vectors as DataFrame
+  columns do not fit in memory. So non-interference with embeddings runs on synthetic frames only.
+- This is safe today: after construction both paths use the same `_SortedEmbeddings.upto`, and
+  `test_the_world_maps_the_stores_arrays_and_serves_the_same_views` shows equal views. Fix, later: let `perturb`
+  take an `Embeddings` and write the scrambled late rows into an in-memory copy, for a short window of the store.
+
+### J3-4. Smaller edges (notes)
+
+- `load_embeddings` does not check the arrays' dtype or width. The store's are float16 by 768, as the World's test
+  checks (`tests/test_embeddings_store.py`). Fix: compare `last.shape[1]` and dtype with `embeddings.json`.
+- On Windows an open map locks the file. With a World loaded, `cmd_arrays` stops with PermissionError at the
+  first replace, so the old arrays and json stay consistent (`j3_checks.py` part 5). It leaves two `.tmp` files
+  (about 772 MB each on the real store) on D:.
+- A view late in the data gathers nearly every row: 502,712 rows by 768 in float16 is about 772 MB per array, so
+  about 1.5 GB per view on top of the World. Not a leak; a memory note for M3.
+- The refusals: `embedding_problems` runs on the mapped path's rows (`world/world.py:286`), the same function as
+  before. The real table passes it (the `world` fixture of `tests/test_embeddings_store.py` loads). No test plants
+  a bad row in a mapped store, but the input is the same rows DataFrame, so the DataFrame tests cover the logic.
+
+### Checked and found right
+
+- Alignment. `self.rows` is `rows.iloc[order]` and `upto` gathers `order[:k]` from the unsorted vectors
+  (`world/world.py:222-241`), so row i of a view and vector i come from the same store row. Ties on `visible_at`
+  keep store order in both. `j3_checks.py` part 1: 68 days, 270 tied rows, 0 mismatched rows. The new store test
+  checks 50 rows against the parquet; covered.
+- The real store. Every row of both .npy files equals the parquet's vectors: 502,712 rows compared, 0 differ
+  (`j3_store_arrays.py`). `tests/test_embeddings_store.py`: 10 passed.
+- No shared memory. `_gather` writes into a fresh `np.empty` with `np.take(out=...)`. The view's arrays are plain
+  ndarrays with no base (covered by both new tests). The rows are `copy(deep=True)`.
+- No path to the maps or the World. A walk of `gc.get_referents` from a view (3,900 objects, types and modules
+  skipped) finds no memmap, no World, no `_SortedEmbeddings`, and no array with a base (`j3_checks.py` part 2;
+  no test does this walk). `Embeddings` holds only `rows`, `last` and `avg`. The maps live only on
+  `World.embeddings._last` and `_avg`. An agent never gets the World, and the boundary test forbids `memmap`,
+  `mmap`, `load`, `load_*`, `base`, `World` and dunders (`tests/test_boundaries.py:24-32`; PLAN 9.1). The map's
+  `.filename` names the store file, but nothing an agent holds reaches the map.
+- Order of rows against arrays. `cmd_arrays` writes the arrays in the parquet's batch order and hashes the same ids
+  (`reader/embed.py:286-312`); `load_embeddings` hashes the parquet's ids in read order. A reorder is refused
+  (part 4; `test_arrays_written_for_other_rows_are_refused` covers a changed hash and a missing entry).
+- The seal and the J-1 link rule are unchanged: `view()` checks the seal first, and `visible_at` gets the parquet
+  rows (`world/world.py:289`). The EQT gap test passes on the real store.
+
+### What changed after the second judge (22 Nov, main session)
+
+- J3-1: fixed. The two tests use the World's `_last` and `_avg`, and the planted `FutureEmbedding` pairs rows with
+  vectors through `e.order` (`tests/test_embeddings_wall.py`). Both pass, and the planted leak is still caught.
+- J3-2: fixed. `cmd_finish` and `cmd_arrays` drop the `arrays` entry from `embeddings.json` before they replace a
+  file it vouches for (`reader/embed.py`, `drop_arrays`). The entry now records the Parquet file's size and the
+  SHA-256 of its footer, and `load_embeddings` refuses arrays written for another file. New tests in
+  `tests/test_embed.py`: a table rewritten over the same story ids with the old entry is refused, and served again
+  once the arrays are rewritten.
+- J3-4: the arrays' dtype and width are checked on load. The leftover `.tmp` files after a PermissionError stay a
+  note.
+- J3-3: stays a note. Non-interference with embeddings runs on the DataFrame form, which serves the same views.
+- The real store's arrays were written again with the new entry (`python -m reader.embed arrays`).

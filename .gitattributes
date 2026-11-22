@@ -1,0 +1,3 @@
+# Frozen files keep their bytes on checkout: core.autocrlf is true on the owner's laptop, and a CRLF checkout would
+# change the SHA-256 that research/audit/cutoff.md records for reader/probes2.csv.
+reader/*.csv -text

@@ -17,7 +17,10 @@ Embeddings (review finding M-3): one row per story, with story_id, vintage_year,
 A row becomes visible with its story (rules.embedding). The World refuses the whole table, with an error, if any row
 has no kept story, has a vintage other than the rule's (reader/vintage.py), repeats a story, or stores an
 available_at other than its story's: a row left over from before its story was edited (review finding L-P7), or
-timed by mistake. The vectors are held as arrays sorted by visible_at, and a view gets copies of the visible rows. Views on or after the sealed start (reference/split.json) need `allow_sealed`, which the
+timed by mistake. A row shows when its story's first company link does (judge J-1), so an embedding never tells of a
+company the view hides. The World keeps the vectors in their stored order (World.load maps the store's .npy files
+read-only from D:, since they don't fit in memory twice; judge J-3) with an order by visible_at, and a view gets
+fresh copies of the visible rows only. Views on or after the sealed start (reference/split.json) need `allow_sealed`, which the
 runner sets only after the seal holds (sim/seal.py), or a data audit sets explicitly.
 """
 import json
@@ -202,23 +205,76 @@ def embedding_problems(embeddings, stories):
     return out
 
 
-class _SortedEmbeddings:
-    """The embeddings sorted by visible_at: the rows, and the two vectors as arrays in the same order."""
+def _rows(embeddings):
+    """The rows of an embeddings table given as a DataFrame (vectors in columns) or as an Embeddings."""
+    return embeddings.rows if isinstance(embeddings, Embeddings) else embeddings
 
-    def __init__(self, df, visible_at):
-        order = np.argsort(visible_at, kind="stable")
-        df = df.iloc[order].reset_index(drop=True)
-        self.at = np.asarray(visible_at, dtype="int64")[order]
-        self.rows = pd.DataFrame({"story_id": df.story_id.astype("int64"),
-                                  "vintage_year": df.vintage_year.astype("int64"),
-                                  "available_at": pd.to_datetime(df.available_at, utc=True),
+
+class _SortedEmbeddings:
+    """The embeddings in visible_at order: the rows sorted, and the two vectors kept in their given order (arrays in
+    memory, or read-only maps of the store's files) with the order that sorts them. Views get gathered copies."""
+
+    def __init__(self, emb, visible_at):
+        if isinstance(emb, Embeddings):
+            rows, self._last, self._avg = emb.rows, emb.last, emb.avg
+        else:
+            rows, self._last, self._avg = emb, _vectors(emb.emb_last), _vectors(emb.emb_avg)
+        self.order = np.argsort(visible_at, kind="stable")
+        rows = rows.iloc[self.order].reset_index(drop=True)
+        self.at = np.asarray(visible_at, dtype="int64")[self.order]
+        self.rows = pd.DataFrame({"story_id": rows.story_id.astype("int64"),
+                                  "vintage_year": rows.vintage_year.astype("int64"),
+                                  "available_at": pd.to_datetime(rows.available_at, utc=True),
                                   "visible_at": pd.to_datetime(self.at, utc=True)})
-        self.last, self.avg = _vectors(df.emb_last), _vectors(df.emb_avg)
+
+    @staticmethod
+    def _gather(vectors, idx):
+        out = np.empty((len(idx),) + vectors.shape[1:], dtype=vectors.dtype)
+        np.take(vectors, idx, axis=0, out=out)
+        return out
 
     def upto(self, ns):
-        """Detached copies of the rows visible at ns."""
+        """Fresh copies of the rows visible at ns: nothing in them is a view of the World's arrays."""
         k = int(np.searchsorted(self.at, ns, side="right"))
-        return Embeddings(self.rows.iloc[:k].copy(deep=True), self.last[:k].copy(), self.avg[:k].copy())
+        idx = self.order[:k]
+        return Embeddings(self.rows.iloc[:k].copy(deep=True), self._gather(self._last, idx),
+                          self._gather(self._avg, idx))
+
+
+def _parquet_footer(path):
+    """A Parquet file's size and the SHA-256 of its footer, as reader/embed.py's parquet_footer records them."""
+    import hashlib
+    size = path.stat().st_size
+    with path.open("rb") as fh:
+        fh.seek(size - 8)
+        n = int.from_bytes(fh.read(4), "little")
+        fh.seek(size - 8 - n)
+        footer = fh.read(n)
+    return {"bytes": size, "footer_sha256": hashlib.sha256(footer).hexdigest()}
+
+
+def load_embeddings(store):
+    """The store's embeddings (reader/embed.py) as an Embeddings: the rows from embeddings.parquet, and the vectors
+    as read-only maps of embeddings_last.npy and embeddings_avg.npy, in the same order. Stops if the arrays were
+    written for other rows (embeddings.json records their story ids' hash)."""
+    import hashlib
+    meta = json.loads((store / "embeddings.json").read_text(encoding="utf-8"))
+    rows = pd.read_parquet(store / "embeddings.parquet", columns=["story_id", "vintage_year", "available_at"])
+    arrays = meta.get("arrays")
+    if not arrays or not all((store / f).exists() for f in arrays["files"].values()):
+        raise ValueError("the embeddings' arrays are missing: run python -m reader.embed arrays")
+    ids = hashlib.sha256(np.ascontiguousarray(rows.story_id.to_numpy(dtype="int64")).tobytes()).hexdigest()
+    last = np.load(store / arrays["files"]["emb_last"], mmap_mode="r")
+    avg = np.load(store / arrays["files"]["emb_avg"], mmap_mode="r")
+    if ids != arrays["ids_sha256"] or not (len(rows) == len(last) == len(avg) == arrays["rows"]):
+        raise ValueError("the embeddings' arrays were written for other rows: run python -m reader.embed arrays")
+    if _parquet_footer(store / "embeddings.parquet") != arrays.get("parquet"):
+        raise ValueError("the embeddings' arrays were written for another embeddings.parquet: run python -m "
+                         "reader.embed arrays")
+    for a in (last, avg):
+        if a.dtype != np.float16 or a.ndim != 2 or a.shape[1] != arrays.get("dim"):
+            raise ValueError("the embeddings' arrays have the wrong type or width: run python -m reader.embed arrays")
+    return Embeddings(rows, last, avg)
 
 
 class World:
@@ -245,10 +301,10 @@ class World:
         self.story_entities = _Sorted(se, visible_at("story_entities", se, self._spells, stories))
         self.embeddings = None
         if embeddings is not None:
-            found = embedding_problems(embeddings, stories)
+            found = embedding_problems(_rows(embeddings), stories)
             if found:
                 raise ValueError("the embeddings table is refused: " + "; ".join(found))
-            self.embeddings = _SortedEmbeddings(embeddings, visible_at("embeddings", embeddings, self._spells,
+            self.embeddings = _SortedEmbeddings(embeddings, visible_at("embeddings", _rows(embeddings), self._spells,
                                                                        stories, se))
         self.opens = _plain(opens).sort_values(["entity_id", "share_class", "date"]).reset_index(drop=True)
         self.data_end = pd.Timestamp(labels.end.max()) if len(labels) else None
@@ -273,11 +329,13 @@ class World:
                     self.embeddings.upto(ns) if self.embeddings is not None else Embeddings.empty())
 
     @classmethod
-    def load(cls, store=None, clock=None, allow_sealed=False):
-        """The World from the store's Parquet files (DATA_DIR/store by default)."""
+    def load(cls, store=None, clock=None, allow_sealed=False, embeddings=True):
+        """The World from the store's Parquet files (DATA_DIR/store by default), with the embeddings if the store has
+        them (judge J-3; embeddings=False leaves them out)."""
         if store is None:
             from data_pipeline.settings import DATA_DIR
             store = DATA_DIR / "store"
         read = lambda name: pd.read_parquet(store / f"{name}.parquet")
+        emb = load_embeddings(store) if embeddings and (store / "embeddings.parquet").exists() else None
         return cls(read("bars"), read("labels"), read("opens"), read("stories"), read("story_entities"),
-                   read("membership"), clock, allow_sealed)
+                   read("membership"), clock, allow_sealed, embeddings=emb)

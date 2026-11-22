@@ -10,17 +10,18 @@ their pins ("The download", at the end). The rest of the build starts after a fr
 
 ## Where things stand
 
-- **M1 is built, reviewed twice and fixed** on the branch `claude/m1-kickoff-832c2d` (commits `93d8f70`, `90ecb8a`,
-  `658db1c`), open as PR #1 and not merged. Master is still `af1aaf9`. (These are the ids after the 8 Nov history
-  rewrite; the old-to-new table is in `research/m1_kickoff.md`, section "Session 4".)
+- **M1 is built, reviewed twice and fixed**, and on master: commits `93d8f70`, `90ecb8a`, `658db1c` and `dd40a5f`
+  (8 Nov), all ancestors of master (checked with `git merge-base --is-ancestor` on 22 Nov). GitHub shows PR #1
+  closed, not merged, though all its commits are on master. These are the ids after the 8 Nov history rewrite; the
+  old-to-new table is in `research/m1_kickoff.md`, section "Session 4".
 - **M2 starts from M1's tip.** This note was first written on the branch `claude/awesome-panini-89f869`, in the
   worktree `.claude\worktrees\awesome-panini-89f869`, fast-forwarded to `658db1c`. On 21 Nov it was carried onto
   master `7081fba` by a cherry-pick (review finding L-P6, approved by the owner); the old branch is left as it was.
-- **New files, uncommitted:** this note, `research/m2_counts.py` (which stories, counts only) and
-  `research/bench_reader.py` (speed, value ranges and a masked-word loss pilot on real headlines). Neither script
-  prints a headline.
-- **The event store** is in `D:\chrono-data\store`. Its embeddings table doesn't exist yet, so the vintage test in
-  `tests/test_suites.py` skips.
+- **Committed:** this note, `research/m2_counts.py` (which stories, counts only) and `research/bench_reader.py`
+  (speed, value ranges and a masked-word loss pilot on real headlines) in `e883e4c`; the cutoff check, the M-3 fix
+  and the start of the run in `e53c114`. Neither script prints a headline.
+- **The event store** is in `D:\chrono-data\store`. Its embeddings table was written on 22 Nov (step 4 below), so
+  the vintage test in `tests/test_suites.py` now runs.
 - **M1's open questions stay open** and M2 doesn't need them: failed-bank exits, never trading without an official
   open, and the deferred history rewrite of the old commits' trailer.
 
@@ -331,12 +332,26 @@ with its tests:
    second, with the test suite running alongside, more than twice the smoke run's speed. At that speed the 502,712
    stories take about 7 hours, so it should end around 04:00 New York on 22 Nov. If it stops, the same command
    resumes at the first missing part. Then `python -m reader.embed finish`.
+   **Done at 02:53 New York on 22 Nov**, about 6 hours 12 minutes. All 106 parts of the 10 vintages, 502,712 rows,
+   each folder matching its manifest, no `.tmp` files left, no errors in `run.err`. **Finished on 22 Nov:**
+   `store\embeddings.parquet` (502,712 rows, one per story, 1.48 GB) and `embeddings.json` (story set SHA-256
+   `6e28201d...`, pins, poolings and versions). The World's checks on the table against the kept stories find
+   nothing.
 5. The finish: the table, `embeddings.json`, the tests on the real table, `research/audit/reader.md` (counts and
    timings only), and the PLAN (5.2, 9.3, 9.13) and README updates. Review finding L-P5: the PLAN updates also cover
    L167, L364, L434 and L548, which are stale after M2's decisions (2015 news left out, the 2014 vintage for the
    cutoff check only, 14 hours not 21). Review finding L-P7: the completeness test checks story ids only, so
    `embeddings.json` records a hash of `story_id` with `updated_at`, and the test compares it, to catch a story
    whose text changed.
+   **Done on 22 Nov.** J-3: `World.load` reads the table when the store has it. The vectors are in two `.npy`
+   arrays (`python -m reader.embed arrays`, also run by `finish`) that the World maps read-only, since they don't
+   fit in memory twice, and a view gathers fresh copies of the visible rows. Tests on the real table
+   (`tests/test_embeddings_store.py`): one row per selected story, the story set's hash, the vintage for each year,
+   the availability time, the J-1 link rule on real views, EQT's gap, and the vectors a view serves. The vintage
+   test in `tests/test_suites.py` now runs. A second judge (Opus, high effort) found no leak, one must-change (J3-1,
+   two stale tests) and one should-change (J3-2, arrays left from before a rewrite of the table), both fixed
+   (`research/audit/embed_judge.md`). Counts, timings, disk and memory: `research/audit/reader.md`. PLAN and README
+   updated. The L-P7 hash is compared by the real-table test; J-5's headline hash stays an option.
 6. **One review agent**, after step 5, hunting for leaks in the reader and the cutoff check, with usage checked
    before and after. M1's two reviews took about 20% and 26% of a window. Then the fixes, and the owner decides on
    the commit.

@@ -147,3 +147,86 @@ def test_the_set_hash_changes_when_a_story_is_edited():
     h = E.set_hash(st.story_id, st.updated_at)
     st.loc[4, "updated_at"] += pd.Timedelta(seconds=1)
     assert E.set_hash(st.story_id, st.updated_at) != h
+
+
+def _store_with_arrays(monkeypatch, tmp_path, tables):
+    """A store folder holding the job's rows for the synthetic stories as embeddings.parquet, then cmd_arrays."""
+    import json
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    st = E.select(tables["stories"], tables["story_entities"])
+    _run(monkeypatch, st, tmp_path / "reader")
+    parts = [pq.read_table(p).drop(["n_tokens"]) for p in sorted((tmp_path / "reader").glob("v*/part-*.parquet"))]
+    store = tmp_path / "store"
+    store.mkdir()
+    pq.write_table(pa.concat_tables(parts), store / "embeddings.parquet", row_group_size=50)
+    (store / "embeddings.json").write_text(json.dumps({"rows": sum(p.num_rows for p in parts)}), encoding="utf-8")
+    monkeypatch.setattr(E, "DIM", 32)
+    E.cmd_arrays(store)
+    return store
+
+
+def test_the_world_maps_the_stores_arrays_and_serves_the_same_views(monkeypatch, tmp_path):
+    """Judge J-3: World.load's path (rows plus read-only arrays mapped from .npy files) gives the same views as the
+    DataFrame path, and a view's vectors are fresh arrays, never views of the map."""
+    from world.world import load_embeddings
+    tables = synthetic.make_tables(0)
+    store = _store_with_arrays(monkeypatch, tmp_path, tables)
+    mapped = load_embeddings(store)
+    assert isinstance(mapped.last, np.memmap) and not mapped.last.flags.writeable
+    frame = _all_rows(tmp_path / "reader")[["story_id", "vintage_year", "available_at", "emb_last", "emb_avg"]]
+    a, b = World(**tables, embeddings=mapped), World(**tables, embeddings=frame)
+    for day in ("2016-06-15", "2017-03-15", "2017-06-29"):
+        t = pd.Timestamp(day + " 14:00", tz="UTC")
+        va, vb = a.view(t), b.view(t)
+        # rows tied on visible_at keep their input order, which differs (parts against story_id order)
+        ia = np.argsort(va.embeddings.rows.story_id.to_numpy(), kind="stable")
+        ib = np.argsort(vb.embeddings.rows.story_id.to_numpy(), kind="stable")
+        ra, rb = va.embeddings.rows.iloc[ia].reset_index(drop=True), vb.embeddings.rows.iloc[ib].reset_index(drop=True)
+        assert ra.equals(rb) and len(ra) > 0
+        assert np.array_equal(va.embeddings.last[ia], vb.embeddings.last[ib])
+        assert np.array_equal(va.embeddings.avg[ia], vb.embeddings.avg[ib])
+        for x in (va.embeddings.last, va.embeddings.avg):
+            assert type(x) is np.ndarray and x.base is None and not np.shares_memory(x, mapped.last)
+            assert not np.shares_memory(x, mapped.avg)
+    del a, mapped
+
+
+def test_arrays_written_for_other_rows_are_refused(monkeypatch, tmp_path):
+    import json
+    from world.world import load_embeddings
+    store = _store_with_arrays(monkeypatch, tmp_path, synthetic.make_tables(0))
+    meta = json.loads((store / "embeddings.json").read_text(encoding="utf-8"))
+    meta["arrays"]["ids_sha256"] = "0" * 64
+    (store / "embeddings.json").write_text(json.dumps(meta), encoding="utf-8")
+    with pytest.raises(ValueError, match="other rows"):
+        load_embeddings(store)
+    del meta["arrays"]
+    (store / "embeddings.json").write_text(json.dumps(meta), encoding="utf-8")
+    with pytest.raises(ValueError, match="missing"):
+        load_embeddings(store)
+
+
+def test_arrays_left_from_before_the_table_was_rewritten_are_refused(monkeypatch, tmp_path):
+    """Judge J3-2: the same story ids, new vectors in embeddings.parquet, and the old arrays still recorded."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    from world.world import load_embeddings
+    store = _store_with_arrays(monkeypatch, tmp_path, synthetic.make_tables(0))
+    t = pq.read_table(store / "embeddings.parquet")
+    k = t.num_rows
+    new = np.random.default_rng(1).normal(0, 1, (k, 32)).astype(np.float16)
+    vec = pa.FixedSizeListArray.from_arrays(pa.array(new.reshape(-1), type=pa.float16()), 32)
+    t = t.set_column(t.schema.get_field_index("emb_last"), "emb_last", vec)
+    pq.write_table(t, store / "embeddings.parquet", row_group_size=50)
+    with pytest.raises(ValueError, match="another embeddings.parquet"):
+        load_embeddings(store)
+    E.cmd_arrays(store)  # writing the arrays again serves the new vectors
+    assert np.array_equal(np.asarray(load_embeddings(store).last), new)
+
+
+def test_finish_and_arrays_drop_the_arrays_entry_before_replacing_a_file(tmp_path):
+    import json
+    (tmp_path / "embeddings.json").write_text(json.dumps({"rows": 3, "arrays": {"rows": 3}}), encoding="utf-8")
+    E.drop_arrays(tmp_path)
+    assert json.loads((tmp_path / "embeddings.json").read_text(encoding="utf-8")) == {"rows": 3}

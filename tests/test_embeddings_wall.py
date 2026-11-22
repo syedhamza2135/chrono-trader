@@ -69,7 +69,7 @@ def test_the_vectors_follow_their_rows():
 def test_a_view_shares_no_memory_with_the_world():
     w = world()
     v = w.view(Clock().decision_time("2017-03-15"))
-    for mine, theirs in ((v.embeddings.last, w.embeddings.last), (v.embeddings.avg, w.embeddings.avg)):
+    for mine, theirs in ((v.embeddings.last, w.embeddings._last), (v.embeddings.avg, w.embeddings._avg)):
         assert mine.base is None and not np.shares_memory(mine, theirs)
         assert len(mine) < len(theirs)  # the later rows exist, but nothing in the view reaches them
 
@@ -148,7 +148,7 @@ class FutureEmbedding(ReversalAgent):
     def __init__(self, world):
         super().__init__(warmup=15)
         e = world.embeddings
-        rows = e.rows.assign(x=e.last[:, 0].astype(float))
+        rows = e.rows.assign(x=e._last[e.order, 0].astype(float))  # rows are sorted by visible_at; _last isn't
         self.news = rows.merge(world.story_entities.df[["story_id", "entity_id"]], on="story_id")
 
     def score(self, f, v):

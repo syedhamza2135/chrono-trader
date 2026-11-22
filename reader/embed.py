@@ -20,7 +20,10 @@ last and a hash); a restart whose story set differs stops instead of mixing two 
 Usage (python -m reader.embed ...):
   run             every vintage, resuming where it stopped
   smoke N         the first N stories of each of the 2015 and 2024 vintages, into DATA_DIR/reader/smoke
-  finish          check every part and write DATA_DIR/store/embeddings.parquet and embeddings.json (step 5)
+  finish          check every part and write DATA_DIR/store/embeddings.parquet and embeddings.json (step 5), then
+                  the arrays
+  arrays          write DATA_DIR/store/embeddings_last.npy and embeddings_avg.npy from embeddings.parquet, in its
+                  row order, and record them in embeddings.json: World.load maps them read-only (judge J-3)
 
 For M5 (review finding L-P8): embed_ids and read_stories work on any set of stories, so a morning job can read that
 day's new stories with the vintage the rule names, with this same code.
@@ -263,6 +266,7 @@ def cmd_finish(out=OUT, store=STORE):
     finally:
         if writer is not None:
             writer.close()
+    drop_arrays(store)  # a stop between here and the arrays leaves no entry that vouches for old arrays (J3-2)
     os.replace(tmp, target)
     import torch
     import transformers
@@ -274,6 +278,63 @@ def cmd_finish(out=OUT, store=STORE):
             "versions": {"torch": torch.__version__, "transformers": transformers.__version__}}
     (store / "embeddings.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     print(f"wrote {target} ({total} rows)")
+    cmd_arrays(store)
+
+
+ARRAYS = {"emb_last": "embeddings_last.npy", "emb_avg": "embeddings_avg.npy"}
+
+
+def parquet_footer(path):
+    """The size of a Parquet file and the SHA-256 of its footer (the file metadata: every column chunk's offsets,
+    sizes and the row groups), which changes when any part of the data is rewritten."""
+    size = os.path.getsize(path)
+    with open(path, "rb") as fh:
+        fh.seek(size - 8)
+        n = int.from_bytes(fh.read(4), "little")
+        fh.seek(size - 8 - n)
+        footer = fh.read(n)
+    return {"bytes": size, "footer_sha256": hashlib.sha256(footer).hexdigest()}
+
+
+def drop_arrays(store):
+    """Remove the arrays entry from embeddings.json, if any, before a file it vouches for is replaced."""
+    path = store / "embeddings.json"
+    if path.exists():
+        meta = json.loads(path.read_text(encoding="utf-8"))
+        if meta.pop("arrays", None) is not None:
+            path.write_text(json.dumps(meta, indent=1), encoding="utf-8")
+
+
+def cmd_arrays(store=STORE):
+    """Write the two vector columns of store/embeddings.parquet as .npy files (rows in the table's order), one row
+    group at a time, under temporary names then renamed, and record them in embeddings.json."""
+    import pyarrow.parquet as pq
+    f = pq.ParquetFile(store / "embeddings.parquet")
+    n = f.metadata.num_rows
+    ids = np.empty(n, dtype="int64")
+    tmp = {c: store / (name + ".tmp") for c, name in ARRAYS.items()}
+    maps = {c: np.lib.format.open_memmap(tmp[c], mode="w+", dtype=np.float16, shape=(n, DIM)) for c in ARRAYS}
+    at = 0
+    for batch in f.iter_batches(columns=["story_id", *ARRAYS]):
+        k = batch.num_rows
+        ids[at:at + k] = batch.column("story_id").to_numpy()
+        for c in ARRAYS:
+            maps[c][at:at + k] = batch.column(c).flatten().to_numpy(zero_copy_only=False).reshape(k, DIM)
+        at += k
+    if at != n:
+        raise SystemExit(f"read {at} rows of {n}")
+    for m in maps.values():
+        m.flush()
+    del maps, m
+    drop_arrays(store)
+    for c, name in ARRAYS.items():
+        os.replace(tmp[c], store / name)
+    meta_path = store / "embeddings.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["arrays"] = {"rows": int(n), "ids_sha256": ids_hash(ids), "files": dict(ARRAYS), "dim": DIM,
+                      "dtype": "float16", "parquet": parquet_footer(store / "embeddings.parquet")}
+    meta_path.write_text(json.dumps(meta, indent=1), encoding="utf-8")
+    print(f"wrote {', '.join(ARRAYS.values())} ({n} rows of {DIM})")
 
 
 def stay_awake():
@@ -292,6 +353,8 @@ def main(argv):
         cmd_smoke(int(argv[1]))
     elif argv[:1] == ["finish"]:
         cmd_finish()
+    elif argv[:1] == ["arrays"]:
+        cmd_arrays()
     else:
         print(__doc__)
         return 2
