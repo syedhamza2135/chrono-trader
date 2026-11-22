@@ -1,0 +1,23 @@
+probe_id,event_year,event_month,sentence,answer,wrong,source
+p2015a,2015,8,Google reorganized itself under a new parent company called {}.,Alphabet,Apple|Microsoft|Yahoo|Facebook,Wikipedia: Alphabet Inc. (formed August 2015)
+p2015b,2015,10,"Dell agreed to buy {}, the data storage company, in the largest technology deal ever.",EMC,IBM|Cisco|Oracle|Intel,Wikipedia: Dell EMC (deal announced October 2015)
+p2016a,2016,6,"In the June referendum, British voters chose to {} the European Union.",leave,remain|join|reform|support,Wikipedia: 2016 United Kingdom European Union membership referendum
+p2016b,2016,11,"In November, {} won the United States presidential election.",Trump,Clinton|Sanders|Rubio|Bush,Wikipedia: 2016 United States presidential election
+p2017a,2017,6,Amazon agreed to buy the grocery chain {}.,Whole Foods,Kroger|Safeway|Walmart|Costco,Wikipedia: Whole Foods Market (Amazon deal announced June 2017)
+p2017b,2017,12,Disney agreed to buy most of the entertainment assets of {}.,Fox,Comcast|Sony|Viacom|Netflix,Wikipedia: Acquisition of 21st Century Fox by Disney (announced December 2017)
+p2018a,2018,6,Microsoft agreed to buy the code hosting site {}.,GitHub,GitLab|Bitbucket|SourceForge|Slack,Wikipedia: GitHub (Microsoft deal announced June 2018)
+p2018b,2018,8,Apple became the first American company to be valued at one {} dollars.,trillion,billion|million|hundred|thousand,Wikipedia: Apple Inc. (August 2018)
+p2019a,2019,3,Regulators around the world grounded the Boeing 737 {} after a second crash.,MAX,NG|800|900|700,Wikipedia: Boeing 737 MAX groundings (March 2019)
+p2019b,2019,12,"After its listing in December, Saudi {} became the most valuable listed company in the world.",Aramco,Arabia|Telecom|Electricity|Basic,Wikipedia: Saudi Aramco (IPO December 2019)
+p2020a,2020,2,The World Health Organization named the disease caused by the new coronavirus {}.,COVID-19,SARS|MERS|Ebola|Zika,Wikipedia: COVID-19 (named February 2020)
+p2020b,2020,11,"In November, {} defeated Donald Trump in the United States presidential election.",Biden,Sanders|Warren|Clinton|Buttigieg,Wikipedia: 2020 United States presidential election
+p2021a,2021,1,"In January, traders on Reddit drove a huge short squeeze in the shares of {}.",GameStop,Netflix|Apple|Boeing|Ford,Wikipedia: GameStop short squeeze (January 2021)
+p2021b,2021,10,Facebook changed the name of its parent company to {}.,Meta,Alphabet|Instagram|Horizon|Oculus,Wikipedia: Meta Platforms (renamed October 2021)
+p2022a,2022,10,Elon Musk completed his purchase of {} in October.,Twitter,Facebook|Netflix|Reddit|Snapchat,Wikipedia: Acquisition of Twitter by Elon Musk (completed October 2022)
+p2022b,2022,11,"OpenAI released a chatbot called {}, which drew millions of users within days.",ChatGPT,Siri|Alexa|Cortana|Watson,Wikipedia: ChatGPT (released November 2022)
+p2023a,2023,3,UBS agreed to buy its rival {} in a rescue arranged by the Swiss authorities.,Credit Suisse,Deutsche Bank|Barclays|HSBC|Julius Baer,Wikipedia: Acquisition of Credit Suisse by UBS (March 2023)
+p2023b,2023,7,"Meta launched {}, a text app meant to rival Twitter.",Threads,Instagram|WhatsApp|Messenger|Horizon,Wikipedia: Threads (social network) (launched July 2023)
+p2024a,2024,11,"In November, Donald Trump defeated {} in the United States presidential election.",Harris,Biden|Clinton|Sanders|DeSantis,Wikipedia: 2024 United States presidential election
+p2024b,2024,11,"In November, Nvidia replaced {} in the Dow Jones Industrial Average.",Intel,IBM|Cisco|Apple|Boeing,Wikipedia: Dow Jones Industrial Average (Nvidia added November 2024)
+p2025a,2025,5,"The cardinals elected Robert Prevost as pope, and he took the name {} XIV.",Leo,Francis|Benedict|John|Pius,Wikipedia: Pope Leo XIV (elected May 2025)
+p2025b,2025,1,"In January, Nvidia shares fell sharply after the Chinese startup {} released a cheap artificial intelligence model.",DeepSeek,Alibaba|Baidu|Tencent|Huawei,Wikipedia: DeepSeek (R1 model released January 2025)

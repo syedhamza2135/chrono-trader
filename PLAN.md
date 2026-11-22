@@ -1,6 +1,6 @@
 # Chrono-trader: problem statement and plan
 
-Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`), and the fixes from its review are in (`research/audit/m0_review.md`). M1, the time wall, is built and reviewed (`research/m1_kickoff.md`). The reader and the learner aren't built yet.
+Status: M0, the data audit, is done (section 9.3, with the answers in `research/audit/audit.md`), and the fixes from its review are in (`research/audit/m0_review.md`). M1, the time wall, is built and reviewed (`research/m1_kickoff.md`). M2, the reader, has its table: every one of the 502,712 stories it reads is embedded by the vintage the rule names, served through the time wall, and checked on the real store (`research/audit/reader.md`, `research/m2_kickoff.md`). The cutoff check didn't pass in the milestone's sense: only the 2016 vintage is supported by evidence, the other nine that read news are too weak to judge, and the owner accepted all 11 as published on 21 Nov, as a known limit (`research/audit/cutoff.md`, section 9). The learner isn't built yet.
 
 This is version 2 (30 Oct 2026). It's rebuilt on Alpaca data after the review in `REVIEW.md`. The review's evidence and probe scripts stay in `REVIEW.md` and `research/fnspid_probes/`.
 
@@ -164,7 +164,7 @@ News is included on the free plan (confirmed 30 Oct 2026). The paid plan is $99 
 
 - **Kaggle:** about 30 free GPU hours a week on a T4 or P100. This is from third-party reports; Kaggle's own docs weren't checked.
 - **Modal:** $30 a month in free credit. A T4 is about $0.59 an hour.
-- **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except running an LLM trader. Reading the news takes it about 21 hours (section 9.3).
+- **Your laptop:** an i5-1035G1 with 4 cores, 7.8 GB RAM and no NVIDIA GPU. It's fine for everything except running an LLM trader. Reading the news took it 6 hours 12 minutes for 502,712 headlines on 21 and 22 Nov 2026, at 22.6 a second (`research/audit/reader.md`); the earlier estimate of 21 hours came from a slower benchmark.
   - **Disk:** C: is tight (about 8.7 GB free on 30 Oct 2026). Everything big lives on D::
     - the data
     - the model cache
@@ -277,7 +277,9 @@ What the non-interference test can't see, and what covers each gap:
 - **Source.** Benzinga stories only, meaning a blank or `benzinga` label (section 9.3).
 - **Single-firm filter.** Use only stories about at most 2 companies, as the ChronoBERT paper did (following Ke et al.). Companies are counted after the identity table maps tickers to entities, so GOOG and GOOGL count once, and so do Berkshire's four spellings. Counted by company, 963 of Berkshire's 2,210 stories pass; counted by ticker, only 684. Benzinga's lists of a session's movers are price recaps, not company news, and one sampled story carried 89 symbols. Market-wide, 80% to 88% of stories pass each year, but the share for a single stock shifts: 64% of Apple's January 2015 stories against 37% of Microsoft's September 2026 stories. That's why story counts are compared across stocks on the same day, never across years.
 - **Vintage.** News published in New York year Y is read by the year Y−1 model, so 2016 news goes to `chrono-bert-v1-20151231`. The publication year counts, not the year the story became available: a story published late on 31 December shows on 1 January, but the December year's model could have trained on it. News from 2025 and 2026 is read by the 2024 model, the latest, so its vocabulary will age (`reader/vintage.py`).
-- **Output:** two 768-number embeddings per story (last layer, and the average of all layers), stored as float16 Parquet.
+- **Output:** two 768-number embeddings per story (last layer, and the average of all layers), stored as float16 Parquet, with the same vectors as two `.npy` arrays that `World.load` maps read-only, since they don't fit in the laptop's memory twice.
+- **Which stories (M2, decision 2).** Every story in `story_entities` from New York year 2016 on, kept by `rules.keep_story`: 502,712. 2015's news isn't read, and the 2014 vintage serves only the cutoff check.
+- **When an embedding shows.** Its `available_at` is its story's (`rules.embedding`, review finding M-3), and a view shows it only once its story's first company link shows (judge J-1), so an embedding never tells of a company the view hides.
 - **Cutoff check.**
   - For each vintage V, measure its masked-word loss on headlines from years V−1 to V+2. It should jump after V. Compare against vintage V+1 on the same headlines.
   - Probe named events, such as "Brexit" for vintages before 2016 and "COVID" for vintages before 2020.
@@ -335,6 +337,14 @@ What the non-interference test can't see, and what covers each gap:
    - From the next trading day, a GitHub Actions job runs the same code on the same Alpaca source every morning.
    - It commits the day's decisions before the open. GitHub's server-side run times are the proof; OpenTimestamps is optional.
    - Results are scored daily. This is the only test that's free of our own hindsight.
+   - **Entry rules for M5, from the M2 review of 22 Nov 2026** (`research/review_m2_2026-11-22.md`):
+     - E-1: the morning job's reader reuses `reader/embed.py`. Each part's manifest records the library and code
+       versions as well as the vintage: the token cap, batch size, pooling, tokenizer file ids, torch and
+       transformers versions, and a hash of `embed_ids`. A resume or a morning run whose versions differ from the
+       manifest's stops, so vectors made two ways are never mixed.
+     - C-1: any rules frozen in future, such as a probe list or a scoring rule, are committed (or their hashes sent
+       to the owner) before anything is scored, and the scoring command refuses to run unless the files match that
+       record.
 
 The seal locks the feature list. Anything added afterwards can only be judged by the forward test.
 
@@ -361,7 +371,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 
 - **Laptop:** the harness, Track A and the reports. Free.
 - **Alpaca Basic:** free, with news included (confirmed).
-- **Reader job:** about 21 hours on the laptop for 500,745 headlines (free), or a much shorter run on Kaggle's free hours or Modal's $30 credit. M2 picks one.
+- **Reader job:** run on the laptop (M2, decision 1): 6 hours 12 minutes for 502,712 headlines, free (`research/audit/reader.md`).
 - **Forward test:** GitHub Actions, within the free minutes.
 - **Track B:** a few dollars a run on Modal. Rough estimate.
 
@@ -384,7 +394,7 @@ A clean "it didn't learn" is also a valid result, reported as-is.
 1. **Done (30 Oct 2026):** Alpaca paper account, keys in `.env`, and access checked.
 2. **Done (31 Oct 2026): M0, data audit** (section 9.3). Prices and news are downloaded and audited, the identity table is built and checked, price corrections are recorded, the split is confirmed with counts, and the laptop benchmark is done.
 3. **M1:** the time wall and all the test suites, and the listing exchange's official opening auction print for every stock-day the simulator trades (section 9.3).
-4. **M2:** the reader job and the cutoff check.
+4. **Done (22 Nov 2026): M2,** the reader job and the cutoff check. The table is built and served through the time wall. The cutoff check supports only the 2016 vintage, and the owner accepted all 11 as published, a known limit (`research/audit/reader.md`).
 5. **M3:** Track A on the dev years, with the twins, the placebo and the baselines.
 6. **M4:** write `PREREG.md`, seal, run the sealed years once, and write the report.
 7. **M5:** start the forward test.
@@ -529,7 +539,7 @@ time: `world/rules.py` sets each record's from its raw times.
 - `story_entities`: story_id, entity_id (only stories passing the single-firm filter).
 - `membership`: entity_id, member_from, member_to (one row per spell and share class).
 - `identity`: entity_id, symbol, share_class, valid_from, valid_to, cik.
-- `embeddings` (M2, not built yet): story_id, vintage_year, emb_last (768 float16), emb_avg (768 float16).
+- `embeddings` (M2, built 22 Nov 2026): story_id, vintage_year, available_at, emb_last (768 float16), emb_avg (768 float16); 502,712 rows. The vectors are also in `embeddings_last.npy` and `embeddings_avg.npy`, and `embeddings.json` records the story set's hash, the pins and the arrays.
 
 All times are stored in UTC and converted to New York time, with daylight saving handled, when the rules are applied.
 
@@ -629,9 +639,9 @@ Every run uses the same harness:
 - **Price bars (measured):** 787 plan rows for 719 companies, 1,574 files (raw and adjusted), 179 MB on disk on 7 Nov. The first download took about 10 minutes.
 - **News (measured):** 2,260,406 stories from Jan 2015 to Oct 2026 (2,243,739 of them Benzinga's), 251 MB of Parquet, about 4.5 hours to download.
 - **The trading list:** 50 stocks × about 2,700 trading days ≈ 135,000 stock-days.
-- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 500,745 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM.
+- **Embeddings:** 3 KB per story (two poolings in float16), so the reader's 500,745 headlines come to about 1.5 GB. They're processed one year at a time to stay inside 7.8 GB of RAM. Measured (M2): 502,712 rows, 1.48 GB of Parquet and 1.54 GB of arrays.
 - **Vintages:** 2014 to 2024, which is 11 models at about 600 MB each, roughly 6.6 GB. They're downloaded wherever the reader runs.
-- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 500,745 take about 21 hours on the laptop.
+- **Headlines** are short (a median of 21 tokens). At the measured 6 to 7 a second, the reader's 500,745 take about 21 hours on the laptop. Measured (M2): 22.6 a second, 6 hours 12 minutes for 502,712.
 - **Ridge fits** are small, so a full Track A replay should take minutes on the laptop.
 
 ## Sources

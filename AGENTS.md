@@ -17,7 +17,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
   `chrono-judge`, `chrono-skeptic`). Keep briefs narrow and results in files.
 - M0, the data audit, and its review are done. M1, the time wall, is built, reviewed twice and merged into master
   (8 Nov), with a few items left: read `research/m1_kickoff.md` first (sections "Session 1" to "Session 4"). M2,
-  the reader, is under way on the branch `claude/awesome-panini-89f869` (`research/m2_kickoff.md` there).
+  the reader, is built on the branch `claude/reverent-sanderson-da34d6` and waits for its review: read
+  `research/m2_kickoff.md` and `research/audit/reader.md`. The embeddings table is in the store.
 - `research/audit/m0_review.md` records the review and its fixes. `research/brief_check.md` records the check of a
   research brief and what the plan took from it.
 
@@ -44,9 +45,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Commands
 
-- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (263 pass and 2 skip, in 3 to 7
-  minutes; the skips are the embeddings table, which arrives in M2, and the slow leak test, which runs only with
-  `CHRONO_SLOW_LEAKS=1`). In a worktree with no `.venv` link, use
+- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (344 pass and 1 skip, in 6 to 11
+  minutes on 22 Nov; the skip is the slow leak test, which runs only with `CHRONO_SLOW_LEAKS=1`). In a worktree with no `.venv` link, use
   `D:\venvs\chrono-trader\Scripts\python.exe`.
 - The time wall: agents get only `world.view.View` (`World` is in `world/world.py`); `sim.simulator.run(world, agent, first, last)` is the daily loop,
   and `eval.leaks.non_interference` is the check every agent must pass.

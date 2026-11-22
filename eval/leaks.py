@@ -12,12 +12,17 @@ A leak-free agent makes identical decisions on both, up to and including the dec
 - delete: late records go, and joins after t never happen. It catches a leak through counts.
 A planted leak must be caught by at least one of the three.
 
+Embeddings (review finding M-3), when the tables hold them: a late row is one whose story is late. Scramble swaps
+and scales the late vectors; shift moves the late rows' available_at with their stories (and gives a row whose
+story moved into a new year that year's vintage, as the reader would); delete drops them with their stories.
+
 `compare` lists any difference: a missing or extra decision row, a different position, or a prediction more than
 1e-12 apart.
 """
 import numpy as np
 import pandas as pd
 
+from reader.vintage import vintage_for
 from world import rules
 from world.clock import Clock
 from world.world import World, spells, visible_at
@@ -33,7 +38,7 @@ def late_rows(tables, t):
     sp = spells(tables["membership"])
     m = tables["membership"]
     far = pd.Timestamp("2262-01-01")
-    return {
+    out = {
         "bars": visible_at("bars", tables["bars"], sp) > ns,
         "labels": visible_at("labels", tables["labels"], sp) > ns,
         "opens": (rules.official_open(tables["opens"].date) > pd.Timestamp(t)).to_numpy(),
@@ -42,16 +47,32 @@ def late_rows(tables, t):
         "joins": (rules.membership(m.member_from) > pd.Timestamp(t)).to_numpy(),
         "leaves": (m.member_to.notna() & (rules.membership(m.member_to.fillna(far)) > pd.Timestamp(t))).to_numpy(),
     }
+    if tables.get("embeddings") is not None:
+        out["embeddings"] = visible_at("embeddings", tables["embeddings"], sp, tables["stories"],
+                                       tables["story_entities"]) > ns
+    return out
 
 
 def perturb(tables, t, how, seed=0):
-    """Copies of `tables` (bars, labels, opens, stories, story_entities, membership) with every record not visible
-    at t scrambled, shifted later or deleted."""
+    """Copies of `tables` (bars, labels, opens, stories, story_entities, membership, and embeddings if present)
+    with every record not visible at t scrambled, shifted later or deleted."""
     if how not in HOW:
         raise ValueError(how)
     rng = np.random.default_rng(seed)
     late = late_rows(tables, t)
-    out = {k: v.copy() for k, v in tables.items()}
+    out = {k: (v.copy() if v is not None else None) for k, v in tables.items()}
+    emb = out.get("embeddings")
+
+    def scramble_vectors(df, mask, cols):
+        idx = np.flatnonzero(mask)
+        if len(idx) > 1:
+            for c in cols:
+                values = df[c].to_numpy(copy=True)
+                values[idx] = values[rng.permutation(idx)]
+                values[idx] = [np.asarray(x) * np.asarray(rng.uniform(0.5, 1.5), dtype=np.asarray(x).dtype)
+                               for x in values[idx]]
+                df[c] = values
+        return df
 
     def scramble(df, mask, cols):
         idx = np.flatnonzero(mask)
@@ -71,6 +92,8 @@ def perturb(tables, t, how, seed=0):
     if how == "delete":
         for k in ("bars", "labels", "opens", "stories", "story_entities"):
             out[k] = out[k][~late[k]].reset_index(drop=True)
+        if emb is not None:
+            out["embeddings"] = emb[~late["embeddings"]].reset_index(drop=True)
         m.loc[late["leaves"], "member_to"] = pd.NaT
         out["membership"] = m[~late["joins"]].reset_index(drop=True)
     elif how == "shift":
@@ -78,6 +101,14 @@ def perturb(tables, t, how, seed=0):
         out["labels"].loc[late["labels"], ["date", "end"]] += SHIFT
         out["opens"].loc[late["opens"], "date"] += SHIFT
         out["stories"].loc[late["stories"], ["created_at", "updated_at"]] += SHIFT
+        if emb is not None:
+            # A late embedding follows its story: shifted with it, or unmoved when only its links are late (their
+            # time follows the shifted memberships), so available_at still equals its story's (judge J-1).
+            e = late["embeddings"]
+            moved = out["stories"].set_index("story_id").updated_at
+            emb.loc[e, "available_at"] = rules.embedding(emb.loc[e, "story_id"].map(moved)).to_numpy()
+            created = out["stories"].set_index("story_id").created_at
+            emb.loc[e, "vintage_year"] = vintage_for(emb.loc[e, "story_id"].map(created)).to_numpy()
         m.loc[late["joins"], "member_from"] += SHIFT
         m.loc[late["leaves"], "member_to"] += SHIFT
     else:
@@ -87,6 +118,8 @@ def perturb(tables, t, how, seed=0):
         scramble(out["opens"], late["opens"], ["open"])
         scramble(out["stories"], late["stories"], ["headline", "symbols"])
         scramble(out["story_entities"], late["story_entities"], ["entity_id"])
+        if emb is not None:
+            scramble_vectors(emb, late["embeddings"], ["emb_last", "emb_avg"])
         m.loc[late["joins"], "member_from"] += SHIFT
         m.loc[late["leaves"], "member_to"] += SHIFT
     if how != "delete":
