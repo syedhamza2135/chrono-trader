@@ -1,0 +1,342 @@
+{
+ "agents": {
+  "equal_weight": {
+   "first_pick": "2016-04-01",
+   "hold": 1,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "equal_weight",
+   "trade_from": "2017-01-01"
+  },
+  "live": {
+   "band": 15,
+   "book": "long_short",
+   "coefficients": "last",
+   "first_pick": "2016-04-01",
+   "fit_after_months": 6,
+   "full_val_years": 5,
+   "half_life_days": null,
+   "hold": 5,
+   "min_val_months": 3,
+   "n_picks": 50,
+   "n_side": 10,
+   "news": true,
+   "penalties": [
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0,
+    10000.0
+   ],
+   "poolings": [
+    "last",
+    "avg"
+   ],
+   "recent_val_months": 12,
+   "trade_from": "2017-01-01",
+   "val_share": 0.2
+  },
+  "live_long_only": {
+   "band": 15,
+   "book": "long_only",
+   "coefficients": "last",
+   "first_pick": "2016-04-01",
+   "fit_after_months": 6,
+   "full_val_years": 5,
+   "half_life_days": null,
+   "hold": 5,
+   "min_val_months": 3,
+   "n_picks": 50,
+   "n_side": 10,
+   "news": true,
+   "penalties": [
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0,
+    10000.0
+   ],
+   "poolings": [
+    "last",
+    "avg"
+   ],
+   "recent_val_months": 12,
+   "trade_from": "2017-01-01",
+   "val_share": 0.2
+  },
+  "momentum": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "momentum_12_1",
+   "trade_from": "2017-01-01"
+  },
+  "placebo_1": {
+   "inner": "TrackA",
+   "inner_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   },
+   "seed": 1
+  },
+  "placebo_2": {
+   "inner": "TrackA",
+   "inner_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   },
+   "seed": 2
+  },
+  "placebo_3": {
+   "inner": "TrackA",
+   "inner_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   },
+   "seed": 3
+  },
+  "placebo_4": {
+   "inner": "TrackA",
+   "inner_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   },
+   "seed": 4
+  },
+  "placebo_5": {
+   "inner": "TrackA",
+   "inner_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   },
+   "seed": 5
+  },
+  "price_only": {
+   "band": 15,
+   "book": "long_short",
+   "coefficients": "last",
+   "first_pick": "2016-04-01",
+   "fit_after_months": 6,
+   "full_val_years": 5,
+   "half_life_days": null,
+   "hold": 5,
+   "min_val_months": 3,
+   "n_picks": 50,
+   "n_side": 10,
+   "news": false,
+   "penalties": [
+    0.01,
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0,
+    10000.0
+   ],
+   "poolings": [
+    "none"
+   ],
+   "recent_val_months": 12,
+   "trade_from": "2017-01-01",
+   "val_share": 0.2
+  },
+  "random_1": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "random",
+   "seed": 1,
+   "trade_from": "2017-01-01"
+  },
+  "random_2": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "random",
+   "seed": 2,
+   "trade_from": "2017-01-01"
+  },
+  "random_3": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "random",
+   "seed": 3,
+   "trade_from": "2017-01-01"
+  },
+  "random_4": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "random",
+   "seed": 4,
+   "trade_from": "2017-01-01"
+  },
+  "random_5": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "random",
+   "seed": 5,
+   "trade_from": "2017-01-01"
+  },
+  "reversal": {
+   "first_pick": "2016-04-01",
+   "hold": 5,
+   "n_picks": 50,
+   "n_side": 10,
+   "rule": "reversal_5",
+   "trade_from": "2017-01-01"
+  }
+ },
+ "chosen_kw": {
+  "band": 15,
+  "hold": 5
+ },
+ "comparison_of": "T09",
+ "cost_bps": 5.0,
+ "embedding_window_days": 90,
+ "first": "2016-01-04",
+ "last": "2019-12-31",
+ "plan_sha256": "4a9a45a1238aad3b704a18f27c9bac046e13bbadf981ff642fc3d78986861e2f"
+}

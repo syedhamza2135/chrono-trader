@@ -545,6 +545,25 @@ River's online learners are not trials: the venv has no River (decision 5).
   - T03's half-life of 252 lived days (one year) is a judgement. Keep it, or pick another?
   - The ties: 0.001 of IC in stage 1, 0.05 of Sharpe in stage 2. Keep them?
   - The baselines trade every session. If the chosen trial holds 3 or 5 sessions, should they hold as long?
+- **Checkpoint 1** is commit `83a35cd` (the rulings, the re-freeze, T02, T03 and the matched-hold baselines).
+- **Phase 2 runs** (22 Nov, New York time; logs in `D:\chrono-data\runs\m3_dev\`). Each trial took about 10
+  minutes, with 817 decision days, 39 fits, no forced sales and no unmarked days.
+  - Stage 1. T01 mean IC 0.00763 (Newey-West t 1.38), T02 -0.00262 (t -0.46), T03 0.00829 (t 1.42). T03 beats T01
+    by 0.00067, inside the 0.001 tie, so the earlier trial wins: T01. T01's decisions equal step 3's run exactly.
+  - Stage 2, on T01 (the IC is the same for every stage 2 trial). Sharpe after 5 bps and daily turnover: T05
+    -1.250 and 0.713, T06 -0.460 and 0.495, T07 -0.862 and 1.151, T08 -1.060 and 0.535, T09 -0.243 and 0.389. T09
+    is ahead by more than 0.05, so it wins: the chosen configuration is `{"band": 15, "hold": 5}`.
+  - The comparison pass ran 19 agents and 3 frozen twins in 87.7 minutes. The live agent's decisions equal T09's
+    own run. Each book's replay at 5 bps equals its run. Every trial was replayed at 0 bps for the report.
+  - `research/m3_dev_report.md` holds the results. Every trial loses money after 5 bps; costs dominate. The
+    long-short Sharpe is 0.18 before costs and -0.24 after. Retraining beats the end-of-2016 twin by 0.0179 of
+    daily IC (t 2.61). The reading adds 0.0069 over the price-only twin (t 0.74), which is not significant. The
+    switch-day check raises neither warning.
+  - Things to note, none a leak sign: the ledger marks the runs after T01 "dirty", because the ledger itself is in
+    git and each run adds a row; the code was at `83a35cd` throughout. Placebo seed 5 has a mean IC of 0.0130
+    (t 2.47), above the live agent's, and the placebo seeds' t values spread with a standard deviation of 1.59, so
+    the t values here may be too large. The 40 days after a shock show an IC of 0.0649 (t 4.01); that is reported,
+    not tested, and a small sample.
 
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if

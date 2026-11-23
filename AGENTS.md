@@ -20,7 +20,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
   the reader, is reviewed and merged into master (`6894217`, 22 Nov): read `research/m2_kickoff.md` and
   `research/audit/reader.md`. The embeddings table is in the store.
 - M3, Track A on the dev years, is under way on the branch `claude/m3-kickoff-56264f`: read `research/m3_kickoff.md`
-  (the owner's six decisions, the build order, and steps 1 and 2, done on 22 Nov).
+  (the owner's six decisions, the build order, and steps 1 to 6). The dev results are in `research/m3_dev_report.md`
+  (23 Nov): the chosen configuration is T09, `{"band": 15, "hold": 5}`.
 - `research/audit/m0_review.md` records the review and its fixes. `research/brief_check.md` records the check of a
   research brief and what the plan took from it.
 
