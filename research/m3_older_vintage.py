@@ -7,7 +7,8 @@ Then, one step per call, each holding the PC awake in its own process:
   python research/m3_older_vintage.py space    D:'s free space against the main table's files
   python research/m3_older_vintage.py count    the older table against the main one: rows, story ids, vintages
   python research/m3_older_vintage.py run      the chosen configuration (stage2.json), unchanged, on the older table
-  python research/m3_older_vintage.py result   the warning rule, exactly as frozen, into research/m3_older_vintage.md
+  python research/m3_older_vintage.py result   the warning rule, exactly as frozen, into m3_dev/older_result.json
+The note on the result is research/m3_older_vintage.md, written by hand from that file.
 
 The rule (cutoff.md 10.1, quoted): a warning if both "(a) the news effect with the older vintage is less than half
 the news effect with the rule's; (b) the paired daily difference in IC (the rule's run minus the older run) is above

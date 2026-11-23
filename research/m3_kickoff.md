@@ -603,8 +603,8 @@ River's online learners are not trials: the venv has no River (decision 5).
   parts on disk show progress first.
 - **Commits.** The auto-mode check first refused the commit of this build, since the owner's permission to commit was
   given for step 6's phase. On 23 Nov the owner approved it ("Yes, commit step 7", relayed by the lead), but the
-  check refused the commit again, since the approval reached this session through another session. The build waits,
-  uncommitted, for the owner to commit it or allow it in this session.
+  check refused the commit again, since the approval reached this session through another session. The owner then
+  told the lead directly to make it, and the lead committed the build as `001d01c` (step 7's checkpoint 1).
 - **The lead's reading of an ambiguous line** (23 Nov, decided after seeing the dev result; for the owner and the
   step 8 review). `cutoff.md` 10.1 says: "If the news effect isn't above zero in the first place, the check says
   nothing". The lead reads "above zero" as above zero at one-sided 5%, the same test the warning uses in (b). The
@@ -612,6 +612,13 @@ River's online learners are not trials: the venv has no River (decision 5).
   the dev years: it is "not informative", never "passed". The reading and the rerun still run, since they cost
   laptop hours, not usage, and the table can serve a sealed-year repeat if M4 adds one. Every rerun number is
   descriptive only, outside the frozen rule. Neither the rule nor the trial changes.
+- **The result, 23 Nov** (in full in `research/m3_older_vintage.md`). The reading ended at 05:58 New York, 106
+  parts. `finish-older` wrote 502,712 rows, and the count check passed: the same rows, story ids and `available_at`
+  as the main table, and every vintage the rule's minus one. T09 reran unchanged on the older table to 2019-12-31 in
+  12.9 minutes (ledger row `20261123T061536_0f452837`, no trial name). The outcome is **not informative**: the rule's
+  news effect is +0.00687 (t 0.74, p 0.23). Descriptive only: the older news effect is +0.00692, and the rule's run
+  minus the older run is -0.00005 a day (t -0.01), so (a) and (b) both fail and no reading of the gate gives a
+  warning.
 
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
