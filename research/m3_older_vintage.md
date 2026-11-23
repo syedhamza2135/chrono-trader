@@ -4,6 +4,11 @@
 `research/audit/cutoff.md` section 10.1 the check says nothing. Every number below the outcome is descriptive only,
 outside the frozen rule. The check did not pass, and it did not warn.
 
+**The owner's ruling (23 Nov, after the M3 review, D3-8).** "Above zero" in 10.1 is read plainly, as the point
+estimate. Under that reading the gate is open (+0.00687 is above zero), (a) and (b) both fail, and the outcome is
+**no warning**. The lead's stricter reading (one-sided 5%) gives "not informative". No reading gives a warning. With
+the news effect's t at 0.74, well below 1.645, the check had little power on dev.
+
 ## What ran
 
 - **The reading.** `python -m reader.embed run-older` read every story again with the vintage a year older than the
@@ -36,7 +41,10 @@ outside the frozen rule. The check did not pass, and it did not warn.
   positions. Ledger row `20261123T061536_0f452837` in `runs/trials.csv`, with no trial name, so the trial count stays
   8. Its settings (`runs/settings/0f4528...e7e8.json`) carry `vintage_offset: 1` and `embeddings_store:
   reader_older`. The row is marked dirty because `research/m3_kickoff.md` had an uncommitted edit when it ran. The
-  code was commit `001d01c`.
+  code was commit `001d01c`. The run it is compared with, the rule's T09 run from step 6's comparison pass, ran at
+  `83a35cd`. Between the two commits `world/`, `sim/`, `reader/` and `eval/leaks.py` changed (the offset itself);
+  `agent/` did not (`git diff --stat 83a35cd 001d01c`). Section 10.1 asks for the same code, so a sealed repeat
+  should also rerun the rule's vintage at the new commit and show its decisions equal the old run's (M3 review D3-10).
 - **The rule** (`research/m3_older_vintage.py result`, saved as `D:\chrono-data\runs\m3_dev\older_result.json`). The
   news effect on a day is the agent's daily rank IC minus the price-only twin's IC that day. The twin comes from the
   comparison pass (`m3_dev/compare/price_only`). IC days run from the start of the dev years to the last day whose
@@ -59,13 +67,15 @@ outside the frozen rule. The check did not pass, and it did not warn.
 - **(a) and (b), descriptive only.** (a) asks whether the older news effect is less than half the rule's. It is not:
   +0.00692 against half of +0.00687. (b) asks whether the paired difference is above zero at one-sided 5%. It is not:
   p 0.50. So neither part of the warning would hold even if the gate were read loosely, as a mean above zero.
-- **What it shows, descriptively.** On the dev years, the agent ranks stocks just as well with news read by a model
-  whose training ended a year earlier. The two runs differ by -0.00005 IC a day on average. That fits a news effect
-  too small to tell apart from zero on dev. It says nothing either way about leakage from the vintages' training data.
+- **What it shows, descriptively.** The two runs' mean daily IC differ by -0.00005 a day. The 95% interval, about
+  -0.009 to +0.009, is wider than the whole news effect, so it cannot show the two are alike (M3 review D3-9). That
+  fits a news effect too small to tell apart from zero on dev. It says nothing either way about leakage from the
+  vintages' training data.
 
 ## For the owner and the step 8 review
 
 - The gate rests on the lead's reading of "above zero" (one-sided 5%). Under a loose reading (a mean above zero),
-  the outcome would be "no warning", since (a) fails. So no reading gives a warning here.
+  the outcome would be "no warning", since (a) fails. So no reading gives a warning here. The owner took the plain
+  reading on 23 Nov (see the top), and PREREG will freeze it in words (`research/m3_kickoff.md`, M4 entry rules).
 - `research/m3_kickoff.md` says the older table "can serve a sealed-year repeat if M4 adds one". The World built in
   step 7 refuses the sealed years whenever the offset is set, so such a repeat would need a new, reviewed change.

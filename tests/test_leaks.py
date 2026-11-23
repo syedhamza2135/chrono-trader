@@ -328,3 +328,29 @@ def test_a_rejoining_company_is_hidden_during_its_gap(real_tables):
     assert v.bars[(v.bars.entity_id == eqt) & (v.bars.date > pd.Timestamp("2018-11-30"))].empty
     after = world.view(world.clock.decision_time("2022-10-03"))
     assert not after.bars[(after.bars.entity_id == eqt) & (after.bars.date > pd.Timestamp("2021-12-01"))].empty
+
+
+# Who may open the sealed years by hand (M3 review W3-1, the owner's ruling of 23 Nov 2026)
+
+OPENS_SEALED = {  # file: how many calls; each is a test on made-up records, a refusal test, or a data audit
+    "tests/test_leaks.py": 2,  # the M0 preview test, and the EQT rejoin test (M1)
+    "tests/test_world.py": 1,  # made-up records
+    "tests/test_vintage_offset.py": 1,  # expects the World to refuse it
+    "tests/test_embeddings_store.py": 1,  # data audit: embedding rows and story ids only, no labels
+    "research/world_memory.py": 1,  # data audit: view size and memory only, no labels
+}
+
+
+def test_only_the_named_files_open_the_sealed_years_by_hand():
+    root = Path(__file__).resolve().parents[1]
+    flag = "allow_sealed" + "=True"
+    found = {}
+    files = list(root.glob("*.py"))
+    for d in ("agent", "data_pipeline", "eval", "reader", "research", "sim", "tests", "world"):
+        files += (root / d).rglob("*.py")
+    for p in files:
+        rel = p.relative_to(root).as_posix()
+        n = p.read_text(encoding="utf-8", errors="replace").count(flag)
+        if n:
+            found[rel] = n
+    assert found == OPENS_SEALED

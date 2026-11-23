@@ -3,11 +3,11 @@ Dev years 2017-01-03 to 2019-12-31. Costs 5 bps per side unless a table says oth
 - The frozen trial plan's SHA-256: `4a9a45a1238aad3b704a18f27c9bac046e13bbadf981ff642fc3d78986861e2f` (`research/m3_kickoff.md`).
 - Stage 1 (highest mean daily rank IC; within 0.001, the earlier trial) chose T01. Stage 2 (highest long-short Sharpe after 5 bps; within 0.05, the lower daily turnover) chose T09: {"band": 15, "hold": 5}. "live" below is that configuration.
 - IC days run from 2017-01-03 to 2019-12-30, so every label ends by 2019-12-31. Book returns run to 2019-12-31. Nothing from 2020 on is read.
-- The baselines hold as long as the chosen trial; equal weight rebalances every session.
+- The baselines hold as long as the chosen trial, but they do not get its band, so their turnover is not matched: compare them with live before costs (M3 review S3-1). Equal weight rebalances every session.
 
 ## Trials
 
-8 trials in `C:/Users/syedh/dev/chrono-trader/.claude/worktrees/m3-kickoff-56264f/runs/trials.csv` (19 rows).
+8 trials in `runs/trials.csv` (19 rows when this report was written; step 7 added a 20th, the older-vintage run, which has no trial name).
 
 | trial | status | run_id | commit | dirty | settings_hash | agents |
 |---|---|---|---|---|---|---|
@@ -78,6 +78,8 @@ Dev years 2017-01-03 to 2019-12-31. Costs 5 bps per side unless a table says oth
 
 Long-short, against cash (zero) and the long-short baselines:
 
+The hold is matched (every book trades on about 152 of 754 days), but the turnover is not: the band is the live agent's alone, so live turns over 0.39 of equity a day against 0.64 to 0.67 for reversal and the random seeds. The after-cost columns therefore favour live. Before costs, random_5 (0.51) is ahead of live (0.18); after costs, live is ahead of every random seed. Read the baselines before costs (M3 review S3-1, 23 Nov).
+
 | book | annual_return | annual_vol | sharpe_after_costs | sharpe_before_costs | annual_return_before_costs | max_drawdown | daily_turnover | days | mean_ic |
 |---|---|---|---|---|---|---|---|---|---|
 | live | -0.0341 | 0.1153 | -0.2432 | 0.1825 | 0.0145 | -0.1679 | 0.3895 | 754 | 0.0076 |
@@ -110,6 +112,8 @@ Long-only, against SPY buy-and-hold and all picks equally:
 | T07 | 2 | 0.0076 | 1.3803 | 0.3047 | -0.8622 | -0.3030 | 1.1506 |  |
 | T08 | 2 | 0.0076 | 1.3803 | -0.5085 | -1.0601 | -0.3578 | 0.5353 |  |
 | T09 | 2 | 0.0076 | 1.3803 | 0.1825 | -0.2432 | -0.1679 | 0.3895 | stage 2 (chosen) |
+
+T03 led T01 by 0.00067 of mean IC, inside the 0.001 tie, so the earlier trial, T01, won stage 1. T04 was dropped before any run (the owner's ruling of 23 Nov), so it has no row here (M3 review D3-6).
 
 ## Variants (each a trial)
 

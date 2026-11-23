@@ -4,6 +4,13 @@ Read this first when M3 starts. It says where things stand, what M3 has to deliv
 decisions the owner must make before building starts, the build order with costs, and the risks to the time wall.
 This session read and wrote only: no code, no data, no agents. Nothing in M3 is built yet.
 
+**Status on 23 Nov (after the M3 review).** Steps 1 to 7 are done and committed: `9d04ced` (steps 1 and 2),
+`496de56` (3), `9ffe016` (4), `9a17c8a` (5), `83a35cd` and `210bfaf` (6), `001d01c` and `89f35f7` (7). The step notes
+below say "uncommitted" as of when each was written. Step 8, the review, is done: `research/review_m3_2026-11-23.md`
+(0 high, 1 medium, 22 low, 20 info). The owner took all six of its recommendations on 23 Nov ("Yes, take all six"):
+the fixes are on the review branch `claude/m3-review-76bcd4`, and the rules for M4 are in "M4 entry rules" below.
+M3 merges into master after that. The lines in "Where things stand" just below are from 22 Nov.
+
 **The owner approved all six decisions on 22 Nov 2026** ("Yes, approve all", relayed by the lead), as written
 below: the 90-day view window, the switch-day check as frozen, the older-vintage rerun after the dev result and
 before `PREREG.md`, SPY and sectors for `eval` only, a trial list of about 10 fixed before the first run, and 5 seeds
@@ -18,9 +25,10 @@ for each random part. Building starts with steps 1 and 2 after the 5-hour window
 - **The known limit from M2.** The owner accepted all 11 vintages as published ("Accept, go on"). Only the 2016
   vintage has evidence; the other nine that read news are too weak to judge, and 2026 was never checked
   (`research/audit/cutoff.md`, section 9). Any M3 result that leans on the news carries this limit.
-- **Tests.** 344 pass and 1 skips, in 6 to 11 minutes (AGENTS.md, Commands). The skip is the slow leak test
-  (`tests/test_leaks.py:310`).
-- This note is on the branch `claude/m3-kickoff-56264f`, cut from master `6894217`. Uncommitted.
+- **Tests.** 344 pass and 1 skips, in 6 to 11 minutes (AGENTS.md, Commands), on 22 Nov before M3. The skip is the
+  slow leak test (`tests/test_leaks.py:310`). For today's count, see AGENTS.md.
+- This note is on the branch `claude/m3-kickoff-56264f`, cut from master `6894217`. It was uncommitted on 22 Nov and
+  is committed with step 1 (`9d04ced`) and every step after.
 
 ## What M3 has to deliver
 
@@ -504,7 +512,8 @@ River's online learners are not trials: the venv has no River (decision 5).
   The first freeze was:
   `9e1c10f4579621d6b70475186f27038f3301b17d577e317a1b7831581761341a`.
   It changed, still before any run, for the owner's rulings 1 and 4 below: T04 was dropped, and the baselines hold
-  as long as the chosen trial.
+  as long as the chosen trial. The first freeze's text was never committed, so no one can check it now; only its
+  hash survives, in the planned rows' settings (M3 review D3-2).
 - **Dates.** "23 Nov" in this section is the owner's own date, as in their messages. The ledger's stamps are New
   York time, so the same moments read 22 Nov there (17:21 for the planned rows, 17:39 for T04's dropped row).
 - **The ledger.** `python research/m3_trial_plan.py --log` added one row per trial (T01 to T09) to
@@ -539,6 +548,12 @@ River's online learners are not trials: the venv has no River (decision 5).
   3. The ties stay at 0.001 of IC and 0.05 of Sharpe.
   4. The baselines hold as long as the chosen trial, so turnover is matched. Equal weight stays rebalanced every
      session, as the owner ruled in step 4. The band is not given to the baselines.
+     **Correction, 23 Nov (M3 review S3-1).** "So turnover is matched" is wrong, here and at the same words inside
+     the frozen block above, which stays unchanged so its hash holds. The hold is matched: every book trades on the
+     same days. The turnover is not, since the band is Track A's alone: T09 turns over 0.39 of equity a day, reversal
+     and the random seeds 0.64 to 0.67. So the after-cost baseline rows are not turnover-matched and favour live;
+     compare the baselines with live before costs. Whether the sealed baselines get the band is for PREREG (see "M4
+     entry rules").
 - **For the owner (asked on 23 Nov, answered above):**
   - T04 needs sectors in the agent's view, a change to the time wall. Build it (one more judge), or drop T04 and run
     8 trials?
@@ -558,7 +573,10 @@ River's online learners are not trials: the venv has no River (decision 5).
   - `research/m3_dev_report.md` holds the results. Every trial loses money after 5 bps; costs dominate. The
     long-short Sharpe is 0.18 before costs and -0.24 after. Retraining beats the end-of-2016 twin by 0.0179 of
     daily IC (t 2.61). The reading adds 0.0069 over the price-only twin (t 0.74), which is not significant. The
-    switch-day check raises neither warning.
+    switch-day check raises neither warning. Against that (M3 review D3-4): the end-of-2018 twin beats live in 2019
+    (-0.0150, t -1.76); 12-1 momentum beats the chosen configuration after costs (Sharpe 0.40 against -0.24) and on
+    IC (0.0218 against 0.0076); and the long-only book trails equal weight and SPY (Sharpe 0.83 against 1.12 and
+    1.15).
   - Things to note, none a leak sign: the ledger marks the runs after T01 "dirty", because the ledger itself is in
     git and each run adds a row; the code was at `83a35cd` throughout. Placebo seed 5 has a mean IC of 0.0130
     (t 2.47), above the live agent's, and the placebo seeds' t values spread with a standard deviation of 1.59, so
@@ -566,7 +584,7 @@ River's online learners are not trials: the venv has no River (decision 5).
     not tested, and a small sample.
 - **Checkpoint 2** is commit `210bfaf` (the dev report, this note and the ledger rows).
 
-### Step 7: the older-vintage rerun (started 23 Nov)
+### Step 7: the older-vintage rerun (started and done 23 Nov)
 
 - **The World's `vintage_offset`** (`world/world.py`, `reader/vintage.py`):
   - Offset 1 gives a story from New York year Y the vintage Y-2, capped at 2023. So 2016's stories are read by
@@ -610,15 +628,33 @@ River's online learners are not trials: the venv has no River (decision 5).
   nothing". The lead reads "above zero" as above zero at one-sided 5%, the same test the warning uses in (b). The
   dev news effect is +0.0069 (Newey-West t 0.74, one-sided p 0.23), so by the frozen rule the check says nothing on
   the dev years: it is "not informative", never "passed". The reading and the rerun still run, since they cost
-  laptop hours, not usage, and the table can serve a sealed-year repeat if M4 adds one. Every rerun number is
-  descriptive only, outside the frozen rule. Neither the rule nor the trial changes.
+  laptop hours, not usage, and the table can serve a sealed-year repeat if M4 adds one, after a new, reviewed change
+  to the World, which now refuses the sealed years whenever the offset is set (M3 review D3-12). Every rerun number
+  is descriptive only, outside the frozen rule. Neither the rule nor the trial changes. **The owner overruled this
+  reading on 23 Nov** (M3 review D3-8): "above zero" means the point estimate (see "M4 entry rules").
 - **The result, 23 Nov** (in full in `research/m3_older_vintage.md`). The reading ended at 05:58 New York, 106
   parts. `finish-older` wrote 502,712 rows, and the count check passed: the same rows, story ids and `available_at`
   as the main table, and every vintage the rule's minus one. T09 reran unchanged on the older table to 2019-12-31 in
   12.9 minutes (ledger row `20261123T061536_0f452837`, no trial name). The outcome is **not informative**: the rule's
   news effect is +0.00687 (t 0.74, p 0.23). Descriptive only: the older news effect is +0.00692, and the rule's run
   minus the older run is -0.00005 a day (t -0.01), so (a) and (b) both fail and no reading of the gate gives a
-  warning.
+  warning. **Under the plain reading the owner took on 23 Nov (the point estimate), step 7's outcome is "no
+  warning"**: the gate is open, since +0.00687 is above zero, and (a) and (b) both fail. The news effect's t, 0.74,
+  is well below 1.645, so the check had little power on dev.
+
+### M4 entry rules (the owner, 23 Nov, from the M3 review)
+
+The owner took all six of the review's recommendations ("Yes, take all six", 23 Nov). These three go into PREREG
+before the sealed years open:
+1. **The older-vintage gate (`cutoff.md` 10.1), plainly.** "The news effect is above zero" means its point estimate
+   is above zero. Then (a) and (b) apply as written. The outcome is reported as "warning" or "no warning", never
+   "passed". When the news effect's t is below 1.645, the report adds a power note: the check could not have seen a
+   small leak (M3 review D3-8).
+2. **The baselines' band.** On dev the baselines match the chosen trial's hold, not its band, so their turnover is
+   not matched (M3 review S3-1). PREREG decides whether the sealed baselines get the band; until then, compare them
+   with live before costs.
+3. **One placebo test.** Live is tested against the daily mean of the 5 placebo seeds' ICs: one test. Each seed is
+   shown as spread only, never tested alone (M3 review S3-2).
 
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
@@ -662,7 +698,12 @@ themselves (`eval/leaks.py`, its docstring). Each risk below names the test that
 - **The sealed years stay shut.** M3 runs only to 2019-12-31. `World.view` refuses sealed dates unless
   `allow_sealed` (`world/world.py:318-324`), and only `sim.simulator.run` with a matching `seal.lock` opens them.
   The report writer must not call `World(..., allow_sealed=True)` as the M0 preview test does
-  (`tests/test_leaks.py:293`); a grep in the review checks it.
+  (`tests/test_leaks.py:293`); a grep in the review checks it. **The rule, as the owner set it on 23 Nov (M3 review
+  W3-1):** only these may open the sealed years by hand: the M0 preview and EQT rejoin tests in `tests/test_leaks.py`,
+  the made-up records in `tests/test_world.py`, the refusal test in `tests/test_vintage_offset.py`, and two data
+  audits that read no labels, `research/world_memory.py:62` (view size and memory) and
+  `tests/test_embeddings_store.py:41` (embedding rows and story ids). `tests/test_leaks.py`,
+  `test_only_the_named_files_open_the_sealed_years_by_hand`, enforces the list.
 
 ## Running it inside the usage limits
 

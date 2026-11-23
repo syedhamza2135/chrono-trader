@@ -161,11 +161,11 @@ def test_the_window_changes_what_an_agent_sees():
 
 @pytest.fixture(scope="module")
 def full_world():
-    return World.load(allow_sealed=True, embedding_window_days=None)
+    return World.load(embedding_window_days=None)  # dev dates only: the sealed years stay shut (review W3-1)
 
 
 @needs_store
-@pytest.mark.parametrize("day", ["2016-12-30", "2019-12-31", "2026-10-28"])
+@pytest.mark.parametrize("day", ["2016-12-30", "2018-06-29", "2019-12-31"])
 def test_on_the_real_store_the_windowed_view_is_the_full_view_cut(full_world, day):
     t = full_world.clock.decision_time(day)
     full = full_world.view(t).embeddings

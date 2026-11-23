@@ -94,7 +94,9 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
     latest = {r["trial"]: r.get("status") for r in trials if r.get("trial")}
     names = {t for t, s in latest.items() if s != "dropped"}
     n_ledger = len(names) if latest else len(trials)  # as eval.trials.count; a ledger without trial names: rows
-    md.append(f"\n## Trials\n\n{n_ledger} trials in `{Path(trials_csv).as_posix()}` ({len(trials)} rows).\n\n")
+    shown, root = Path(trials_csv).resolve(), Path(__file__).resolve().parents[1]
+    shown = shown.relative_to(root) if shown.is_relative_to(root) else shown  # a repo path anyone can check
+    md.append(f"\n## Trials\n\n{n_ledger} trials in `{shown.as_posix()}` ({len(trials)} rows).\n\n")
     if trials:
         cols = [c for c in ["trial", "status", "run_id", "commit", "dirty", "settings_hash", "agents"]
                 if c in trials[0]]

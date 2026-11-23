@@ -168,6 +168,7 @@ class TrackA:
         self.lived_days = 0
         self.sums = None
         self.latest_label = None
+        self.trimmed_latest = None  # the latest label among days trimmed from recent; they stay in the sums
         self.fit = None  # {"pooling", "penalty", "mean", "std", "beta"}
         self.past = []  # every fit made so far, for coefficients="averaged"
         self.fits = []
@@ -366,6 +367,9 @@ class TrackA:
                           "held_rows": int(sum(len(r[1]) for r in held)), "first_val_t": first_val_t,
                           "train_latest_label": train_latest, "val_ic": best[0]})
         keep = n_val + 64  # next month's validation part, its gap and any late labels need at most this many
+        dropped = [r[3] for r in self.recent[:-keep]]
+        if dropped:  # the sums keep these days, so a later split must still see their latest label (review W3-3)
+            self.trimmed_latest = max(dropped + ([self.trimmed_latest] if self.trimmed_latest is not None else []))
         self.recent = self.recent[-keep:]
 
     def freeze(self):
@@ -377,6 +381,7 @@ class TrackA:
         twin.last_t, twin.dim, twin._today_index = self.last_t, self.dim, self._today_index
         twin.memory = {e: [m[0].copy(), m[1].copy(), m[2]] for e, m in self.memory.items()}
         twin.lived_days, twin.latest_label = self.lived_days, self.latest_label
+        twin.trimmed_latest = self.trimmed_latest
         twin.fit = None if self.fit is None else {k: (x.copy() if isinstance(x, np.ndarray) else x)
                                                   for k, x in self.fit.items()}
         twin.past = [{k: (x.copy() if isinstance(x, np.ndarray) else x) for k, x in f.items()} for f in self.past]
@@ -387,14 +392,21 @@ class TrackA:
     def split(self, n_val):
         """(gap, val, first_val_t, train_latest): the validation part is the last n_val kept days; the gap is the day
         before it and every earlier kept day whose latest label showed at or after the first validation decision
-        (9:00 New York on its date). train_latest is the latest label time among the kept training days (days no
-        longer kept are over a year older)."""
+        (9:00 New York on its date). train_latest is the latest label time among every training day: the kept ones,
+        and the days already trimmed from recent, which stay in the sums and so cannot be held out. If any of those
+        labels showed at or after the first validation decision, the split raises instead of fitting on it (review
+        W3-3; in the steady state it cannot happen, since a trimmed day is about 80 lived days before validation)."""
         val, rest = self.recent[-n_val:], self.recent[:-n_val]
         first_val_t = (pd.Timestamp(val[0][0]).tz_localize(NY) + pd.Timedelta(hours=9)).tz_convert("UTC")
         out = [i == len(rest) - 1 or r[3] >= first_val_t for i, r in enumerate(rest)]
         gap = [r for r, o in zip(rest, out) if o]
         train = [r for r, o in zip(rest, out) if not o]
-        return gap, val, first_val_t, max((r[3] for r in train), default=None)
+        latest = [r[3] for r in train] + ([self.trimmed_latest] if self.trimmed_latest is not None else [])
+        train_latest = max(latest, default=None)
+        if train_latest is not None and train_latest >= first_val_t:
+            raise RuntimeError(f"label embargo: a training label showed at {train_latest}, not before the first "
+                               f"validation decision {first_val_t}")
+        return gap, val, first_val_t, train_latest
 
     def _weights(self, days):
         """Each kept row's current weight in the sums, or None without recency weighting."""

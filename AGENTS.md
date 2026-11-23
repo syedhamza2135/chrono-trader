@@ -19,9 +19,11 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
   (8 Nov), with a few items left: read `research/m1_kickoff.md` first (sections "Session 1" to "Session 4"). M2,
   the reader, is reviewed and merged into master (`6894217`, 22 Nov): read `research/m2_kickoff.md` and
   `research/audit/reader.md`. The embeddings table is in the store.
-- M3, Track A on the dev years, is under way on the branch `claude/m3-kickoff-56264f`: read `research/m3_kickoff.md`
-  (the owner's six decisions, the build order, and steps 1 to 6). The dev results are in `research/m3_dev_report.md`
-  (23 Nov): the chosen configuration is T09, `{"band": 15, "hold": 5}`.
+- M3, Track A on the dev years, is built (steps 1 to 7) and reviewed (step 8) on the branch
+  `claude/m3-kickoff-56264f`, with the review's fixes on `claude/m3-review-76bcd4`: read `research/m3_kickoff.md`
+  (the owner's six decisions, the build order, steps 1 to 7 and the M4 entry rules). The dev results are in
+  `research/m3_dev_report.md` (23 Nov): the chosen configuration is T09, `{"band": 15, "hold": 5}`. The older-vintage
+  check is in `research/m3_older_vintage.md` (no warning). The review is `research/review_m3_2026-11-23.md`.
 - `research/audit/m0_review.md` records the review and its fixes. `research/brief_check.md` records the check of a
   research brief and what the plan took from it.
 
@@ -48,8 +50,8 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
 
 ## Commands
 
-- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (508 pass and 1 skip, in about 35 to 52
-  minutes on 23 Nov; the skip is the slow leak test, which runs only with `CHRONO_SLOW_LEAKS=1`). In a worktree with no `.venv` link, use
+- Tests: `.venv\Scripts\python.exe -m pytest tests -q -p no:cacheprovider` (513 pass and 1 skip, in about 35 to 52
+  minutes on 23 Nov, after the M3 review's fixes; the skip is the slow leak test, which runs only with `CHRONO_SLOW_LEAKS=1`). In a worktree with no `.venv` link, use
   `D:\venvs\chrono-trader\Scripts\python.exe`.
 - The time wall: agents get only `world.view.View` (`World` is in `world/world.py`); `sim.simulator.run(world, agent, first, last)` is the daily loop,
   and `eval.leaks.non_interference` is the check every agent must pass.

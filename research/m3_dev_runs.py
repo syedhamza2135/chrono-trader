@@ -200,7 +200,9 @@ def report_step():
              f"{json.dumps(s2['chosen_kw'])}. \"live\" below is that configuration.",
              "IC days run from 2017-01-03 to 2019-12-30, so every label ends by 2019-12-31. Book returns run to "
              "2019-12-31. Nothing from 2020 on is read.",
-             "The baselines hold as long as the chosen trial; equal weight rebalances every session."]
+             "The baselines hold as long as the chosen trial, but they do not get its band, so their turnover is "
+             "not matched: compare them with live before costs (M3 review S3-1). Equal weight rebalances every "
+             "session."]
     trial_table = pd.DataFrame(rows).T
     out = report.write(ROOT / "research" / "m3_dev_report.md", runs=runs, labels=labels, spy=spy,
                        sectors=benchmarks.load_sectors(), sessions=world.clock.between(FIRST, LAST),

@@ -13,8 +13,11 @@ SPY buy-and-hold is not an agent, since SPY is never in a view: eval.benchmarks.
 A missing score counts as 0. Long-short books hold the top n_side at plus 1 / n_side and the bottom n_side at minus
 1 / n_side, ties broken by company id.
 
-With hold > 1 a baseline trades every hold sessions and keeps its positions between, as Track A does, so its
-turnover matches a Track A trial that holds as long (the owner, 23 Nov). It still scores every day. Equal weight is
+With hold > 1 a baseline trades every hold sessions and keeps its positions between, as Track A does, so it trades
+on the same days as a Track A trial that holds as long (the owner, 23 Nov). It still scores every day. Its turnover
+is not matched: the band is Track A's alone, so a banded trial trades less (on the dev years T09 turns over 0.39 of
+equity a day, reversal and the random seeds 0.64 to 0.67, momentum 0.12). Compare the books before costs (M3 review
+S3-1, 23 Nov). Equal weight is
 run with hold 1, rebalanced daily (the owner, 23 Nov, step 4).
 """
 import numpy as np

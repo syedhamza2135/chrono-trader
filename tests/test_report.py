@@ -159,6 +159,18 @@ def test_replay_is_the_run_at_each_cost_exactly(reversal_runs):
     assert rp[5.0].cost.sum() < rp[10.0].cost.sum() < rp[20.0].cost.sum() and rp[0.0].cost.sum() == 0.0
 
 
+def test_replay_refuses_sessions_in_the_sealed_years_without_the_seal():
+    """Review W3-4: replay reads the labels, so a run reaching the sealed years needs the seal, as `run` does."""
+    tables = synthetic.make_tables(0)
+    world = World(**tables)
+    made = Run(pd.DataFrame(columns=["date", "entity_id", "share_class", "prediction", "position"]),
+               pd.DataFrame({"date": pd.to_datetime(["2019-12-31", "2020-01-02"])}), {})
+    with pytest.raises(simulator.seal.SealError):
+        simulator.replay(world, made, costs=(5.0,))
+    with pytest.raises(simulator.seal.SealError):
+        simulator.replay(world, made, costs=(5.0,), settings={"agent": "made up"})  # no seal.lock matches it
+
+
 class FreezableReversal(Reversal):
     def freeze(self):
         return FreezableReversal(trade_from="2016-05-02")

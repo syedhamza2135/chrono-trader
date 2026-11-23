@@ -256,6 +256,37 @@ def test_the_split_holds_out_the_day_before_validation_and_any_late_label():
     assert latest == pd.Timestamp("2016-05-04 13:31", tz=UTC) and latest < first
 
 
+def recent_six():
+    return [block("2016-05-02", "2016-05-03 13:31"), block("2016-05-03", "2016-05-04 13:31"),
+            block("2016-05-04", "2016-05-05 13:31"), block("2016-05-05", "2016-05-06 13:31"),
+            block("2016-05-06", "2016-05-09 13:31"), block("2016-05-09", "2016-05-10 13:31")]
+
+
+def test_the_split_counts_the_latest_label_of_days_already_trimmed():
+    """Review W3-3: days trimmed from recent stay in the sums, so their latest label counts in train_latest."""
+    a = TrackA()
+    a.recent = recent_six()
+    a.trimmed_latest = pd.Timestamp("2016-05-05 20:00", tz=UTC)  # later than any kept training day's label
+    _, _, first, latest = a.split(2)
+    assert latest == a.trimmed_latest and latest < first
+
+
+def test_the_split_refuses_a_trimmed_day_whose_label_showed_after_validation_began():
+    """Review W3-3: such a day cannot be held out of the sums, so the split raises rather than fit on it."""
+    a = TrackA()
+    a.recent = recent_six()
+    a.trimmed_latest = nine("2016-05-06")  # exactly the first validation decision
+    with pytest.raises(RuntimeError, match="label embargo"):
+        a.split(2)
+
+
+def test_the_trimmed_labels_are_tracked_on_a_run_and_copied_to_a_twin():
+    a = run_on(TABLES, TrackA(fit_after_months=3), "2016-04-01", "2017-06-29")
+    assert a.trimmed_latest is not None  # trimming happened, and every refit's split accepted it
+    assert all(a.trimmed_latest < f["first_val_t"] for f in a.fits[-1:])
+    assert a.freeze().trimmed_latest == a.trimmed_latest
+
+
 # The label embargo
 
 def test_every_training_label_was_realized_before_the_refit_that_used_it():

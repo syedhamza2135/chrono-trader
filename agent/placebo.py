@@ -5,12 +5,17 @@ A (story, company) pair reaches an agent at its availability: the later of the s
 showing in the view (agent/track_a.py). Pairs are grouped by the decision they first reach, that is the first
 session whose 9:00 is at or after their availability. Within each group the companies are permuted at random, with a
 generator seeded by (seed, that session's date), and the shuffled links are handed to the agent in a fresh View. A
-story never moves to another day, its times never change, and only links that carry an embedding are touched, so
-the agent sees the same amount of news each day, attached to the wrong stocks. The permutation is among every company
-with news in that group, not only the agent's 50 picks.
+story never moves to another day, its times never change, and only links that carry an embedding are touched.
+A permutation reorders the group's companies, so each company keeps exactly as many links that day: the placebo
+tests what the news says, not whether there is news (M3 review S3-4). A story with two links can be handed the same
+company twice; the agent drops the copy (agent/track_a.py), so it sees slightly less news than the live agent, not
+exactly the same amount (M3 review W3-7). The permutation is among every company with news in that group, not only
+the agent's 50 picks.
 
-Everything comes from the view at t, and a group's pairs are fixed once its decision has passed, so the same pair is
-shuffled the same way in every later view.
+Everything comes from the view at t. Today's group is always whole in today's view, and Track A uses only the pairs
+new since its last decision, which form today's group, so it sees each pair shuffled once. A later view does not
+always shuffle an older group the same way: when the 90-day window's edge cuts into a group, the shorter group gets
+a different permutation (M3 review W3-2). That is not a leak, since every pair still comes from the view at t.
 """
 import numpy as np
 import pandas as pd

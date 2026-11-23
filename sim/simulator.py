@@ -220,18 +220,22 @@ def run_many(world, agents, first, last, cost_bps=COST_BPS, settings=None, freez
     return out
 
 
-def replay(world, run, costs=(0.0, 5.0, 10.0, 20.0), base=None):
+def replay(world, run, costs=(0.0, 5.0, 10.0, 20.0), base=None, settings=None):
     """{cost_bps: equity rows}: the run's own targets traded again through a fresh simulator at each cost, on the
     same sessions (PLAN 9.8's cost table, and every book "before costs" at 0). Costs change no decision, so this is
     the run at that cost, exactly; at the run's own cost it gives back its equity rows. No agent or view is used.
-    Pass `base` (a Simulator on the same World) to reuse its lookups across runs."""
+    Pass `base` (a Simulator on the same World) to reuse its lookups across runs. Sessions in the sealed years need
+    the seal, as in `run`: pass the run's settings (review W3-4)."""
+    days = pd.to_datetime(run.equity.date)
+    if len(days):
+        seal.check(days.min(), days.max(), settings)
     base = base or Simulator(world, 0.0)
     targets = {pd.Timestamp(d): g for d, g in run.decisions.groupby("date")}
     out = {}
     for c in costs:
         sim = _fresh(base)
         sim.cost = c / 1e4
-        for day in pd.to_datetime(run.equity.date):
+        for day in days:
             sim.step(day, targets.get(pd.Timestamp(day)))
         out[c] = pd.DataFrame(sim.rows)
     return out
