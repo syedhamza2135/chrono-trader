@@ -402,20 +402,24 @@ def test_the_report_writer_covers_every_section(tmp_path):
     sectors = pd.DataFrame({"entity_id": ENTS, "sector": ["Energy", "Utilities", "Financials"] * 4,
                             "valid_from": pd.Timestamp("2016-01-01"), "valid_to": pd.Timestamp("2026-01-01")})
     trials_csv = tmp_path / "trials.csv"
-    trials_csv.write_text("run_id,logged_at,commit,dirty,settings_hash,first,last,agents,out_dir\n"
-                          "r1,t,abc,False,h1,2017-01-03,2018-06-29,live,x\n"
-                          "r2,t,abc,False,h2,2017-01-03,2018-06-29,hold_3,y\n", encoding="utf-8")
+    trials_csv.write_text("run_id,logged_at,commit,dirty,settings_hash,first,last,agents,out_dir,trial,status\n"
+                          "r0,t,abc,False,h1,2017-01-03,2018-06-29,live,not yet run,T01,planned\n"
+                          "r1,t,abc,False,h1,2017-01-03,2018-06-29,live,x,T01,run\n"
+                          "r2,t,abc,False,h2,2017-01-03,2018-06-29,hold_3,y,T02,run\n"
+                          "r3,t,abc,False,h3,2017-01-03,2018-06-29,live price_only,z,,run\n", encoding="utf-8")
     out = report.write(tmp_path / "report.md", charts_dir=tmp_path / "charts", runs=runs, labels=LABELS, spy=spy,
                        sectors=sectors, sessions=Clock().between("2017-01-01", "2018-12-31"), first="2017-01-03",
                        last="2018-06-29", run_bps=5.0, trials_csv=trials_csv, replays=replays,
-                       variants={"hold_3": hold_3})
+                       variants={"hold_3": hold_3},
+                       trial_table=pd.DataFrame({"stage": [1, 2], "mean_ic": [0.02, 0.02]}, index=["T01", "T05"]))
     text = Path(out).read_text(encoding="utf-8")
     for heading in ["## Trials", "## Daily rank IC by quarter", "## Frozen-twin gaps", "## Reading", "## Matched "
                     "baselines", "## Variants", "## Costs", "## Exposures", "## Deflated Sharpe", "## Seed spread",
                     "## Regimes and shocks", "## Coefficient life", "## The switch-day check", "## Charts"]:
         assert heading in text, heading
     for row in ["| 2017Q1 |", "| end of 2017 | 2018 |", "| placebo_2 |", "| cash |", "| spy_buy_and_hold |",
-                "| hold_3 |", "| 20 bps |", "| Utilities |", "2 trials"]:
+                "| hold_3 |", "| 20 bps |", "| Utilities |", "2 trials in", "(4 rows)", "| T01 | planned |",
+                "## Every trial, winners and losers", "| T05 | 2 | 0.0200 |"]:
         assert row in text, row
     # the live book's Sharpe before costs is its 0 bps rows'
     gross = stats.book_stats(metrics.book_returns(replays["live"][0.0], "2017-01-03", "2018-06-29").to_numpy())

@@ -1,0 +1,42 @@
+{
+ "agent": "TrackA",
+ "agent_params": {
+  "band": null,
+  "book": "long_short",
+  "first_pick": "2016-04-01",
+  "fit_after_months": 6,
+  "full_val_years": 5,
+  "hold": 1,
+  "min_val_months": 3,
+  "n_picks": 50,
+  "n_side": 10,
+  "news": true,
+  "penalties": [
+   0.01,
+   0.1,
+   1.0,
+   10.0,
+   100.0,
+   1000.0,
+   10000.0
+  ],
+  "poolings": [
+   "last",
+   "avg"
+  ],
+  "recent_val_months": 12,
+  "trade_from": "2017-01-01",
+  "val_share": 0.2
+ },
+ "cost_bps": 5.0,
+ "embedding_window_days": 90,
+ "first": "2016-01-04",
+ "last": "2019-12-31",
+ "model": "stage 1 winner",
+ "plan_sha256": "9e1c10f4579621d6b70475186f27038f3301b17d577e317a1b7831581761341a",
+ "stage": 2,
+ "trial": "T06",
+ "variant": {
+  "hold": 5
+ }
+}

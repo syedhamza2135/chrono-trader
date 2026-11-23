@@ -72,7 +72,7 @@ def _twins(runs):
 
 
 def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv, replays=None, variants=None,
-          charts_dir=None, switch_years=(2017, 2018, 2019), title="M3 dev report", notes=()):
+          charts_dir=None, switch_years=(2017, 2018, 2019), title="M3 dev report", notes=(), trial_table=None):
     """Returns the report's markdown. Charts are written to charts_dir when given, and linked relative to it. The
     switch-day check runs on `switch_years` only (M3 decision 2: the dev years), whatever `first` is."""
     variants = dict(variants or {})
@@ -91,9 +91,14 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
     md += [f"- {n}\n" for n in notes]
 
     trials = read_trials(trials_csv)
-    md.append(f"\n## Trials\n\n{len(trials)} trials in `{Path(trials_csv).as_posix()}`.\n\n")
+    latest = {r["trial"]: r.get("status") for r in trials if r.get("trial")}
+    names = {t for t, s in latest.items() if s != "dropped"}
+    n_ledger = len(names) if latest else len(trials)  # as eval.trials.count; a ledger without trial names: rows
+    md.append(f"\n## Trials\n\n{n_ledger} trials in `{Path(trials_csv).as_posix()}` ({len(trials)} rows).\n\n")
     if trials:
-        md.append(table(pd.DataFrame(trials)[["run_id", "commit", "dirty", "settings_hash", "agents"]], index=False))
+        cols = [c for c in ["trial", "status", "run_id", "commit", "dirty", "settings_hash", "agents"]
+                if c in trials[0]]
+        md.append(table(pd.DataFrame(trials)[cols], index=False))
 
     md.append("\n## Daily rank IC by quarter (live)\n\n")
     if "live" in ic:
@@ -137,6 +142,8 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
                                                  st["max_drawdown"], st["days"]]
     md.append(table(lot.rename_axis("book")))
 
+    if trial_table is not None:
+        md.append("\n## Every trial, winners and losers\n\n" + table(trial_table.rename_axis("trial")))
     md.append("\n## Variants (each a trial)\n\n")
     if variants:
         vt = metrics.book_table({n: r.equity for n, r in variants.items()}, first, last, before)
@@ -169,9 +176,9 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
     if "live" in ret:
         srs = [stats.moments(r.dropna().to_numpy())[0] for n, r in ret.items()
                if (n == "live" or n in variants) and r.dropna().std() > 0]
-        n_trials = max(len(trials), len(srs))  # a run in the ledger can hold several trials (judge item 1)
+        n_trials = max(n_ledger, len(srs))  # a run in the ledger can hold several trials (judge item 1)
         ds = stats.deflated_sharpe(ret["live"].to_numpy(), n_trials, srs)
-        md.append(f"Trials counted: {n_trials} (the larger of the ledger's {len(trials)} rows and the {len(srs)} "
+        md.append(f"Trials counted: {n_trials} (the larger of the ledger's {n_ledger} trials and the {len(srs)} "
                   "trials shown).\n\n")
         if len(srs) < 2:
             md.append("**Warning:** fewer than 2 trials' Sharpe ratios, so their spread is 0 and the deflated "

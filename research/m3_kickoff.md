@@ -429,6 +429,123 @@ No real dev result was computed: every test runs on made-up or hand-built data.
   - The charts stay out of git for now. `eval.report.write` puts them on D:, in
     `D:\chrono-data\runs\m3_dev_report_charts` by default, with the other run outputs.
 
+**Step 6, phase 1, on 23 Nov** (the owner: "Yes, start step 6"; uncommitted). The trial list, the selection rule and
+what the report shows, fixed before any dev result. No real 2016 to 2019 metric was computed in phase 1.
+
+<!-- M3 trial plan: start -->
+### The M3 trial plan (fixed on 23 Nov, before any dev result)
+
+**The base setup.** Track A as built in step 3, `TrackA()` with its defaults:
+- the 50 most-traded picks, re-picked each January (April in 2016);
+- every news and price feature (PLAN 9.6), with both poolings;
+- the monthly ridge on running sums over every lived day, with penalties 10^-2 to 10^4 (one per decade), chosen by
+  the mean daily rank IC on the validation part;
+- long the top 10 and short the bottom 10, equal-weighted and dollar-neutral;
+- traded every session (hold 1), with no band;
+- 5 bps per side, the 90-day embedding window, 2016 watch-only.
+
+Each trial runs the live agent alone with `sim.simulator.run` from 2016-01-04 to 2019-12-31.
+
+**The trials.** Stage 1 tries the model. Stage 2 tries the trading rule on stage 1's winner.
+
+| Trial | Stage | What differs from the base |
+|---|---|---|
+| T01 | 1 | Nothing: the base. |
+| T02 | 1 | Averaged coefficients (PLAN 5.3, 9.7): each day's prediction is the mean of the predictions of every monthly fit made so far, each with its own scaler, penalty and pooling. |
+| T03 | 1 | Recency weighting (PLAN 5.3, 9.7): the running sums decay so that a lived day's weight halves every 252 lived days. Validation is unchanged. |
+| T04 | 1 | Dropped by the owner on 23 Nov, before any run. A sector-neutral ranking needs sectors in the agent's view, and sectors stay eval-only, so the time wall is unchanged. |
+| T05 | 2 | Stage 1's winner, holding 3 sessions (hold 3). |
+| T06 | 2 | Stage 1's winner, holding 5 sessions (hold 5). |
+| T07 | 2 | Stage 1's winner, with the turnover band (band 15: keep a holding while it stays in the top or bottom 15), hold 1. |
+| T08 | 2 | Stage 1's winner, band 15, hold 3. |
+| T09 | 2 | Stage 1's winner, band 15, hold 5. |
+
+River's online learners are not trials: the venv has no River (decision 5).
+
+**The selection rule.**
+- Every measure is over the dev years only. A day's IC counts only if its label ends by 2019-12-31, so the decision
+  days run from 2017-01-03 to 2019-12-30. Book returns run from 2017-01-03 to 2019-12-31. Nothing from 2020 on is
+  read.
+- Stage 1: the trial among T01 to T03 with the highest mean daily rank IC wins. T02 and T03 change the
+  predictions, and the holding period and the band do not, so IC compares models fairly. If two trials are within 0.001 of each
+  other, the earlier one in the table wins, so the simpler model is kept.
+- Stage 2: the trial among stage 1's winner and T05 to T09 with the highest Sharpe ratio of the long-short book
+  after costs at 5 bps wins. Trading rules do not change IC, so they are chosen on what they change. If two trials
+  are within 0.05 of each other, the one with the lower mean daily turnover wins.
+- The winner of stage 2 is the chosen configuration. No trial is added, removed or rerun with other settings after
+  any result is seen. A trial that fails to run is reported as failed, not replaced.
+
+**What runs on the chosen configuration only.**
+- The full comparison pass, with `sim.simulator.run_many` over the same dates. Its agents:
+  - the live agent, with its frozen twins at each year end;
+  - its long-only book (`book="long_only"`);
+  - its price-only twin and its 5 placebos (seeds 1 to 5);
+  - random ranking (seeds 1 to 5), 12-1 momentum and 5-day reversal, each holding as many sessions as the chosen
+    trial, so their turnover is matched (the band is Track A's alone);
+  - equal weight, rebalanced every session.
+  The live agent's decisions must equal its own trial run's.
+- `sim.simulator.replay` at 0, 5, 10 and 20 bps for every book.
+- The switch-day check (`cutoff.md` 10.2) on 2017 to 2019.
+
+**What the dev report shows** (`research/m3_dev_report.md`, written by `eval.report.write`):
+- Every trial, winners and losers alike, in one table: mean daily rank IC with its Newey-West t, the long-short
+  Sharpe before and after costs, the maximum drawdown and the daily turnover. It also says which stage each trial
+  was in, and which trial won each stage under the rule above.
+- For the chosen configuration, everything PLAN 9.2 and 9.10 name, as step 5's writer lays it out: IC by quarter,
+  the frozen-twin gaps, the price-only twin and the placebo, the matched baselines for both books, costs at 0, 5,
+  10 and 20 bps, beta and sector tilt, the deflated Sharpe with N equal to the ledger's trials (8), the seed
+  spread, regimes and shocks, coefficient life, the switch-day check and the charts.
+- The ledger: every row of `runs/trials.csv`.
+<!-- M3 trial plan: end -->
+
+- **The hash.** `python research/m3_trial_plan.py` prints the SHA-256 of the block above, from its start line to its
+  end line, each line ending in LF. It is now:
+  `4a9a45a1238aad3b704a18f27c9bac046e13bbadf981ff642fc3d78986861e2f`.
+  The first freeze was:
+  `9e1c10f4579621d6b70475186f27038f3301b17d577e317a1b7831581761341a`.
+  It changed, still before any run, for the owner's rulings 1 and 4 below: T04 was dropped, and the baselines hold
+  as long as the chosen trial.
+- **Dates.** "23 Nov" in this section is the owner's own date, as in their messages. The ledger's stamps are New
+  York time, so the same moments read 22 Nov there (17:21 for the planned rows, 17:39 for T04's dropped row).
+- **The ledger.** `python research/m3_trial_plan.py --log` added one row per trial (T01 to T09) to
+  `runs/trials.csv`, with status "planned" and out_dir "not yet run". Each planned row's settings file in
+  `runs/settings/` holds the base parameters, the trial's change and the first freeze's hash. T03's planned file
+  names its change `recency_half_life_days`; the code calls it `half_life_days`. Rows are only added, so these
+  stay as written. `--drop` then added a "dropped" row for T04, carrying the new hash. The ledger has two more
+  columns: `trial` (empty for a run that is not a trial, such as the comparison pass) and `status`.
+  `eval.trials.count` counts the distinct trial names whose latest row is not "dropped": 8.
+- **Built for phase 2** (after the rulings, before any run):
+  - T02 and T03 in `agent/track_a.py`: `coefficients="averaged"` and `half_life_days`. Their docstring gives the
+    rules. With the defaults, every base computation is unchanged.
+  - The `hold` option in `agent/baselines.py`, the same rule as Track A's.
+  - `tests/test_variants.py`: hand-worked cases for each, and `non_interference` in all three modes for T02, T03,
+    momentum with hold 3, random with hold 5, and equal weight (15 cases, all pass).
+  - `research/m3_dev_runs.py`, the runner: `stage1`, `stage2`, `compare` and `report`, one job at a time, each
+    holding the PC awake in its own process.
+  - The Sonnet checker passed 7 of 8 checks. It recomputed every hand-worked number in plain Python, confirmed the
+    defaults change nothing, checked the hashes, the ledger and the dates. It flagged long sentences and stale text
+    here, now fixed. One long sentence inside the hashed block is left as it is, since editing it would change the
+    hash.
+  - The full suite, before any real run: a first pass had 1 failure in 496 (a test's stand-in for `Sums.minus`
+    took two arguments, and refit now passed three). Refit now passes the weights only when recency weighting
+    is on. The rerun gave 496 pass and 1 skip, in 35 minutes 56 seconds (pytest exit 0).
+- **PC time (estimates).** One trial alone took 12.3 minutes in step 3, so 9 trials are about 2 hours. The
+  comparison pass took 95.2 minutes for 18 agents in step 4, and the long-only book adds one more Track A agent, so
+  about 100 to 110 minutes. The replays and the report take minutes. In all, about 4 hours, one job at a time.
+- **The owner's rulings, 23 Nov** (the lead's four picks: "Yes, take them"):
+  1. T04 is dropped, so there are 8 trials. Sectors stay eval-only, and the time wall is unchanged. Its ledger row is
+     kept, and a later row marks it "dropped".
+  2. T03 keeps its half-life of 252 lived days.
+  3. The ties stay at 0.001 of IC and 0.05 of Sharpe.
+  4. The baselines hold as long as the chosen trial, so turnover is matched. Equal weight stays rebalanced every
+     session, as the owner ruled in step 4. The band is not given to the baselines.
+- **For the owner (asked on 23 Nov, answered above):**
+  - T04 needs sectors in the agent's view, a change to the time wall. Build it (one more judge), or drop T04 and run
+    8 trials?
+  - T03's half-life of 252 lived days (one year) is a judgement. Keep it, or pick another?
+  - The ties: 0.001 of IC in stage 1, 0.05 of Sharpe in stage 2. Keep them?
+  - The baselines trade every session. If the chosen trial holds 3 or 5 sessions, should they hold as long?
+
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
 it runs a judge.

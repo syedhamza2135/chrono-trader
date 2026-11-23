@@ -12,6 +12,10 @@ SPY buy-and-hold is not an agent, since SPY is never in a view: eval.benchmarks.
 
 A missing score counts as 0. Long-short books hold the top n_side at plus 1 / n_side and the bottom n_side at minus
 1 / n_side, ties broken by company id.
+
+With hold > 1 a baseline trades every hold sessions and keeps its positions between, as Track A does, so its
+turnover matches a Track A trial that holds as long (the owner, 23 Nov). It still scores every day. Equal weight is
+run with hold 1, rebalanced daily (the owner, 23 Nov, step 4).
 """
 import numpy as np
 import pandas as pd
@@ -26,11 +30,14 @@ LOOKBACK = pd.Timedelta(days=400)
 class Baseline:
     rule = ""
 
-    def __init__(self, n_picks=50, n_side=10, first_pick="2016-04-01", trade_from="2017-01-01"):
-        self.n_picks, self.n_side = n_picks, n_side
+    def __init__(self, n_picks=50, n_side=10, first_pick="2016-04-01", trade_from="2017-01-01", hold=1):
+        if not (isinstance(hold, int) and hold >= 1):
+            raise ValueError("hold is a whole number of sessions, at least 1")
+        self.n_picks, self.n_side, self.hold = n_picks, n_side, hold
         self.first_pick, self.trade_from = pd.Timestamp(first_pick), pd.Timestamp(trade_from)
         self.params = {"rule": self.rule, "n_picks": n_picks, "n_side": n_side, "first_pick": first_pick,
-                       "trade_from": trade_from}
+                       "trade_from": trade_from, "hold": hold}
+        self.held, self.since_trade = {}, None
         self.picks, self.pick_year = [], None
         self.fits = []  # it never fits; the embargo check finds nothing to check
 
@@ -69,9 +76,13 @@ class Baseline:
         if not live:
             return None
         score = np.nan_to_num(np.asarray(self.scores(v, live), dtype=float))
-        pos = self.positions(live, score)
         if v.today < self.trade_from:
-            pos = np.zeros(len(live))
+            pos, self.held, self.since_trade = np.zeros(len(live)), {}, None
+        elif self.since_trade is None or self.since_trade + 1 >= self.hold:
+            pos, self.since_trade = self.positions(live, score), 0
+            self.held = dict(zip(live, pos))
+        else:
+            pos, self.since_trade = np.array([self.held.get(k, 0.0) for k in live]), self.since_trade + 1
         out = pd.DataFrame({"entity_id": [k[0] for k in live], "share_class": [k[1] for k in live],
                             "prediction": score, "position": pos})
         return out.sort_values(["prediction", "entity_id", "share_class"], ascending=[False, True, True],

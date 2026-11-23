@@ -269,7 +269,20 @@ def test_the_ledger_records_each_run_with_its_settings_hash(tmp_path):
     row = trials.record(settings, "2016-01-04", "2019-12-31", ["live", "equal"], "D:/x", runs=tmp_path, git=FakeGit(),
                         now=now)
     trials.record(settings, "2016-01-04", "2019-12-31", ["live"], "D:/y", runs=tmp_path, git=FakeGit(), now=now)
-    assert trials.count(tmp_path) == 2
+    assert trials.count(tmp_path) == 0  # neither row names a trial (a comparison pass, say)
+    trials.record(settings, "2016-01-04", "2019-12-31", ["live"], "not yet run", runs=tmp_path, git=FakeGit(),
+                  now=now, trial="T01", status="planned")
+    trials.record(settings, "2016-01-04", "2019-12-31", ["live"], "D:/z", runs=tmp_path, git=FakeGit(), now=now,
+                  trial="T01")
+    trials.record(settings, "2016-01-04", "2019-12-31", ["live"], "D:/w", runs=tmp_path, git=FakeGit(), now=now,
+                  trial="T02")
+    assert trials.count(tmp_path) == 2  # T01 planned and run counts once
+    trials.record(settings, "2016-01-04", "2019-12-31", ["live"], "dropped", runs=tmp_path, git=FakeGit(), now=now,
+                  trial="T02", status="dropped")
+    assert trials.count(tmp_path) == 1 and len(trials.rows(tmp_path)) == 6  # dropped, and its rows kept
+    assert [r["status"] for r in trials.rows(tmp_path)][:5] == ["run", "run", "planned", "run", "run"]
+    with pytest.raises(ValueError):
+        trials.record(settings, "x", "y", [], "z", runs=tmp_path, git=FakeGit(), now=now, status="done")
     with open(tmp_path / "trials.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     assert rows[0]["settings_hash"] == settings_hash(settings) == row["settings_hash"]

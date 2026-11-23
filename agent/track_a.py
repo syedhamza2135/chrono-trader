@@ -38,6 +38,12 @@ saw in its own memory.
   trade_from (2016 is watch-only, PLAN 5.5) every position is 0 and no book is kept, so the first trading day starts
   fresh (judge N3). Before the first fit it makes no decision.
 - news=False gives the price-only twin (PLAN 9.9): no news features at all.
+- The dev variants (PLAN 5.3 and 9.7; M3 step 6, trials T02 and T03):
+  - coefficients="averaged": each day's prediction is the mean of the predictions of every monthly fit made so far,
+    each with its own scaler, penalty and pooling. The validation that picks each fit is unchanged.
+  - half_life_days=h: recency weighting. Before each lived day's rows enter the sums, the sums are multiplied by
+    0.5 ** (1 / h), so a lived day's weight halves every h lived days. The rows held out for validation are taken
+    out at their current weights. Validation scores the predictions as before, unweighted.
 - freeze() gives a frozen twin (PLAN 5.3, 9.9; M3 step 4): a copy of the agent's state with learning off. It keeps
   picking each year, updating its news memory and trading, but never refits, so it decides with the fit it had.
 
@@ -84,17 +90,31 @@ class Sums:
         self.n, self.sx, self.sxx = 0, np.zeros(k), np.zeros((k, k))
         self.sy, self.sxy = 0.0, np.zeros(k)
 
-    def add(self, X, y, sign=1.0):
-        self.n += sign * len(y)
-        self.sx += sign * X.sum(axis=0)
-        self.sxx += sign * (X.T @ X)
-        self.sy += sign * y.sum()
-        self.sxy += sign * (X.T @ y)
+    def add(self, X, y, sign=1.0, w=None):
+        """Adds the rows (or takes them out, with sign -1), each with weight w (1 when w is None)."""
+        if w is None:
+            self.n += sign * len(y)
+            self.sx += sign * X.sum(axis=0)
+            self.sxx += sign * (X.T @ X)
+            self.sy += sign * y.sum()
+            self.sxy += sign * (X.T @ y)
+            return
+        w = np.asarray(w, dtype=np.float64)
+        self.n += sign * float(w.sum())
+        self.sx += sign * (w @ X)
+        self.sxx += sign * (X.T @ (X * w[:, None]))
+        self.sy += sign * float(w @ y)
+        self.sxy += sign * (X.T @ (w * y))
 
-    def minus(self, X, y):
+    def decay(self, f):
+        """Multiplies every row's weight by f."""
+        self.n, self.sy = self.n * f, self.sy * f
+        self.sx, self.sxx, self.sxy = self.sx * f, self.sxx * f, self.sxy * f
+
+    def minus(self, X, y, w=None):
         out = Sums(len(self.sx))
         out.n, out.sx, out.sxx, out.sy, out.sxy = self.n, self.sx.copy(), self.sxx.copy(), self.sy, self.sxy.copy()
-        out.add(X, y, -1.0)
+        out.add(X, y, -1.0, w)
         return out
 
     def scaled(self):
@@ -119,9 +139,15 @@ def _solve(zz, zy, penalties):
 class TrackA:
     def __init__(self, n_picks=50, n_side=10, book="long_short", hold=1, band=None, news=True,
                  first_pick="2016-04-01", trade_from="2017-01-01", fit_after_months=6, min_val_months=3,
-                 val_share=0.2, full_val_years=5, recent_val_months=12, penalties=PENALTIES, poolings=POOLINGS):
+                 val_share=0.2, full_val_years=5, recent_val_months=12, penalties=PENALTIES, poolings=POOLINGS,
+                 coefficients="last", half_life_days=None):
         if book not in ("long_short", "long_only"):
             raise ValueError("book is long_short or long_only")
+        if coefficients not in ("last", "averaged"):
+            raise ValueError("coefficients is last or averaged")
+        if half_life_days is not None and not half_life_days > 0:
+            raise ValueError("half_life_days is None or above 0")
+        self.coefficients, self.half_life_days = coefficients, half_life_days
         self.n_picks, self.n_side, self.book, self.hold, self.band, self.news = n_picks, n_side, book, hold, band, news
         self.first_pick, self.trade_from = pd.Timestamp(first_pick), pd.Timestamp(trade_from)
         self.fit_after_months, self.min_val_months, self.val_share = fit_after_months, min_val_months, val_share
@@ -132,7 +158,8 @@ class TrackA:
                        "first_pick": first_pick, "trade_from": trade_from, "fit_after_months": fit_after_months,
                        "min_val_months": min_val_months, "val_share": val_share, "full_val_years": full_val_years,
                        "recent_val_months": recent_val_months, "penalties": list(self.penalties),
-                       "poolings": list(self.poolings)}
+                       "poolings": list(self.poolings), "coefficients": coefficients,
+                       "half_life_days": half_life_days}
         self.picks, self.pick_year, self.month = [], None, None
         self.first_day, self.last_t, self.dim = None, None, None
         self.memory = {}  # entity_id -> [sum of weighted last vectors, of avg vectors, sum of weights]
@@ -142,6 +169,7 @@ class TrackA:
         self.sums = None
         self.latest_label = None
         self.fit = None  # {"pooling", "penalty", "mean", "std", "beta"}
+        self.past = []  # every fit made so far, for coefficients="averaged"
         self.fits = []
         self.positions, self.since_trade = {}, None
         self.learning = True
@@ -281,11 +309,15 @@ class TrackA:
             Xs = {pool: x[have] for pool, x in X.items()}
             if self.sums is None:
                 self.sums = {pool: Sums(x.shape[1]) for pool, x in Xs.items()}
+            if self.half_life_days is not None:
+                for s in self.sums.values():
+                    s.decay(0.5 ** (1.0 / self.half_life_days))  # every earlier lived day is a day older
             for pool, x in Xs.items():
                 self.sums[pool].add(x, y)
             latest = got.visible_at[have].max()
             self.latest_label = latest if self.latest_label is None else max(self.latest_label, latest)
-            self.recent.append((date, y, {pool: x.astype(np.float32) for pool, x in Xs.items()}, latest))  # exact:
+            self.recent.append((date, y, {pool: x.astype(np.float32) for pool, x in Xs.items()}, latest,
+                                self.lived_days))  # the day's lived index, for its weight; and the rows are exact:
             # the rows were rounded to float32 when they were made, so this halves their memory and changes nothing
             self.lived_days += 1
         self.pending = still
@@ -312,7 +344,8 @@ class TrackA:
         for pool in self.poolings:
             Xh = np.vstack([r[2][pool] for r in held]).astype(np.float64)
             yh = np.concatenate([r[1] for r in held])
-            train = self.sums[pool].minus(Xh, yh)
+            w = self._weights(held)
+            train = self.sums[pool].minus(Xh, yh) if w is None else self.sums[pool].minus(Xh, yh, w)
             mean, std, zz, zy = train.scaled()
             Xv = np.vstack([r[2][pool] for r in val]).astype(np.float64)
             Zv = (Xv - mean) / std
@@ -326,6 +359,8 @@ class TrackA:
         mean, std, zz, zy = self.sums[pool].scaled()
         beta = _solve(zz, zy, (lam,))[lam]
         self.fit = {"pooling": pool, "penalty": lam, "mean": mean, "std": std, "beta": beta}
+        if self.coefficients == "averaged":
+            self.past.append(self.fit)
         self.fits.append({"t": v.t, "latest_label": self.latest_label, "rows": int(self.sums[pool].n),
                           "pooling": pool, "penalty": lam, "val_days": n_val, "gap_days": len(gap),
                           "held_rows": int(sum(len(r[1]) for r in held)), "first_val_t": first_val_t,
@@ -344,6 +379,7 @@ class TrackA:
         twin.lived_days, twin.latest_label = self.lived_days, self.latest_label
         twin.fit = None if self.fit is None else {k: (x.copy() if isinstance(x, np.ndarray) else x)
                                                   for k, x in self.fit.items()}
+        twin.past = [{k: (x.copy() if isinstance(x, np.ndarray) else x) for k, x in f.items()} for f in self.past]
         twin.positions, twin.since_trade = dict(self.positions), self.since_trade
         twin.learning = False
         return twin
@@ -360,9 +396,16 @@ class TrackA:
         train = [r for r, o in zip(rest, out) if not o]
         return gap, val, first_val_t, max((r[3] for r in train), default=None)
 
+    def _weights(self, days):
+        """Each kept row's current weight in the sums, or None without recency weighting."""
+        if self.half_life_days is None:
+            return None
+        f = 0.5 ** (1.0 / self.half_life_days)
+        return np.concatenate([np.full(len(r[1]), f ** (self.lived_days - 1 - r[4])) for r in days])
+
     def score(self, X):
-        f = self.fit
-        return ((X[f["pooling"]] - f["mean"]) / f["std"]) @ f["beta"]
+        fits = self.past if self.coefficients == "averaged" else [self.fit]
+        return np.mean([((X[f["pooling"]] - f["mean"]) / f["std"]) @ f["beta"] for f in fits], axis=0)
 
     # Policy
     def targets(self, keys, pred):
