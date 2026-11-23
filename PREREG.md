@@ -16,12 +16,12 @@ owner's decisions of 23 Nov) and `PLAN.md` 5.5. It was checked by a skeptic befo
 - **The dev check.** Before the seal, T09 reruns on the dev years at the code commit (`research/m4_t09_check.py`, M4
   step 2). Its decisions must equal step 6's T09 run day by day. If they differ, nothing is sealed until the owner
   decides, in a dated note, what the difference means.
-- **The code commit:** `<<TO FILL AT SEAL: the commit of the code, the one PREREG.md is added on top of>>`.
+- **The code commit:** `7b9a138542e14667954822cc18024d575aed60aa`.
   The sealed commit, which `seal.lock` records, is that commit plus this file and nothing else. This file can't name
   the sealed commit, since the commit holds this file.
 - **The settings hashes** (`sim.simulator.settings_many`, as `python research/m4_sealed_run.py settings` prints them):
-  - main: `<<TO FILL AT SEAL>>`
-  - older_vintage: `<<TO FILL AT SEAL>>`
+  - main: `755dcf398dcb34975ae84fa65518190d9504d591057ff80591b79f5ac74ee3a5`
+  - older_vintage: `380ebc4f7809de2f15b4f117d1a016514978a0ba0b2233a05dea656dbada0941`
 
   Each covers the chosen configuration, every agent's class and parameters, the costs, the embedding window, the
   dates, the part, and a fingerprint of the data (each store table's size and Parquet footer hash, and the
