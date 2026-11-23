@@ -240,3 +240,40 @@ The owner's go: "Whatever is better", with the lead's brief to close the seal's 
   J4-8 (`PREREG.md` is hashed from the working tree's bytes, which a Linux checkout would change; the forward test
   should hash the committed blob), J4-9 (the data fingerprint holds the embeddings' arrays record, not a hash of the
   vectors; PREREG says so) and J4-10 (the run log is one file outside git; the sealed report quotes it).
+
+## Steps 2 and 3 (23 Nov, uncommitted)
+
+Step 1 is commit `6401ee7`.
+
+- **Step 2, the dev check.** `research/m4_t09_check.py` reruns T09 on the dev years at `6401ee7` through the dev path
+  (`sim.simulator.run`, the same agent, dates, costs and caller settings as step 6's `run_trial`), and compares its
+  decisions with step 6's T09 run day by day. Its output is `D:\chrono-data\runs\m4_dev\T09_check\compare.json`, and
+  its ledger row has no trial name. The result is below.
+- **Step 3, `PREREG.md`** (repo root). It fixes H1 to H3 with Holm at 5% and lag 6, H2 as the main claim, H3 needing
+  both its tests, the M4 entry rules, the sealed dates, both leak checks, the outcomes, the re-seal and rerun rules,
+  and what is published. The code commit and the two settings hashes are placeholders, filled at the seal. PREREG
+  can't name the sealed commit, since that commit holds PREREG, so it names the code commit under it.
+- **The skeptic** (Opus, at 32% of the 5-hour window): `research/audit/m4_prereg_skeptic.md`, 3 high, 8 medium and 5
+  low, all taken. `.gitattributes` now keeps `PREREG.md` and `seal.lock` as LF bytes (J4-8, P-9).
+- **A new step before the seal (P-2).** PLAN's C-1 rule needs the scoring code committed before anything is scored.
+  So `research/m4_sealed_report.py` must be built and tested on made-up records before step 4: it computes every
+  number in PREREG sections 3 to 6 (H1 to H3, Holm, the placebo mean, both leak checks, the deflated Sharpe as fixed
+  there, the replays' tables). Step 4 then runs the suite with `CHRONO_SLOW_LEAKS=1` before the lock and again after
+  it (P-6). The sealed run's order is main, older_vintage, the replays, the writer, then `ledger` (P-3).
+- **Step 2's result.** At `6401ee7`, T09's rerun gave the same decisions as step 6's run on all 817 decision days, with
+  no day that differs, and the same equity rows (`compare.json`: `decisions_equal` and `equity_equal` both true; 10.6
+  minutes). So the M4 seal changes and the review's W3-3 change to `agent/track_a.py` moved no dev decision. Ledger
+  row `runs/trials.csv`, no trial name; settings file `runs/settings/c7780628...a8b2.json`.
+- **The writer (step 3, P-2).** `research/m4_sealed_report.py` scores exactly PREREG sections 3 to 6: H1 to H3 with lag
+  6 and Holm, H3 as the larger p of its two tests, the placebo's daily mean, the switch-day check on 2020 to 2025 with
+  2026 apart, the older-vintage check, the outcomes and the deflated Sharpe's three versions with its variance guard.
+  The descriptive part reuses `eval/report.py`'s `build` with a new `sealed=True`: no p-values, and no reading,
+  variants, deflated Sharpe or switch-day sections. The dev report is unchanged with the default. The runner gained a
+  `replay` step, run after both parts and before the writer and `ledger`. Tests: `tests/test_m4_sealed_report.py`, 7,
+  all on made-up records.
+- **The checker** (Sonnet, at 48% of the 5-hour window): `research/audit/m4_writer_check.md`. Nothing missing, no
+  p-value left in the descriptive part. It found three things outside PREREG's words, all fixed: tests were still
+  shown for a void main part; the "older-vintage check did not run" label was not in PREREG; and the older table
+  showed p-values for two series PREREG doesn't test.
+- **The full suite after step 3:** 534 pass and 1 skip, in 39 minutes 13 seconds on 23 Nov (pytest exit 0). That is
+  527 plus the 7 in `tests/test_m4_sealed_report.py`.

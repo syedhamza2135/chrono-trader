@@ -9,6 +9,7 @@ One step per call, one job at a time, each holding the PC awake in its own proce
                                                       commit the lock alone straight after)
   python research/m4_sealed_run.py run main [--again]
   python research/m4_sealed_run.py run older_vintage [--again]
+  python research/m4_sealed_run.py replay             after both parts: every book at 0, 5, 10 and 20 bps
   python research/m4_sealed_run.py ledger             after the last sealed part: copies the sealed ledger rows into
                                                       runs/trials.csv and runs/settings/, for one commit
 The two parts are those of sim/seal.py. "main" runs the chosen configuration (stage2.json), its twins, the price-only
@@ -134,6 +135,28 @@ def run_step(part, again=False):
     log(f"sealed {part} run of {winner} {kw}: {len(runs)} agents, {(time.time() - t0) / 60:.1f} min")
 
 
+def replay_step():
+    """PREREG section 2: after both parts, each book of each part traded again at 0, 5, 10 and 20 bps
+    (sim.simulator.replay, which needs the seal and a logged start with the part's settings). Before the writer and
+    `ledger`, so the tree is still clean."""
+    winner, kw = chosen()
+    for part in seal.PARTS:
+        d = OUT / part
+        if not d.exists():
+            log(f"{part}: no runs to replay")
+            continue
+        agents, freeze = agents_of(part, kw)
+        world = world_of(part)
+        full = simulator.settings_many(world, agents, dev.COST, caller_settings(part), freeze)
+        base = simulator.Simulator(world, 0.0)
+        for p in sorted(d.iterdir()):
+            if (p / "decisions.parquet").exists():
+                for c, eq in simulator.replay(world, dev.load(p), costs=(0.0, 5.0, 10.0, 20.0), base=base,
+                                              settings=full).items():
+                    eq.to_parquet(p / f"equity_{c:g}bps.parquet", index=False)
+                log(f"replayed {part}/{p.name}")
+
+
 def ledger_step(ledger=LEDGER, repo_runs=ROOT / "runs"):
     """Copy the sealed ledger's rows and settings files into the repo's runs/trials.csv and runs/settings/, once every
     sealed part has run. Rows already there (same run_id) are skipped. Commit the result: it is the only change after
@@ -182,7 +205,7 @@ def dev_check():
 if __name__ == "__main__":
     args = sys.argv[1:]
     step = args[0] if args else ""
-    if step not in ("settings", "dev-check", "seal", "run", "ledger"):
+    if step not in ("settings", "dev-check", "seal", "run", "replay", "ledger"):
         print(__doc__)
         raise SystemExit(1)
     from reader.embed import stay_awake
@@ -194,6 +217,8 @@ if __name__ == "__main__":
         dev_check()
     elif step == "seal":
         seal_step()
+    elif step == "replay":
+        replay_step()
     elif step == "ledger":
         ledger_step()
     else:

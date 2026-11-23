@@ -72,9 +72,15 @@ def _twins(runs):
 
 
 def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv, replays=None, variants=None,
-          charts_dir=None, switch_years=(2017, 2018, 2019), title="M3 dev report", notes=(), trial_table=None):
+          charts_dir=None, switch_years=(2017, 2018, 2019), title="M3 dev report", notes=(), trial_table=None,
+          sealed=False):
     """Returns the report's markdown. Charts are written to charts_dir when given, and linked relative to it. The
-    switch-day check runs on `switch_years` only (M3 decision 2: the dev years), whatever `first` is."""
+    switch-day check runs on `switch_years` only (M3 decision 2: the dev years), whatever `first` is.
+
+    sealed=True gives the descriptive part of the sealed report (research/m4_sealed_report.py, PREREG.md): no
+    p-values, since PREREG tests only H1 to H3 and its two leak checks, which that writer scores itself; no reading
+    table, which tests each placebo seed; and no variants, deflated Sharpe or switch-day sections, which that writer
+    computes as PREREG fixes them."""
     variants = dict(variants or {})
     first, last = pd.Timestamp(first), pd.Timestamp(last)
     ic = {n: metrics.daily_rank_ic(r.decisions, labels) for n, r in {**runs, **variants}.items()
@@ -89,6 +95,14 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
           "distribution, which is slightly liberal for a quarter of about 63 days. The Newey-West lag follows the "
           "number of days (6 for 754), which is shorter than a 20-day first-20 block, so those errors may be low.\n"]
     md += [f"- {n}\n" for n in notes]
+    if sealed:
+        md[1] = (f"Sealed years {first.date()} to {last.date()}, described only: nothing in this part is a test "
+                 f"(PREREG.md section 3). Costs {run_bps:g} bps per side unless a table says otherwise. Sharpe ratios "
+                 "are over zero, with no cash rate, borrow fee or short rebate. Every number below comes from "
+                 "`eval/report.py` over the runs named here.\n")
+
+    def tb(df, index=True):
+        return table(df.drop(columns=[c for c in df.columns if c == "p"]) if sealed else df, index)
 
     trials = read_trials(trials_csv)
     latest = {r["trial"]: r.get("status") for r in trials if r.get("trial")}
@@ -100,25 +114,26 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
     if trials:
         cols = [c for c in ["trial", "status", "run_id", "commit", "dirty", "settings_hash", "agents"]
                 if c in trials[0]]
-        md.append(table(pd.DataFrame(trials)[cols], index=False))
+        md.append(tb(pd.DataFrame(trials)[cols], index=False))
 
     md.append("\n## Daily rank IC by quarter (live)\n\n")
     if "live" in ic:
-        md.append(table(metrics.ic_by_quarter(ic["live"], first, last).rename_axis("quarter")))
+        md.append(tb(metrics.ic_by_quarter(ic["live"], first, last).rename_axis("quarter")))
 
     twins = {y: ic[f"live_frozen_{y}"] for y in _twins(runs) if f"live_frozen_{y}" in ic}
     md.append("\n## Frozen-twin gaps (live minus twin, paired daily IC)\n\n")
-    md.append(table(metrics.twin_gaps(ic["live"], twins, last), index=False) if "live" in ic and twins else "(none)\n")
+    md.append(tb(metrics.twin_gaps(ic["live"], twins, last), index=False) if "live" in ic and twins else "(none)\n")
 
-    md.append("\n## Reading: the price-only twin and the placebo (live minus each, paired daily IC)\n\n")
-    reading = {}
-    if "live" in ic and "price_only" in ic:
-        reading["price_only"] = metrics.paired_gaps(ic["live"], ic["price_only"], first, last, by=None).loc["all"]
-    for s in sorted(_seeds(runs, "placebo_"), key=int):
-        if f"placebo_{s}" in ic and "live" in ic:
-            reading[f"placebo_{s}"] = metrics.paired_gaps(ic["live"], ic[f"placebo_{s}"], first, last,
-                                                          by=None).loc["all"]
-    md.append(table(pd.DataFrame(reading).T.rename_axis("against")) if reading else "(none)\n")
+    if not sealed:
+        md.append("\n## Reading: the price-only twin and the placebo (live minus each, paired daily IC)\n\n")
+        reading = {}
+        if "live" in ic and "price_only" in ic:
+            reading["price_only"] = metrics.paired_gaps(ic["live"], ic["price_only"], first, last, by=None).loc["all"]
+        for s in sorted(_seeds(runs, "placebo_"), key=int):
+            if f"placebo_{s}" in ic and "live" in ic:
+                reading[f"placebo_{s}"] = metrics.paired_gaps(ic["live"], ic[f"placebo_{s}"], first, last,
+                                                              by=None).loc["all"]
+        md.append(tb(pd.DataFrame(reading).T.rename_axis("against")) if reading else "(none)\n")
 
     md.append("\n## Matched baselines\n\nLong-short, against cash (zero) and the long-short baselines:\n\n")
     ls = {n: runs[n].equity for n in ["live", "momentum", "reversal"] + [f"random_{s}" for s in
@@ -130,7 +145,7 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
                           math.nan for n in lst.index]
         lst.loc["cash"] = pd.Series({c: math.nan if c.startswith("sharpe") or c == "mean_ic" else 0.0
                                      for c in lst.columns})
-    md.append(table(lst.rename_axis("book")))
+    md.append(tb(lst.rename_axis("book")))
     md.append("\nLong-only, against SPY buy-and-hold and all picks equally:\n\n")
     lo = {n: runs[n].equity for n in ["live_long_only", "equal_weight"] if n in runs}
     lot = metrics.book_table(lo, first, last, before) if lo else pd.DataFrame()
@@ -142,23 +157,24 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
         lot.loc["spy_buy_and_hold", ["annual_return", "annual_vol", "sharpe_after_costs", "max_drawdown",
                                      "days"]] = [st["annual_return"], st["annual_vol"], st["sharpe"],
                                                  st["max_drawdown"], st["days"]]
-    md.append(table(lot.rename_axis("book")))
+    md.append(tb(lot.rename_axis("book")))
 
     if trial_table is not None:
-        md.append("\n## Every trial, winners and losers\n\n" + table(trial_table.rename_axis("trial")))
-    md.append("\n## Variants (each a trial)\n\n")
-    if variants:
-        vt = metrics.book_table({n: r.equity for n, r in variants.items()}, first, last, before)
-        vt["mean_ic"] = [stats.nw_mean(metrics.within(ic[n], first, last).to_numpy())["mean"] if n in ic else
-                         math.nan for n in vt.index]
-        md.append(table(vt.rename_axis("variant")))
-    else:
-        md.append("(none)\n")
+        md.append("\n## Every trial, winners and losers\n\n" + tb(trial_table.rename_axis("trial")))
+    if not sealed:
+        md.append("\n## Variants (each a trial)\n\n")
+        if variants:
+            vt = metrics.book_table({n: r.equity for n, r in variants.items()}, first, last, before)
+            vt["mean_ic"] = [stats.nw_mean(metrics.within(ic[n], first, last).to_numpy())["mean"] if n in ic else
+                             math.nan for n in vt.index]
+            md.append(tb(vt.rename_axis("variant")))
+        else:
+            md.append("(none)\n")
 
     md.append("\n## Costs (bps per side)\n\n")
     for n in ("live", "live_long_only"):
         if n in replays:
-            md.append(f"{n}:\n\n" + table(metrics.cost_table(replays[n], first, last).rename_axis(
+            md.append(f"{n}:\n\n" + tb(metrics.cost_table(replays[n], first, last).rename_axis(
                 "cost")) + "\n")
 
     md.append("\n## Exposures\n\n")
@@ -166,26 +182,27 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
         mkt = metrics.spy_open_returns(spy)
         bt = {n: metrics.beta(ret[n], mkt) for n in ("live", "live_long_only") if n in ret}
         md.append("Market beta against SPY's open-to-open returns (Newey-West):\n\n" +
-                  table(pd.DataFrame(bt).T.rename_axis("book")) + "\n")
+                  tb(pd.DataFrame(bt).T.rename_axis("book")) + "\n")
     for n in ("live", "live_long_only"):
         if sectors is not None and n in runs:
             md.append(f"Sector tilt of {n}'s targets (net weight; sectors are Wikipedia's list as of each date, see "
                       "`research/audit/benchmarks.md`):\n\n" +
-                      table(metrics.sector_tilt(runs[n].decisions, sectors, first, last).rename_axis("sector")) +
+                      tb(metrics.sector_tilt(runs[n].decisions, sectors, first, last).rename_axis("sector")) +
                       "\n")
 
-    md.append("\n## Deflated Sharpe (the chosen version)\n\n")
-    if "live" in ret:
-        srs = [stats.moments(r.dropna().to_numpy())[0] for n, r in ret.items()
-               if (n == "live" or n in variants) and r.dropna().std() > 0]
-        n_trials = max(n_ledger, len(srs))  # a run in the ledger can hold several trials (judge item 1)
-        ds = stats.deflated_sharpe(ret["live"].to_numpy(), n_trials, srs)
-        md.append(f"Trials counted: {n_trials} (the larger of the ledger's {n_ledger} trials and the {len(srs)} "
-                  "trials shown).\n\n")
-        if len(srs) < 2:
-            md.append("**Warning:** fewer than 2 trials' Sharpe ratios, so their spread is 0 and the deflated "
-                      "Sharpe equals the probabilistic Sharpe against 0.\n\n")
-        md.append(table(pd.DataFrame([ds]), index=False))
+    if not sealed:
+        md.append("\n## Deflated Sharpe (the chosen version)\n\n")
+        if "live" in ret:
+            srs = [stats.moments(r.dropna().to_numpy())[0] for n, r in ret.items()
+                   if (n == "live" or n in variants) and r.dropna().std() > 0]
+            n_trials = max(n_ledger, len(srs))  # a run in the ledger can hold several trials (judge item 1)
+            ds = stats.deflated_sharpe(ret["live"].to_numpy(), n_trials, srs)
+            md.append(f"Trials counted: {n_trials} (the larger of the ledger's {n_ledger} trials and the {len(srs)} "
+                      "trials shown).\n\n")
+            if len(srs) < 2:
+                md.append("**Warning:** fewer than 2 trials' Sharpe ratios, so their spread is 0 and the deflated "
+                          "Sharpe equals the probabilistic Sharpe against 0.\n\n")
+            md.append(tb(pd.DataFrame([ds]), index=False))
 
     md.append("\n## Seed spread\n\n")
     for prefix in ("placebo_", "random_"):
@@ -193,26 +210,27 @@ def build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv
         if seeds:
             sp = metrics.seed_spread({s: ic[prefix + s] for s in seeds if prefix + s in ic},
                                      {s: r.equity for s, r in seeds.items()}, first, last)
-            md.append(f"{prefix.rstrip('_')}:\n\n" + table(sp.rename_axis("seed")) + "\n")
+            md.append(f"{prefix.rstrip('_')}:\n\n" + tb(sp.rename_axis("seed")) + "\n")
 
     md.append("\n## Regimes and shocks (reported, not tested)\n\n")
     if spy is not None and len(spy) and "live" in ic:
         days = pd.DatetimeIndex(sessions)
         days = days[(days >= first) & (days <= last)]
         reg = metrics.regimes(spy, days)
-        md.append(table(metrics.regime_table(ic["live"], ret["live"], reg, first, last), index=False))
+        md.append(tb(metrics.regime_table(ic["live"], ret["live"], reg, first, last), index=False))
 
     md.append("\n## Coefficient life (reported, not tested)\n\nEach frozen twin's mean daily IC by quarter since "
               "its snapshot:\n\n")
-    md.append(table(metrics.coefficient_life(twins, last), index=False) if twins else "(none)\n")
+    md.append(tb(metrics.coefficient_life(twins, last), index=False) if twins else "(none)\n")
 
-    md.append("\n## The switch-day check (`research/audit/cutoff.md` 10.2)\n\n")
-    if "live" in ic and "price_only" in ic:
-        sd = switch_day(ic["live"], ic["price_only"], sessions, list(switch_years))
-        md.append(table(sd["years"], index=False) + "\n" + table(pd.DataFrame([sd["pooled"]]), index=False))
-        md.append(f"\nYears counted: {sd['years_counted']}. Warning (a), the pooled difference above zero at one-sided "
-                  f"5%: {_fmt(sd['warning_a'])}. Warning (b), at least half the years above by more than two "
-                  f"standard errors: {_fmt(sd['warning_b'])}.\n")
+    if not sealed:
+        md.append("\n## The switch-day check (`research/audit/cutoff.md` 10.2)\n\n")
+        if "live" in ic and "price_only" in ic:
+            sd = switch_day(ic["live"], ic["price_only"], sessions, list(switch_years))
+            md.append(tb(sd["years"], index=False) + "\n" + tb(pd.DataFrame([sd["pooled"]]), index=False))
+            md.append(f"\nYears counted: {sd['years_counted']}. Warning (a), the pooled difference above zero at "
+                      f"one-sided 5%: {_fmt(sd['warning_a'])}. Warning (b), at least half the years above by more "
+                      f"than two standard errors: {_fmt(sd['warning_b'])}.\n")
 
     if charts_dir is not None:
         md.append("\n## Charts\n\n")

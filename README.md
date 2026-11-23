@@ -85,7 +85,9 @@ Run these from the repo root with the venv's Python.
 | `python research/m3_trial_plan.py [--log]` | Prints the frozen trial plan's SHA-256; with `--log`, adds the planned rows to `runs/trials.csv` |
 | `python research/m3_dev_runs.py stage1 \| stage2 \| compare \| report` | The dev runs under the frozen plan: stage 1, stage 2, the comparison pass with its cost replays, and `research/m3_dev_report.md` (charts to D:). Each run is a row of `runs/trials.csv`; outputs in `D:\chrono-data\runs\m3_dev` |
 | `python research/m3_older_vintage.py space`, `count`, `run`, `result` | The older-vintage rerun's steps: disk space, the table's counts, the rerun of the chosen configuration, and the warning rule |
-| `python research/m4_sealed_run.py settings`, `dev-check`, `seal`, `run main`, `run older_vintage` | M4's sealed run (`research/m4_kickoff.md`): each part's settings hash, the dev check at the sealed commit, the `seal.lock` writer, and each part's one sealed run (`--again` for a second, logged as another trial). Only on the owner's go |
+| `python research/m4_sealed_run.py settings`, `dev-check`, `seal`, `run main`, `run older_vintage`, `replay`, `ledger` | M4's sealed run (`research/m4_kickoff.md`): each part's settings hash, the dev check at the sealed commit, the `seal.lock` writer, and each part's one sealed run (`--again` for a second, logged as another trial). Only on the owner's go |
+| `python research/m4_t09_check.py` | M4 step 2: T09 rerun on the dev years at the current commit, against step 6's run, day by day |
+| `python research/m4_sealed_report.py` | The sealed report's writer, the scoring code PREREG.md names. Run it once, after both sealed parts and their replays |
 | `python research/reader_stats.py` | The run's counts, speeds and disk use, for `research/audit/reader.md` |
 | `python research/world_memory.py` | `World.load`'s time and memory with the embeddings, and the cost of a view in each period |
 
