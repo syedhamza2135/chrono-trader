@@ -117,10 +117,12 @@ class Simulator:
 def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
     """The daily loop from the session `first` to the session `last`: decide at 9:00, fill at the open. Dates in the
     sealed years need a matching seal (sim/seal.py) on the run's whole settings: the caller's, the costs, and the
-    agent's class and parameters, and the World's embedding window (M3 decision 1)."""
+    agent's class and parameters, and the World's embedding window (M3 decision 1). A World with a vintage_offset
+    (the older-vintage rerun, M3 step 7) is refused for any sealed date, seal or not."""
     full = {**(settings or {}), "cost_bps": cost_bps, "agent": type(agent).__name__,
             "agent_params": getattr(agent, "params", None),
             "embedding_window_days": getattr(world, "embedding_window_days", None)}
+    _offset(world, last, full)
     seal.check(first, last, full if settings is not None else None)
     was_allowed = world.allow_sealed
     if pd.Timestamp(last) >= seal.sealed_start():
@@ -138,6 +140,17 @@ def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
     cols = ["date", "entity_id", "share_class", "prediction", "position"]
     d = pd.concat(decisions, ignore_index=True)[cols] if decisions else pd.DataFrame(columns=cols)
     return Run(d, pd.DataFrame(sim.rows), {"forced_sales": sim.forced_sales, "unmarked": sim.unmarked})
+
+
+def _offset(world, last, full):
+    """Refuse a World with a vintage_offset for a run that reaches the sealed years, and record the offset in the
+    settings (so in their hash) when it is not 0. With offset 0 the settings stay as they were, so older runs' hashes
+    don't change."""
+    off = getattr(world, "vintage_offset", 0)
+    if off:
+        if pd.Timestamp(last) >= seal.sealed_start():
+            raise PermissionError("a World with a vintage_offset may not run into the sealed years")
+        full["vintage_offset"] = off
 
 
 def _fresh(base):
@@ -174,6 +187,7 @@ def run_many(world, agents, first, last, cost_bps=COST_BPS, settings=None, freez
                                                                                          None),
             "agents": {n: {"agent": type(a).__name__, "agent_params": getattr(a, "params", None)}
                        for n, a in agents.items()}, "freeze": list(freeze)}
+    _offset(world, last, full)
     seal.check(first, last, full if settings is not None else None)
     was_allowed = world.allow_sealed
     if pd.Timestamp(last) >= seal.sealed_start():

@@ -70,6 +70,8 @@ Run these from the repo root with the venv's Python.
 | `python -m reader.embed run` | Reads every story from 2016 on with the vintage the rule names, part by part, into `D:\chrono-data\reader\v{vintage}`. About 6 hours on the laptop; it resumes at the first missing part and keeps the laptop from idle sleep |
 | `python -m reader.embed finish` | Checks every part against its manifest and the store, then writes `embeddings.parquet`, `embeddings.json` and the two `.npy` arrays to the store |
 | `python -m reader.embed arrays` | Writes the `.npy` arrays again from `embeddings.parquet` (`World.load` maps them read-only) |
+| `python -m reader.embed run-older`, `finish-older`, `arrays-older` | The same jobs for the older-vintage rerun (M3 step 7): every story read by the vintage a year older, all into `D:\chrono-data\reader_older` |
+| `python research/m3_older_vintage.py space`, `count`, `run`, `result` | The older-vintage rerun's steps: disk space, the table's counts, the rerun of the chosen configuration, and the warning rule |
 | `python research/reader_stats.py` | The run's counts, speeds and disk use, for `research/audit/reader.md` |
 | `python research/world_memory.py` | `World.load`'s time and memory with the embeddings, and the cost of a view in each period |
 

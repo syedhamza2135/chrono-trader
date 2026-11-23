@@ -564,6 +564,54 @@ River's online learners are not trials: the venv has no River (decision 5).
     (t 2.47), above the live agent's, and the placebo seeds' t values spread with a standard deviation of 1.59, so
     the t values here may be too large. The 40 days after a shock show an IC of 0.0649 (t 4.01); that is reported,
     not tested, and a small sample.
+- **Checkpoint 2** is commit `210bfaf` (the dev report, this note and the ledger rows).
+
+### Step 7: the older-vintage rerun (started 23 Nov)
+
+- **The World's `vintage_offset`** (`world/world.py`, `reader/vintage.py`):
+  - Offset 1 gives a story from New York year Y the vintage Y-2, capped at 2023. So 2016's stories are read by
+    2014, and the 2025 and 2026 stories by 2023. Only 0 and 1 are accepted, and the offset is fixed when the World
+    is built.
+  - A World with offset 1 takes only the older table: a row with the rule's own vintage is refused. The default
+    World still refuses any row with a wrong vintage, the older table included.
+  - An offset World never opens the sealed years. It refuses `allow_sealed`, and its views refuse sealed dates even
+    if `allow_sealed` is set later. `sim.simulator.run` and `run_many` refuse it for any sealed date, before the seal
+    is checked.
+  - The runner puts `vintage_offset: 1` into the run's settings, so it goes into the settings hash. With offset 0
+    the settings stay as they were, so older runs' hashes don't change.
+  - `World.load(embeddings_store=..., vintage_offset=1)` reads the older table from `D:\chrono-data\reader_older`
+    and every other table from the store.
+- **The reader** (`reader/embed.py`): `run-older`, `finish-older` and `arrays-older` are the same jobs with offset 1.
+  The parts and the table all go to `D:\chrono-data\reader_older`. Each manifest records the offset.
+- **The leak check** (`eval/leaks.py`): `non_interference` takes the offset, so a shifted story's embedding takes
+  the older vintage.
+- **Tests** (`tests/test_vintage_offset.py`, 12): the rule with offset 1 by hand; only 0 and 1 accepted; the
+  default World refusing one wrong-vintage row and the whole older table; the offset World refusing the rule's
+  vintage; the sealed years shut, in the World and in the runner; the offset in the settings and their hash; the
+  older reader's rows accepted by the offset World only; and `non_interference` in all three modes for the chosen
+  configuration on the older table.
+- **The rerun** (`research/m3_older_vintage.py`): `space`, `count` (the older table against the main one's 502,712
+  rows, story ids, times and vintages), `run` (the chosen configuration from `stage2.json`, unchanged, on the older
+  table, to 2019-12-31) and `result` (the warning rule exactly as `cutoff.md` 10.1 froze it). The run is a ledger
+  row with no trial name, so the trial count stays 8.
+- **Disk.** D: had 60.6 GB free on 23 Nov. The main table and its arrays take 3.02 GB.
+- **The full suite after step 7's build:** 508 pass and 1 skip, in 36 minutes 55 seconds on 23 Nov (pytest exit 0).
+- **The reading** started at 22:57 New York on 22 Nov (`python -m reader.embed run-older`, a detached process; log
+  `D:\chrono-data\reader_older\run.log`; `run.pid` holds the venv launcher's pid, 17736, and the reader itself is
+  7324). It counts 502,712 stories, the main table's count. Its first five parts (vintage 2014) each took about 3.7
+  minutes, about 22 headlines a second, so the whole reading takes about 6.3 hours. The log is buffered, so the
+  parts on disk show progress first.
+- **Commits.** The auto-mode check first refused the commit of this build, since the owner's permission to commit was
+  given for step 6's phase. On 23 Nov the owner approved it ("Yes, commit step 7", relayed by the lead), but the
+  check refused the commit again, since the approval reached this session through another session. The build waits,
+  uncommitted, for the owner to commit it or allow it in this session.
+- **The lead's reading of an ambiguous line** (23 Nov, decided after seeing the dev result; for the owner and the
+  step 8 review). `cutoff.md` 10.1 says: "If the news effect isn't above zero in the first place, the check says
+  nothing". The lead reads "above zero" as above zero at one-sided 5%, the same test the warning uses in (b). The
+  dev news effect is +0.0069 (Newey-West t 0.74, one-sided p 0.23), so by the frozen rule the check says nothing on
+  the dev years: it is "not informative", never "passed". The reading and the rerun still run, since they cost
+  laptop hours, not usage, and the table can serve a sealed-year repeat if M4 adds one. Every rerun number is
+  descriptive only, outside the frozen rule. Neither the rule nor the trial changes.
 
 Steps 1 and 2 can be built in either order; 3 needs 2; 4 needs 3; 5 can start beside 4; 6 needs 4 and 5; 7 needs 6.
 By the playbook, each step is its own task session, one at a time, and each starts at 55% or less of the window if
