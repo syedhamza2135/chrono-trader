@@ -1,7 +1,9 @@
 """What World.load costs with the embeddings (judge J-3): the time to load, the process's private memory, and the
 time and size of a view in each period. Also checks the .npy arrays against embeddings.parquet on three row groups.
 Prints counts, times and sizes only. Windows only (it reads the memory through psapi).
-Usage: python research/world_memory.py
+Usage: python research/world_memory.py [DAYS | all]
+DAYS is the World's embedding window (M3 decision 1; the World's default, 90, when left out). `all` serves every
+visible row, as M2 measured (research/audit/reader.md).
 """
 import ctypes
 import json
@@ -17,7 +19,7 @@ import pandas as pd  # noqa: E402
 import pyarrow.parquet as pq  # noqa: E402
 
 from data_pipeline.settings import DATA_DIR  # noqa: E402
-from world.world import World  # noqa: E402
+from world.world import EMBEDDING_WINDOW_DAYS, World  # noqa: E402
 
 
 class _Counters(ctypes.Structure):
@@ -55,8 +57,11 @@ def main():
     print(f"arrays equal embeddings.parquet on its first, middle and last of {groups} row groups: {same}")
     del arrays
     t0 = time.time()
-    w = World.load(allow_sealed=True)
-    print(f"World.load with embeddings: {time.time() - t0:.0f} s, {memory()}")
+    arg = sys.argv[1] if len(sys.argv) > 1 else None
+    window = None if arg == "all" else (int(arg) if arg else EMBEDDING_WINDOW_DAYS)
+    w = World.load(allow_sealed=True, embedding_window_days=window)
+    print(f"World.load with embeddings (window: {window if window else 'every row'}): {time.time() - t0:.0f} s, "
+          f"{memory()}")
     split = json.loads((ROOT / "reference" / "split.json").read_text(encoding="utf-8"))["periods"]
     for name in ("warm_up", "dev", "sealed"):
         day = w.clock.between(split[name]["start"], split[name]["end"])[-1]

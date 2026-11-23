@@ -28,7 +28,15 @@ M2, the reader, has its table (PLAN.md, section 5.2; state and decisions in [res
 - **The cutoff check:** only the 2016 vintage is supported by evidence; the other nine that read news are too weak to judge, and the owner accepted all 11 as published, a known limit. Audit: [research/audit/cutoff.md](research/audit/cutoff.md).
 - **The embeddings:** 502,712 stories, each read by the vintage the rule names, in `D:\chrono-data\store\embeddings.parquet`, served to agents only through `World.view(t)`. Audit: [research/audit/reader.md](research/audit/reader.md). Reviews: [research/audit/embed_judge.md](research/audit/embed_judge.md).
 
-Nothing is trained yet.
+M3, Track A on the dev years, is built and reviewed (PLAN.md, section 9.2; state, decisions and the frozen trial plan in [research/m3_kickoff.md](research/m3_kickoff.md)):
+
+- **Benchmarks for the report only:** SPY's daily bars and each company's GICS sector by date (`data_pipeline/benchmarks.py`, read only by `eval/benchmarks.py`). Audit: [research/audit/benchmarks.md](research/audit/benchmarks.md).
+- **The 90-day embedding window:** a view serves only the embeddings that became visible in the last 90 days.
+- **The agent:** `agent/track_a.py`, the monthly ridge learner over news embeddings and price features that ranks the 50 most-traded members.
+- **The comparison harness:** frozen twins, the price-only twin, the shuffled-news placebo (`agent/placebo.py`), the baselines (`agent/baselines.py`) and the ledger `runs/trials.csv` (`eval/trials.py`), all fed by one pass over the views (`sim.simulator.run_many`).
+- **The report:** metrics (`eval/metrics.py`), statistics (`eval/stats.py`), the switch-day check (`eval/switch_day.py`), charts (`eval/charts.py`) and the writer (`eval/report.py`). Results: [research/m3_dev_report.md](research/m3_dev_report.md). The older-vintage check: [research/m3_older_vintage.md](research/m3_older_vintage.md). Review: [research/review_m3_2026-11-23.md](research/review_m3_2026-11-23.md).
+
+On the dev years (2017 to 2019) the chosen configuration's mean daily rank IC is 0.0076 (t 1.38), and its long-short book loses money after 5 bps. The sealed years stay shut.
 
 ## Setup
 
@@ -52,7 +60,7 @@ Run these from the repo root with the venv's Python.
 | `python research/alpaca_check.py` | Checks that the keys reach Alpaca's news and prices. It prints counts only |
 | `python -m data_pipeline.membership` | Extends the fja05680 membership file to today with Wikipedia's change log, and writes `research/audit/membership.md` |
 | `python -m data_pipeline.identity` | Builds the identity tables in `reference/` from Wikipedia's monthly lists and the hand-checked `reference/identity_fixes.csv`, and writes `research/audit/identity.md` |
-| `python -m pytest tests` | Checks the identity tables, the price and news audits' rules, the split, the print check, M1 (the auctions, the store's rules, the time wall, the simulator, the seal, the import boundaries and the leak tests) and M2 (the cutoff check's rules, the reader job, the embeddings' time wall and the real embeddings table). About 10 minutes. Tests that need the store or the embeddings skip without them, and the slow leak test runs only with `CHRONO_SLOW_LEAKS=1` |
+| `python -m pytest tests` | Checks the identity tables, the price and news audits' rules, the split, the print check, M1 (the auctions, the store's rules, the time wall, the simulator, the seal, the import boundaries and the leak tests) and M2 (the cutoff check's rules, the reader job, the embeddings' time wall and the real embeddings table) and M3 (the window, the agent, the harness, the metrics and the vintage offset). About 35 to 52 minutes. Tests that need the store or the embeddings skip without them, and the slow leak test runs only with `CHRONO_SLOW_LEAKS=1` |
 | `python -m data_pipeline.bars` | Downloads daily bars for each company's tickers, as the identity table dates them. It writes the download plan and resumes |
 | `python -m data_pipeline.news` | Downloads every news headline, one file per month. About 4.5 hours, and it resumes |
 | `python -m data_pipeline.audit_prices` | Writes `research/audit/prices.md` and its CSVs (about 3 minutes), including `incomplete_bars.csv`: member bars with a trade count below 5% of the median of the file's previous 20 bars |
@@ -70,6 +78,13 @@ Run these from the repo root with the venv's Python.
 | `python -m reader.embed run` | Reads every story from 2016 on with the vintage the rule names, part by part, into `D:\chrono-data\reader\v{vintage}`. About 6 hours on the laptop; it resumes at the first missing part and keeps the laptop from idle sleep |
 | `python -m reader.embed finish` | Checks every part against its manifest and the store, then writes `embeddings.parquet`, `embeddings.json` and the two `.npy` arrays to the store |
 | `python -m reader.embed arrays` | Writes the `.npy` arrays again from `embeddings.parquet` (`World.load` maps them read-only) |
+| `python -m reader.embed run-older`, `finish-older`, `arrays-older` | The same jobs for the older-vintage rerun (M3 step 7): every story read by the vintage a year older, all into `D:\chrono-data\reader_older` |
+| `python -m data_pipeline.benchmarks` | Downloads SPY's bars and builds the sector table from the saved Wikipedia lists, into `store\spy.parquet` and `store\sectors.parquet`, and writes `research/audit/benchmarks.md` |
+| `python research/track_a_timing.py` | Times one Track A run over 2016 to 2019. Prints times, counts and memory only |
+| `python research/m3_compare_timing.py` | Times one comparison pass with every agent over 2016 to 2019. Prints times, counts and memory only |
+| `python research/m3_trial_plan.py [--log]` | Prints the frozen trial plan's SHA-256; with `--log`, adds the planned rows to `runs/trials.csv` |
+| `python research/m3_dev_runs.py stage1 \| stage2 \| compare \| report` | The dev runs under the frozen plan: stage 1, stage 2, the comparison pass with its cost replays, and `research/m3_dev_report.md` (charts to D:). Each run is a row of `runs/trials.csv`; outputs in `D:\chrono-data\runs\m3_dev` |
+| `python research/m3_older_vintage.py space`, `count`, `run`, `result` | The older-vintage rerun's steps: disk space, the table's counts, the rerun of the chosen configuration, and the warning rule |
 | `python research/reader_stats.py` | The run's counts, speeds and disk use, for `research/audit/reader.md` |
 | `python research/world_memory.py` | `World.load`'s time and memory with the embeddings, and the cost of a view in each period |
 

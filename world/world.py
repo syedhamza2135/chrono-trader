@@ -17,10 +17,20 @@ Embeddings (review finding M-3): one row per story, with story_id, vintage_year,
 A row becomes visible with its story (rules.embedding). The World refuses the whole table, with an error, if any row
 has no kept story, has a vintage other than the rule's (reader/vintage.py), repeats a story, or stores an
 available_at other than its story's: a row left over from before its story was edited (review finding L-P7), or
-timed by mistake. A row shows when its story's first company link does (judge J-1), so an embedding never tells of a
+timed by mistake. The one exception is vintage_offset=1, for the older-vintage rerun only (research/audit/cutoff.md
+section 10.1, M3 step 7): then every row must carry the vintage a year older than the rule's, and a row with the
+rule's own vintage is refused instead. A World with the offset never opens the sealed years: it refuses
+allow_sealed, its views refuse sealed dates, and sim.simulator.run refuses it for any sealed date. The runner records
+the offset in the run's settings, so it goes into the settings hash. A row shows when its story's first company link does (judge J-1), so an embedding never tells of a
 company the view hides. The World keeps the vectors in their stored order (World.load maps the store's .npy files
 read-only from D:, since they don't fit in memory twice; judge J-3) with an order by visible_at, and a view gets
-fresh copies of the visible rows only. Views on or after the sealed start (reference/split.json) need `allow_sealed`, which the
+fresh copies of the visible rows only.
+
+The embedding window (M3, decision 1 in research/m3_kickoff.md, approved 22 Nov 2026): a view at t holds only the
+embeddings whose visible_at falls in the EMBEDDING_WINDOW_DAYS days (of 24 hours) up to t, so a late view stays
+small. It is measured on visible_at, so a story whose embedding shows late (a rejoin, judge J-1) still shows on the
+day it becomes visible. A window only removes rows a view would otherwise hold. None serves every visible row. The
+runner records the window in the run's settings (sim/simulator.py). Views on or after the sealed start (reference/split.json) need `allow_sealed`, which the
 runner sets only after the seal holds (sim/seal.py), or a data audit sets explicitly.
 """
 import json
@@ -36,6 +46,8 @@ from .view import View
 NEVER = np.iinfo("int64").max
 ROOT = Path(__file__).resolve().parents[1]
 KEYS = ("entity_id", "share_class", "symbol")
+EMBEDDING_WINDOW_DAYS = 90  # M3 decision 1; PLAN 9.6's news memory has a half-life of 5 sessions
+DAY_NS = 86_400 * 10**9
 
 
 def _ns(times):
@@ -184,8 +196,9 @@ def _vectors(col):
     return np.stack([np.asarray(x) for x in col]).copy()
 
 
-def embedding_problems(embeddings, stories):
-    """Why the World must refuse an embeddings table built for these (kept) stories: an empty list if none."""
+def embedding_problems(embeddings, stories, vintage_offset=0):
+    """Why the World must refuse an embeddings table built for these (kept) stories: an empty list if none. With
+    vintage_offset 1, the vintage each row must carry is a year older than the rule's."""
     from reader.vintage import breaches
     out = []
     st = stories.drop_duplicates("story_id").set_index("story_id")
@@ -195,9 +208,10 @@ def embedding_problems(embeddings, stories):
     if embeddings.story_id.duplicated().any():
         out.append(f"{int(embeddings.story_id.duplicated().sum())} rows repeat a story")
     k = embeddings[known]
-    bad = breaches(k[["story_id", "vintage_year"]], stories)
+    bad = breaches(k[["story_id", "vintage_year"]], stories, vintage_offset)
     if len(bad):
-        out.append(f"{len(bad)} rows were not read by the vintage the rule names")
+        named = "the vintage the rule names" if vintage_offset == 0 else f"the vintage {vintage_offset} year older"
+        out.append(f"{len(bad)} rows were not read by {named}")
     want = _ns(rules.embedding(k.story_id.map(st.updated_at)))
     have = _ns(pd.to_datetime(k.available_at, utc=True))
     if (want != have).any():
@@ -233,11 +247,13 @@ class _SortedEmbeddings:
         np.take(vectors, idx, axis=0, out=out)
         return out
 
-    def upto(self, ns):
-        """Fresh copies of the rows visible at ns: nothing in them is a view of the World's arrays."""
+    def upto(self, ns, since=None):
+        """Fresh copies of the rows visible at ns, and only those visible after `since` if given (the window):
+        nothing in them is a view of the World's arrays."""
         k = int(np.searchsorted(self.at, ns, side="right"))
-        idx = self.order[:k]
-        return Embeddings(self.rows.iloc[:k].copy(deep=True), self._gather(self._last, idx),
+        j = 0 if since is None else min(int(np.searchsorted(self.at, since, side="right")), k)
+        idx = self.order[j:k]
+        return Embeddings(self.rows.iloc[j:k].reset_index(drop=True).copy(deep=True), self._gather(self._last, idx),
                           self._gather(self._avg, idx))
 
 
@@ -279,9 +295,17 @@ def load_embeddings(store):
 
 class World:
     def __init__(self, bars, labels, opens, stories, story_entities, membership, clock=None, allow_sealed=False,
-                 embeddings=None):
+                 embeddings=None, embedding_window_days=EMBEDDING_WINDOW_DAYS, vintage_offset=0):
+        from reader.vintage import check_offset
         self.clock = clock or Clock()
+        self._offset = check_offset(vintage_offset)  # read-only after this: a run records it once
+        if vintage_offset and allow_sealed:
+            raise PermissionError("a World with a vintage_offset never opens the sealed years")
         self.allow_sealed = allow_sealed
+        w = embedding_window_days
+        if w is not None and (isinstance(w, bool) or not isinstance(w, int) or w <= 0):
+            raise ValueError("embedding_window_days must be a positive whole number of days, or None")
+        self._window = embedding_window_days  # read-only after this (judge W-3): a run records it once
         self._sealed = sealed_start()
         m = membership.copy()
         m["entity_id"] = m.entity_id.astype(str)
@@ -301,13 +325,23 @@ class World:
         self.story_entities = _Sorted(se, visible_at("story_entities", se, self._spells, stories))
         self.embeddings = None
         if embeddings is not None:
-            found = embedding_problems(_rows(embeddings), stories)
+            found = embedding_problems(_rows(embeddings), stories, vintage_offset)
             if found:
                 raise ValueError("the embeddings table is refused: " + "; ".join(found))
             self.embeddings = _SortedEmbeddings(embeddings, visible_at("embeddings", _rows(embeddings), self._spells,
                                                                        stories, se))
         self.opens = _plain(opens).sort_values(["entity_id", "share_class", "date"]).reset_index(drop=True)
         self.data_end = pd.Timestamp(labels.end.max()) if len(labels) else None
+
+    @property
+    def embedding_window_days(self):
+        """The embedding window in days (None: every visible row). Fixed when the World is built."""
+        return self._window
+
+    @property
+    def vintage_offset(self):
+        """0 for the rule's vintages; 1 for the older-vintage rerun only. Fixed when the World is built."""
+        return self._offset
 
     def members_at(self, ns):
         """(members at t, every company that has joined by t), from the join and leave events available at t."""
@@ -320,22 +354,33 @@ class World:
         if t.tzinfo is None:
             raise ValueError("view(t) needs a time zone; the clock's times are UTC")
         t = t.tz_convert("UTC")
-        if not self.allow_sealed and t.tz_convert(NY).tz_localize(None) >= self._sealed:
+        sealed = t.tz_convert(NY).tz_localize(None) >= self._sealed
+        if sealed and self._offset:
+            raise PermissionError(f"{t} is in the sealed years, and a World with a vintage_offset never opens them")
+        if not self.allow_sealed and sealed:
             raise PermissionError(f"{t} is in the sealed years: run through sim.simulator.run, which checks the seal")
         ns = t.as_unit("ns").value
         members, joined = self.members_at(ns)
+        since = None if self._window is None else ns - self._window * DAY_NS
         return View(t, self.clock.sessions, members, joined, self.bars.upto(ns), self.labels.upto(ns),
                     self.stories.upto(ns), self.story_entities.upto(ns),
-                    self.embeddings.upto(ns) if self.embeddings is not None else Embeddings.empty())
+                    self.embeddings.upto(ns, since) if self.embeddings is not None else Embeddings.empty())
 
     @classmethod
-    def load(cls, store=None, clock=None, allow_sealed=False, embeddings=True):
+    def load(cls, store=None, clock=None, allow_sealed=False, embeddings=True,
+             embedding_window_days=EMBEDDING_WINDOW_DAYS, embeddings_store=None, vintage_offset=0):
         """The World from the store's Parquet files (DATA_DIR/store by default), with the embeddings if the store has
-        them (judge J-3; embeddings=False leaves them out)."""
+        them (judge J-3; embeddings=False leaves them out), served through the window (None for every row). For the
+        older-vintage rerun, embeddings_store names the folder of the older table (DATA_DIR/reader_older) and
+        vintage_offset is 1; the other tables still come from the store."""
         if store is None:
             from data_pipeline.settings import DATA_DIR
             store = DATA_DIR / "store"
         read = lambda name: pd.read_parquet(store / f"{name}.parquet")
-        emb = load_embeddings(store) if embeddings and (store / "embeddings.parquet").exists() else None
+        es = store if embeddings_store is None else Path(embeddings_store)
+        if embeddings_store is not None and not (es / "embeddings.parquet").exists():
+            raise ValueError(f"{es} has no embeddings.parquet")
+        emb = load_embeddings(es) if embeddings and (es / "embeddings.parquet").exists() else None
         return cls(read("bars"), read("labels"), read("opens"), read("stories"), read("story_entities"),
-                   read("membership"), clock, allow_sealed, embeddings=emb)
+                   read("membership"), clock, allow_sealed, embeddings=emb,
+                   embedding_window_days=embedding_window_days, vintage_offset=vintage_offset)

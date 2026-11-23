@@ -38,7 +38,7 @@ def meta():
 
 @pytest.fixture(scope="module")
 def world():
-    return World.load(allow_sealed=True)
+    return World.load(allow_sealed=True, embedding_window_days=None)  # every row; the window's tests set their own
 
 
 def test_one_row_for_every_selected_story_and_no_other(rows, wanted, meta):

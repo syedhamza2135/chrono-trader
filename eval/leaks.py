@@ -25,7 +25,7 @@ import pandas as pd
 from reader.vintage import vintage_for
 from world import rules
 from world.clock import Clock
-from world.world import World, spells, visible_at
+from world.world import EMBEDDING_WINDOW_DAYS, World, spells, visible_at
 
 HOW = ("scramble", "shift", "delete")
 SHIFT = pd.Timedelta(days=7)
@@ -53,9 +53,10 @@ def late_rows(tables, t):
     return out
 
 
-def perturb(tables, t, how, seed=0):
+def perturb(tables, t, how, seed=0, vintage_offset=0):
     """Copies of `tables` (bars, labels, opens, stories, story_entities, membership, and embeddings if present)
-    with every record not visible at t scrambled, shifted later or deleted."""
+    with every record not visible at t scrambled, shifted later or deleted. A shifted embedding takes the vintage of
+    its shifted story, a year older with vintage_offset 1 (the older-vintage rerun)."""
     if how not in HOW:
         raise ValueError(how)
     rng = np.random.default_rng(seed)
@@ -108,7 +109,7 @@ def perturb(tables, t, how, seed=0):
             moved = out["stories"].set_index("story_id").updated_at
             emb.loc[e, "available_at"] = rules.embedding(emb.loc[e, "story_id"].map(moved)).to_numpy()
             created = out["stories"].set_index("story_id").created_at
-            emb.loc[e, "vintage_year"] = vintage_for(emb.loc[e, "story_id"].map(created)).to_numpy()
+            emb.loc[e, "vintage_year"] = vintage_for(emb.loc[e, "story_id"].map(created), vintage_offset).to_numpy()
         m.loc[late["joins"], "member_from"] += SHIFT
         m.loc[late["leaves"], "member_to"] += SHIFT
     else:
@@ -133,10 +134,13 @@ def perturb(tables, t, how, seed=0):
     return out
 
 
-def decisions_until(tables, make_agent, first, last, clock=None, give_world=False):
-    """Every decision from `first` to `last` of a fresh agent, from a World built on `tables`. The agent gets no
-    World unless `give_world` (only a planted leak asks for it). Views refuse the sealed years."""
-    world = World(**tables, clock=clock)
+def decisions_until(tables, make_agent, first, last, clock=None, give_world=False,
+                    embedding_window_days=EMBEDDING_WINDOW_DAYS, vintage_offset=0):
+    """Every decision from `first` to `last` of a fresh agent, from a World built on `tables` with the given embedding
+    window (the World's default, as the runs use) and vintage offset (0, the rule's, but for the older-vintage
+    rerun). The agent gets no World unless `give_world` (only a planted leak asks for it). Views refuse the sealed
+    years."""
+    world = World(**tables, clock=clock, embedding_window_days=embedding_window_days, vintage_offset=vintage_offset)
     agent = make_agent(world) if give_world else make_agent()
     rows = []
     for day in world.clock.between(first, last):
@@ -167,13 +171,15 @@ def compare(a, b, tol=1e-12):
     return problems
 
 
-def non_interference(tables, make_agent, first, last, how, seed=0, clock=None, give_world=False):
+def non_interference(tables, make_agent, first, last, how, seed=0, clock=None, give_world=False,
+                     embedding_window_days=EMBEDDING_WINDOW_DAYS, vintage_offset=0):
     """Run to the decision on session `last`, perturb every record not visible then, run again, compare.
 
     "Not visible" comes from the wall's own rules (world/rules.py, through late_rows), so a wrong rule passes this
     check: it shows that an agent can't reach past the rules, not that the rules are right. The rules themselves are
     checked by their own tests, such as same_day_bars in tests/test_leaks.py (review of 21 Nov, L-T1)."""
     t = (clock or Clock()).decision_time(last)
-    a = decisions_until(tables, make_agent, first, last, clock, give_world)
-    b = decisions_until(perturb(tables, t, how, seed), make_agent, first, last, clock, give_world)
+    a = decisions_until(tables, make_agent, first, last, clock, give_world, embedding_window_days, vintage_offset)
+    b = decisions_until(perturb(tables, t, how, seed, vintage_offset), make_agent, first, last, clock, give_world,
+                        embedding_window_days, vintage_offset)
     return compare(a, b)

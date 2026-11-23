@@ -24,6 +24,10 @@ Usage (python -m reader.embed ...):
                   the arrays
   arrays          write DATA_DIR/store/embeddings_last.npy and embeddings_avg.npy from embeddings.parquet, in its
                   row order, and record them in embeddings.json: World.load maps them read-only (judge J-3)
+  run-older, finish-older, arrays-older
+                  the same, for the older-vintage rerun (research/audit/cutoff.md section 10.1, M3 step 7): every
+                  story read by the vintage a year older (reader/vintage.py, offset 1), with the parts and the table
+                  all in DATA_DIR/reader_older. World.load(embeddings_store=..., vintage_offset=1) serves it
 
 For M5 (review finding L-P8): embed_ids and read_stories work on any set of stories, so a morning job can read that
 day's new stories with the vintage the rule names, with this same code.
@@ -51,28 +55,29 @@ CAP = 256
 DIM = 768
 OUT = DATA_DIR / "reader"
 STORE = DATA_DIR / "store"
+OLDER = DATA_DIR / "reader_older"  # the older-vintage rerun: its parts and its table
 
 
 # ---------------------------------------------------------------- the stories
 
-def select(stories, story_entities):
+def select(stories, story_entities, offset=0):
     """The stories to read: every story in story_entities created in New York year FIRST_YEAR or later and kept by
-    rules.keep_story, with its vintage and available_at. Columns: story_id, created_at, updated_at, headline,
-    vintage_year, available_at. Sorted by story_id."""
+    rules.keep_story, with its vintage (a year older with offset 1) and available_at. Columns: story_id,
+    created_at, updated_at, headline, vintage_year, available_at. Sorted by story_id."""
     ids = pd.unique(story_entities.story_id)
     s = stories[stories.story_id.isin(ids)].drop_duplicates("story_id")
     year = pd.to_datetime(s.created_at, utc=True).dt.tz_convert("America/New_York").dt.year
     s = s[(year >= FIRST_YEAR).to_numpy() & rules.keep_story(s.created_at, s.updated_at).to_numpy()].copy()
-    s["vintage_year"] = V.vintage_for(s.created_at).to_numpy()
+    s["vintage_year"] = V.vintage_for(s.created_at, offset).to_numpy()
     s["available_at"] = rules.embedding(s.updated_at).to_numpy()
     return s.sort_values("story_id", ignore_index=True)
 
 
-def read_stories():
+def read_stories(offset=0):
     """select() on the store's tables (headlines are held in memory only)."""
     st = pd.read_parquet(STORE / "stories.parquet", columns=["story_id", "created_at", "updated_at", "headline"])
     se = pd.read_parquet(STORE / "story_entities.parquet", columns=["story_id"])
-    return select(st, se)
+    return select(st, se, offset)
 
 
 def parts(story_ids):
@@ -91,16 +96,19 @@ def set_hash(story_ids, updated_at):
     return hashlib.sha256(np.ascontiguousarray(pairs).tobytes()).hexdigest()
 
 
-def manifest(vintage, stories):
+def manifest(vintage, stories, offset=0):
     """The parts of one vintage's stories, for manifest.json, with the pinned weights that read them (judge J-4: a
-    restart or finish under other pins stops)."""
+    restart or finish under other pins stops), and the offset when it is not 0."""
     from reader import cutoff
     pin = cutoff.PINS["vintages"].get(str(int(vintage)), {})
     ids = stories.story_id.to_numpy()
-    return {"vintage": int(vintage), "weights": {"repo": pin.get("repo"), "commit": pin.get("commit")},
-            "count": int(len(ids)), "part_size": PART, "ids_sha256": ids_hash(ids),
-            "parts": [{"n": n, "count": int(len(p)), "first": int(p[0]), "last": int(p[-1]), "ids_sha256": ids_hash(p)}
-                      for n, p in enumerate(parts(ids))]}
+    out = {"vintage": int(vintage), "weights": {"repo": pin.get("repo"), "commit": pin.get("commit")},
+           "count": int(len(ids)), "part_size": PART, "ids_sha256": ids_hash(ids),
+           "parts": [{"n": n, "count": int(len(p)), "first": int(p[0]), "last": int(p[-1]), "ids_sha256": ids_hash(p)}
+                     for n, p in enumerate(parts(ids))]}
+    if offset:
+        out["vintage_offset"] = int(offset)
+    return out
 
 
 # ---------------------------------------------------------------- the model
@@ -175,9 +183,9 @@ def check_manifest(folder, want):
         path.write_text(json.dumps(want, indent=1), encoding="utf-8")
 
 
-def run_vintage(vintage, stories, model, tok, folder, log=print):
+def run_vintage(vintage, stories, model, tok, folder, log=print, offset=0):
     """Read one vintage's stories into folder, part by part, skipping finished parts."""
-    check_manifest(folder, manifest(vintage, stories))
+    check_manifest(folder, manifest(vintage, stories, offset))
     for n, ids in enumerate(parts(stories.story_id.to_numpy())):
         path = folder / f"part-{n:04d}.parquet"
         if path.exists():
@@ -198,9 +206,9 @@ def load_model(vintage):
     return cutoff.load_vintage(vintage).model.eval()
 
 
-def cmd_run(stories=None, out=OUT, vintages=None, log=print):
+def cmd_run(stories=None, out=OUT, vintages=None, log=print, offset=0):
     from reader import cutoff
-    stories = read_stories() if stories is None else stories
+    stories = read_stories(offset) if stories is None else stories
     tok = cutoff.tokenizer()
     log(f"{len(stories)} stories, story set SHA-256 {set_hash(stories.story_id, stories.updated_at)}")
     for v in vintages or sorted(stories.vintage_year.unique()):
@@ -208,11 +216,11 @@ def cmd_run(stories=None, out=OUT, vintages=None, log=print):
         folder = out / f"v{v}"
         n_parts = len(parts(mine.story_id.to_numpy()))
         if folder.exists() and all((folder / f"part-{n:04d}.parquet").exists() for n in range(n_parts)):
-            check_manifest(folder, manifest(v, mine))
+            check_manifest(folder, manifest(v, mine, offset))
             log(f"vintage {v}: all {n_parts} parts done")
             continue
         log(f"vintage {v}: {len(mine)} stories in {n_parts} parts")
-        run_vintage(v, mine, load_model(v), tok, folder, log)
+        run_vintage(v, mine, load_model(v), tok, folder, log, offset)
     log("run finished")
 
 
@@ -237,12 +245,13 @@ def read_part(path):
     return df, out[0], out[1]
 
 
-def cmd_finish(out=OUT, store=STORE):
+def cmd_finish(out=OUT, store=STORE, offset=0):
     """Check every vintage's parts against its manifest and the store's current stories, then write
-    store/embeddings.parquet (one part at a time) and embeddings.json."""
+    store/embeddings.parquet (one part at a time) and embeddings.json. For the older-vintage rerun, out and store are
+    both OLDER and offset is 1."""
     import pyarrow.parquet as pq
     from reader import cutoff
-    stories = read_stories()
+    stories = read_stories(offset)
     writer, total = None, 0
     target = store / "embeddings.parquet"
     tmp = target.with_name(target.name + ".tmp")
@@ -250,7 +259,7 @@ def cmd_finish(out=OUT, store=STORE):
         for v in sorted(stories.vintage_year.unique()):
             mine = stories[stories.vintage_year == v].reset_index(drop=True)
             folder = out / f"v{v}"
-            check_manifest(folder, manifest(v, mine))
+            check_manifest(folder, manifest(v, mine, offset))
             for n, ids in enumerate(parts(mine.story_id.to_numpy())):
                 t = pq.read_table(folder / f"part-{n:04d}.parquet")
                 if not np.array_equal(t.column("story_id").to_numpy(), ids):
@@ -276,6 +285,8 @@ def cmd_finish(out=OUT, store=STORE):
                          "emb_avg": "mean over the 22 layers of the token mean"},
             "vintages": {str(v): cutoff.PINS["vintages"][str(v)] for v in sorted(stories.vintage_year.unique())},
             "versions": {"torch": torch.__version__, "transformers": transformers.__version__}}
+    if offset:
+        meta["vintage_offset"] = int(offset)
     (store / "embeddings.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     print(f"wrote {target} ({total} rows)")
     cmd_arrays(store)
@@ -355,6 +366,14 @@ def main(argv):
         cmd_finish()
     elif argv[:1] == ["arrays"]:
         cmd_arrays()
+    elif argv[:1] == ["run-older"]:
+        stay_awake()
+        cmd_run(out=OLDER, offset=1)
+    elif argv[:1] == ["finish-older"]:
+        stay_awake()
+        cmd_finish(out=OLDER, store=OLDER, offset=1)
+    elif argv[:1] == ["arrays-older"]:
+        cmd_arrays(OLDER)
     else:
         print(__doc__)
         return 2
