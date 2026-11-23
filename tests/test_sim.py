@@ -116,10 +116,19 @@ class FakeGit:
         self.commit, self.is_dirty = commit, dirty
 
     def head(self):
-        return self.commit
+        return "lock-" + self.commit  # HEAD is the lock's own commit, on top of the sealed one (sim/seal.py)
 
     def dirty(self):
         return self.is_dirty
+
+    def parents(self, rev):
+        return [self.commit]
+
+    def changed(self, rev):
+        return ["seal.lock"]
+
+    def tracked(self, path):
+        return True
 
 
 def test_dev_dates_need_no_seal(tmp_path):
@@ -158,6 +167,7 @@ def test_a_sealed_run_opens_the_sealed_years_for_that_run_only(monkeypatch):
             return []
     w.clock, w.allow_sealed = Clock(), False
     monkeypatch.setattr(seal, "check", lambda *a, **k: None)
+    monkeypatch.setattr(seal, "begin", lambda *a, **k: None)
     monkeypatch.setattr(seal, "sealed_start", lambda: pd.Timestamp("2020-01-02"))
-    simulator.run(w, object(), "2020-01-02", "2020-01-03")
+    simulator.run(w, object(), "2020-01-02", "2020-01-03", settings={"first": "2020-01-02", "last": "2020-01-03"})
     assert w.allow_sealed is False

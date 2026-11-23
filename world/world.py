@@ -19,9 +19,10 @@ has no kept story, has a vintage other than the rule's (reader/vintage.py), repe
 available_at other than its story's: a row left over from before its story was edited (review finding L-P7), or
 timed by mistake. The one exception is vintage_offset=1, for the older-vintage rerun only (research/audit/cutoff.md
 section 10.1, M3 step 7): then every row must carry the vintage a year older than the rule's, and a row with the
-rule's own vintage is refused instead. A World with the offset never opens the sealed years: it refuses
-allow_sealed, its views refuse sealed dates, and sim.simulator.run refuses it for any sealed date. The runner records
-the offset in the run's settings, so it goes into the settings hash. A row shows when its story's first company link does (judge J-1), so an embedding never tells of a
+rule's own vintage is refused instead. A World with the offset can't be built with allow_sealed, so only
+sim.simulator.run opens its sealed years, and only for the sealed "older_vintage" part under the same seal as the main
+sealed run (M4 decision 2, sim/seal.py). The runner records the offset in the run's settings, so it goes into the
+settings hash and the seal. A row shows when its story's first company link does (judge J-1), so an embedding never tells of a
 company the view hides. The World keeps the vectors in their stored order (World.load maps the store's .npy files
 read-only from D:, since they don't fit in memory twice; judge J-3) with an order by visible_at, and a view gets
 fresh copies of the visible rows only.
@@ -300,7 +301,8 @@ class World:
         self.clock = clock or Clock()
         self._offset = check_offset(vintage_offset)  # read-only after this: a run records it once
         if vintage_offset and allow_sealed:
-            raise PermissionError("a World with a vintage_offset never opens the sealed years")
+            raise PermissionError("a World with a vintage_offset opens the sealed years only through "
+                                  "sim.simulator.run, as the sealed older_vintage part")
         self.allow_sealed = allow_sealed
         w = embedding_window_days
         if w is not None and (isinstance(w, bool) or not isinstance(w, int) or w <= 0):
@@ -355,8 +357,6 @@ class World:
             raise ValueError("view(t) needs a time zone; the clock's times are UTC")
         t = t.tz_convert("UTC")
         sealed = t.tz_convert(NY).tz_localize(None) >= self._sealed
-        if sealed and self._offset:
-            raise PermissionError(f"{t} is in the sealed years, and a World with a vintage_offset never opens them")
         if not self.allow_sealed and sealed:
             raise PermissionError(f"{t} is in the sealed years: run through sim.simulator.run, which checks the seal")
         ns = t.as_unit("ns").value

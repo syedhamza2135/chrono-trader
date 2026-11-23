@@ -114,22 +114,61 @@ class Simulator:
         self.rows.append({"date": day, "equity": equity, "cost": cost, "gross": gross, "traded": traded})
 
 
-def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
-    """The daily loop from the session `first` to the session `last`: decide at 9:00, fill at the open. Dates in the
-    sealed years need a matching seal (sim/seal.py) on the run's whole settings: the caller's, the costs, and the
-    agent's class and parameters, and the World's embedding window (M3 decision 1). A World with a vintage_offset
-    (the older-vintage rerun, M3 step 7) is refused for any sealed date, seal or not."""
+def settings_run(world, agent, cost_bps=COST_BPS, settings=None):
+    """The whole settings `run` checks against the seal: the caller's, the costs, the agent's class and parameters,
+    the World's embedding window (M3 decision 1) and, when it is not 0, its vintage_offset (M3 step 7). With offset 0
+    the settings stay as they were, so older runs' hashes don't change."""
     full = {**(settings or {}), "cost_bps": cost_bps, "agent": type(agent).__name__,
             "agent_params": getattr(agent, "params", None),
             "embedding_window_days": getattr(world, "embedding_window_days", None)}
+    return _with_offset(world, full)
+
+
+def settings_many(world, agents, cost_bps=COST_BPS, settings=None, freeze=()):
+    """The whole settings `run_many` checks against the seal: the caller's, the costs, the embedding window, every
+    agent's class and parameters, the freeze list and any vintage_offset. The seal writer takes the same (M4 step 1),
+    from a World or anything with its embedding_window_days and vintage_offset."""
+    full = {**(settings or {}), "cost_bps": cost_bps, "embedding_window_days": getattr(world, "embedding_window_days",
+                                                                                         None),
+            "agents": {n: {"agent": type(a).__name__, "agent_params": getattr(a, "params", None)}
+                       for n, a in dict(agents).items()}, "freeze": list(freeze)}
+    return _with_offset(world, full)
+
+
+def _with_offset(world, full):
+    off = getattr(world, "vintage_offset", 0)
+    if off:
+        full["vintage_offset"] = off
+    return full
+
+
+def _open(world, first, last, full, settings, again):
+    """Check the seal for a run from `first` to `last` and, if it reaches the sealed years, check that the settings
+    name these dates (M4 judge J4-4), record the run's start (seal.begin, once per part, PLAN 9.12) and open the
+    World's sealed years for this run. The caller puts allow_sealed back in its `finally`."""
     _offset(world, last, full)
     seal.check(first, last, full if settings is not None else None)
-    was_allowed = world.allow_sealed
     if pd.Timestamp(last) >= seal.sealed_start():
+        named = (full.get("first"), full.get("last"))
+        if None in named or (pd.Timestamp(named[0]), pd.Timestamp(named[1])) != (pd.Timestamp(first),
+                                                                                    pd.Timestamp(last)):
+            raise seal.SealError(f"a sealed run's settings name its dates: they say {named[0]} to {named[1]}, "
+                                 f"and the run is {first} to {last}")
+        seal.begin(full, again=again)
         world.allow_sealed = True  # the seal holds; views may now open the sealed years
+
+
+def run(world, agent, first, last, cost_bps=COST_BPS, settings=None, again=False):
+    """The daily loop from the session `first` to the session `last`: decide at 9:00, fill at the open. Dates in the
+    sealed years need a matching seal (sim/seal.py) on the run's whole settings (`settings_run`), name their part
+    ("sealed_part") and run once per part unless again=True (PLAN 9.12). A World with a vintage_offset reaches the
+    sealed years only as the "older_vintage" part (M4 decision 2)."""
+    full = settings_run(world, agent, cost_bps, settings)
     sim = Simulator(world, cost_bps)
     decisions = []
+    was_allowed = world.allow_sealed
     try:
+        _open(world, first, last, full, settings, again)
         for day in world.clock.between(first, last):
             targets = agent.decide(world.view(world.clock.decision_time(day)))
             sim.step(day, targets)
@@ -143,14 +182,17 @@ def run(world, agent, first, last, cost_bps=COST_BPS, settings=None):
 
 
 def _offset(world, last, full):
-    """Refuse a World with a vintage_offset for a run that reaches the sealed years, and record the offset in the
-    settings (so in their hash) when it is not 0. With offset 0 the settings stay as they were, so older runs' hashes
-    don't change."""
+    """A World with a vintage_offset reaches the sealed years only as the sealed "older_vintage" part, and that part
+    only with such a World (M4 decision 2). The seal still has to hold, on settings that carry the offset."""
+    if pd.Timestamp(last) < seal.sealed_start():
+        return
     off = getattr(world, "vintage_offset", 0)
-    if off:
-        if pd.Timestamp(last) >= seal.sealed_start():
-            raise PermissionError("a World with a vintage_offset may not run into the sealed years")
-        full["vintage_offset"] = off
+    part = full.get("sealed_part")
+    if off and part != "older_vintage":
+        raise PermissionError("a World with a vintage_offset may run into the sealed years only as the sealed "
+                              "older_vintage part")
+    if part == "older_vintage" and not off:
+        raise PermissionError("the sealed older_vintage part needs a World with vintage_offset 1")
 
 
 def _fresh(base):
@@ -176,27 +218,21 @@ def _own_view(v):
                 Embeddings(e.rows.copy(deep=False), last, avg))
 
 
-def run_many(world, agents, first, last, cost_bps=COST_BPS, settings=None, freeze=()):
+def run_many(world, agents, first, last, cost_bps=COST_BPS, settings=None, freeze=(), again=False):
     """The daily loop for several agents at once (M3 step 4): each session's view is built once and every agent
     decides on its own copy of it, each with its own simulator. `agents` maps names to agents, in a fixed order. For
     each name in `freeze`, at the first session of each new year a frozen twin (the agent's `freeze()`, learning off)
     joins as "<name>_frozen_<year just ended>" and trades from that session on. The seal covers every agent's
-    settings. Returns {name: Run}, the twins included, and gives the same decisions as one `run` per agent."""
+    settings (`settings_many`), and a sealed run names its part and runs once, as in `run`. Returns {name: Run}, the twins included, and gives the same decisions as one `run` per agent."""
     agents = dict(agents)
-    full = {**(settings or {}), "cost_bps": cost_bps, "embedding_window_days": getattr(world, "embedding_window_days",
-                                                                                         None),
-            "agents": {n: {"agent": type(a).__name__, "agent_params": getattr(a, "params", None)}
-                       for n, a in agents.items()}, "freeze": list(freeze)}
-    _offset(world, last, full)
-    seal.check(first, last, full if settings is not None else None)
-    was_allowed = world.allow_sealed
-    if pd.Timestamp(last) >= seal.sealed_start():
-        world.allow_sealed = True
+    full = settings_many(world, agents, cost_bps, settings, freeze)
     base = Simulator(world, cost_bps)
     sims = {n: _fresh(base) for n in agents}
     decisions = {n: [] for n in agents}
     year = None
+    was_allowed = world.allow_sealed
     try:
+        _open(world, first, last, full, settings, again)
         for day in world.clock.between(first, last):
             if year is not None and day.year != year:
                 for n in freeze:
@@ -225,10 +261,13 @@ def replay(world, run, costs=(0.0, 5.0, 10.0, 20.0), base=None, settings=None):
     same sessions (PLAN 9.8's cost table, and every book "before costs" at 0). Costs change no decision, so this is
     the run at that cost, exactly; at the run's own cost it gives back its equity rows. No agent or view is used.
     Pass `base` (a Simulator on the same World) to reuse its lookups across runs. Sessions in the sealed years need
-    the seal, as in `run`: pass the run's settings (review W3-4)."""
+    the seal, as in `run`: pass the run's settings (review W3-4), and a sealed run with those settings must have started
+(M4 judge J4-3)."""
     days = pd.to_datetime(run.equity.date)
     if len(days):
         seal.check(days.min(), days.max(), settings)
+        if days.max() >= seal.sealed_start():
+            seal.require_started(settings)
     base = base or Simulator(world, 0.0)
     targets = {pd.Timestamp(d): g for d, g in run.decisions.groupby("date")}
     out = {}
