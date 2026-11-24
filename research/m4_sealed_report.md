@@ -567,3 +567,42 @@ Each frozen twin's mean daily IC by quarter since its snapshot:
 | end of 2025 | 2 | 62 | 0.0015 | 0.0677 |
 | end of 2025 | 3 | 64 | 0.0515 | 2.6291 |
 | end of 2025 | 4 | 19 | -0.0421 | -1.6034 |
+
+## Note added on 24 Nov 2026, after the M4 review
+
+This note is added below the report, as PREREG section 7 allows. Everything above it is the writer's output, unedited.
+It changes no number and no outcome. The outcome stays **Failure**. The review is
+`research/review_m4_2026-11-24.md`, and the owner took its six recommendations on 24 Nov ("Yes, take all six").
+
+- **The leak-test gate was skipped before the run (review G4-1).** PREREG section 6 says the full suite, with
+  `CHRONO_SLOW_LEAKS=1`, passes on the clean tree at the code-plus-PREREG commit (`8c683f5`) before `seal.lock` is
+  written, and again at the lock's commit (`423a9c2`) before the sealed run starts. Neither run happened. The lock was
+  written 12 seconds after `8c683f5`, and the main part started 1 minute 54 seconds after `423a9c2` (New York, 23 Nov:
+  12:30:59, 12:31:11, 12:31:26 and 12:33:20). The suite takes 35 to 52 minutes. Every suite run on record before the
+  seal skipped the slow leak test. The gate was run afterwards, on 24 Nov, on a clean checkout of `423a9c2`, whose code
+  equals `8c683f5`'s: `CHRONO_SLOW_LEAKS=1 python -m pytest tests -q -p no:cacheprovider` printed "535 passed, 9 warnings in 2850.85s (0:47:30)", pytest exit code 0, with nothing skipped (04:35 to 05:23 New York, 24 Nov; the tree was clean before and after). A leak could only raise a result, so the gate cannot turn this Failure into
+  another outcome.
+- **The dev check's commit (review G4-2).** The rerun of T09 on the dev years ran at `6401ee7` on a tree with
+  uncommitted changes, not at `7b9a138` as PREREG section 1 names. The code the run uses is the same in both, and the
+  sealed live agent's decisions to 2019-12-31 equal M3's T09 run on all 817 days.
+- **Known limits (review R4-1, R4-4).** PREREG section 6 says the report states these:
+  - Only the 2016 ChronoBERT vintage has evidence for its training cutoff; the other vintages that read news were too
+    weak to judge, and the 2026 vintage was never checked (`research/audit/cutoff.md`, section 9). The owner accepted
+    all 11 vintages as published. This is the context for both leak checks' "no warning".
+  - The sectors come from 142 monthly revisions of Wikipedia's S&P 500 list, 2014-12-29 to 2026-09-25, as of each
+    date (`research/audit/benchmarks.md`). PREREG calls them "a present-day list"; that wording is wrong. They are
+    close to point in time, not exact: Wikipedia's dates lag S&P's changes, and 5 of the 746 companies have no sector.
+  - The store's data ends on 2026-10-28, the last sealed session.
+  - Two of PLAN's known limits that PREREG did not carry: ModernBERT's tokenizer vocabulary is from 2024, and
+    ChronoBERT's design was chosen in 2025 (review R4-9).
+- **The baselines are compared before costs (review R4-2).** PREREG section 4 compares the baselines with live
+  **before costs**, and marks the after-cost rows as not turnover-matched, since only live has the band. The section
+  above is headed "Matched baselines" and leads with the after-cost Sharpe, unmarked. Its after-cost rows are **not
+  turnover-matched**: live turns over 0.4513 of equity a day, the random seeds and reversal 0.66 to 0.67. Before
+  costs, the comparison PREREG names, live is 7th of the 8 long-short books (live, momentum, reversal and 5 random
+  seeds), with a Sharpe of -0.1994 against momentum's 0.1460. After costs it would read 4th of 8.
+- **Sessions scored by neither run (review R4-3).** The sessions from 2026-10-29 to the forward test's first day are
+  scored by neither the sealed run nor the forward test, as PREREG section 1 says.
+- **Dev years in two descriptive tables (review R4-5).** The frozen-twin gaps and the coefficient life for the
+  end-of-2016, 2017 and 2018 twins include dev-year days and quarters, though the line above them says the sealed years
+  only. No test uses them: H2's twin, the end-of-2019 one, has sealed days only (1,714).

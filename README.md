@@ -36,7 +36,13 @@ M3, Track A on the dev years, is built and reviewed (PLAN.md, section 9.2; state
 - **The comparison harness:** frozen twins, the price-only twin, the shuffled-news placebo (`agent/placebo.py`), the baselines (`agent/baselines.py`) and the ledger `runs/trials.csv` (`eval/trials.py`), all fed by one pass over the views (`sim.simulator.run_many`).
 - **The report:** metrics (`eval/metrics.py`), statistics (`eval/stats.py`), the switch-day check (`eval/switch_day.py`), charts (`eval/charts.py`) and the writer (`eval/report.py`). Results: [research/m3_dev_report.md](research/m3_dev_report.md). The older-vintage check: [research/m3_older_vintage.md](research/m3_older_vintage.md). Review: [research/review_m3_2026-11-23.md](research/review_m3_2026-11-23.md).
 
-On the dev years (2017 to 2019) the chosen configuration's mean daily rank IC is 0.0076 (t 1.38), and its long-short book loses money after 5 bps. The sealed years stay shut.
+On the dev years (2017 to 2019) the chosen configuration's mean daily rank IC is 0.0076 (t 1.38), and its long-short book loses money after 5 bps.
+
+M4, the sealed run, is done and reviewed (state, decisions and the timeline in [research/m4_kickoff.md](research/m4_kickoff.md)):
+
+- **The pre-registration:** [PREREG.md](PREREG.md), frozen before the run. `seal.lock` seals its hash, the settings and the code commit `8c683f5`.
+- **The sealed run:** the sealed years, 2020-01-02 to 2026-10-28, ran once on 23 Nov and are now spent for this first version. `sim/seal.py` refuses a second sealed run.
+- **The result:** **Failure** as PREREG defines it. The agent's daily rank IC is above zero (H1 holds after Holm: +0.0104, t 2.27), but retraining does not beat a frozen copy (H2, p 0.21) and the news adds nothing significant over the price-only twin or the shuffled-news placebo (H3, p 0.20 and 0.12). No leak check warns. Report: [research/m4_sealed_report.md](research/m4_sealed_report.md), with a dated note below it. Review: [research/review_m4_2026-11-24.md](research/review_m4_2026-11-24.md).
 
 ## Setup
 

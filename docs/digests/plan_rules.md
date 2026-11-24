@@ -1,4 +1,4 @@
-Digest of PLAN.md at commit 323f2e9, written 2026-11-23. Line numbers refer to PLAN.md at that commit: refreshed from the diff dd40a5f to 323f2e9, then each cited line was checked against its text.
+Digest of PLAN.md at commit 323f2e9, written 2026-11-23. Line numbers refer to PLAN.md at that commit: refreshed from the diff dd40a5f to 323f2e9, then each cited line was checked against its text. Checked again on 2026-11-24 (M4 review): PLAN.md is unchanged since 323f2e9, so no line moved.
 
 ## Status and decisions list (L1-30)
 - L3: Status says M0 and its review fixes are done and M1 (the time wall) is built and reviewed. M2 (the reader) has its table: all 502,712 stories it reads are embedded by the vintage the rule names, served through the time wall and checked on the real store (`research/audit/reader.md`, `research/m2_kickoff.md`).

@@ -12,7 +12,8 @@ M4, "Done when" (`PLAN.md:446`): "`PREREG.md` is hashed into `seal.lock`, and th
 ## Where things stand
 
 - **M3 is merged into master** as `a9a216e` and pushed. The M3 branch ends at `a2a5f3e`, the review's fixes. This note
-  is on the branch `claude/m4-kickoff`, cut from master `a9a216e`. Uncommitted.
+  is on the branch `claude/m4-kickoff`, cut from master `a9a216e`. It was uncommitted on 23 Nov and is committed with
+  step 1 (`6401ee7`) and after. Steps 4 to 6 and the review are at the end of this note.
 - **Tests.** 513 pass and 1 skip, in 38 minutes 35 seconds (`research/review_m3_2026-11-23_fixes.md:32-34`).
 - **The chosen configuration** is T09, `{"band": 15, "hold": 5}`, the stage 2 winner (`research/m3_dev_report.md:4`).
   Its dev results, all over 753 IC days from 2017-01-03 to 2019-12-30:
@@ -185,7 +186,7 @@ switch-day years in PREREG item 7: the switches from 2020 to 2025 count, and 202
    two, lag 6, and no other tests. Recommended: **approve as written**. Why: it follows PLAN 5.5 and the entry rules,
    and the only choice it adds, H3 needing both tests, is what PLAN's "beats both" says (`PLAN.md:357`).
 
-## Step 1, built on 23 Nov (uncommitted)
+## Step 1, built on 23 Nov (committed as `6401ee7`)
 
 The owner's go: "Whatever is better", with the lead's brief to close the seal's gaps. Nothing was sealed, no
 `seal.lock` was written in the repo, and nothing ran in the sealed years.
@@ -241,7 +242,7 @@ The owner's go: "Whatever is better", with the lead's brief to close the seal's 
   should hash the committed blob), J4-9 (the data fingerprint holds the embeddings' arrays record, not a hash of the
   vectors; PREREG says so) and J4-10 (the run log is one file outside git; the sealed report quotes it).
 
-## Steps 2 and 3 (23 Nov, uncommitted)
+## Steps 2 and 3 (23 Nov, committed as `7b9a138`)
 
 Step 1 is commit `6401ee7`.
 
@@ -277,3 +278,48 @@ Step 1 is commit `6401ee7`.
   showed p-values for two series PREREG doesn't test.
 - **The full suite after step 3:** 534 pass and 1 skip, in 39 minutes 13 seconds on 23 Nov (pytest exit 0). That is
   527 plus the 7 in `tests/test_m4_sealed_report.py`.
+
+## Steps 4 to 6: the seal, the sealed run and the report (23 Nov, written 24 Nov)
+
+Recorded after the M4 review (`research/review_m4_2026-11-24.md`, K4-3 and G4-4). Times are New York, 23 Nov, from the
+git reflog, the run log `D:\chrono-data\sealed\runs.jsonl`, the logs under `D:\chrono-data\runs\m4_sealed` and the
+ledger (`research/review_m4_2026-11-24/judge_seal.md`, "Timeline").
+
+- **The owner's go.** "Yes, seal and run" (23 Nov, typed in the lead's session). The lead made both seal commits and
+  started the sealed run.
+- **Step 4, the seal.** 12:30:59: the lead committed `8c683f5`, which fills PREREG's code commit and settings hashes
+  (PREREG.md only, 3 lines). 12:31:11: `seal.lock` written. 12:31:26: the lead committed `423a9c2`, the lock alone.
+- **The skipped gate (review G4-1).** PREREG section 6 asks for the full suite with `CHRONO_SLOW_LEAKS=1` on the clean
+  tree at `8c683f5` before the lock, and again at `423a9c2` before the run. Neither ran: the run started 1 minute 54
+  seconds after `423a9c2`, and every earlier suite skipped the slow leak test. The gate was run afterwards, on 24 Nov,
+  on a clean checkout of `423a9c2`: `CHRONO_SLOW_LEAKS=1 python -m pytest tests -q -p no:cacheprovider` printed "535 passed, 9 warnings in 2850.85s (0:47:30)", pytest exit code 0, with nothing skipped (04:35 to 05:23 New York, 24 Nov; the tree was clean before and after). The dated note below the sealed report records this.
+- **Step 5, the sealed run.** 12:33:20: main started (run log entry 1, `n` 1, `again` false, at `423a9c2`). 21:20:16:
+  main ended after 527.2 minutes, exit 0. 21:20:52 to 22:05:12: older_vintage, 44.5 minutes, exit 0 (entry 2). 22:06
+  to 22:48: the replays of all 27 books. Each part ran once; `seal.begin` refuses a second start.
+- **Step 6, the report.** 22:50:40: `research/m4_sealed_report.py` wrote `research/m4_sealed_report.md`, and `ledger`
+  copied the two sealed rows into `runs/trials.csv` at 22:50:59. 22:51:40: `095a855` published the report unedited.
+  The result is **Failure** as PREREG defines it: H1 holds after Holm (IC +0.0104, t 2.27, p 0.0115); H2 does not
+  (p 0.2117); H3 does not (p 0.2001 against the price-only twin, 0.1219 against the placebo mean); no leak check warns.
+- **The review** (24 Nov, the owner's "Yes, start the review"): `research/review_m4_2026-11-24.md`, committed by the
+  lead as `8fd91a0` on `claude/m4-review`. It finds the Failure valid as published (0 high, 6 medium, 9 low, 8 info).
+  The owner took its six recommendations ("Yes, take all six", 24 Nov). The lead pushed `claude/m4-kickoff` to GitHub
+  at `095a855` on 24 Nov, after the run (review G4-3).
+- **The sealed years are spent** for this first version of Track A. Any later test of a changed agent needs new data:
+  the forward test.
+
+## Forward-test entry rules (the owner, 24 Nov, from the M4 review)
+
+The sealed writer stays as it is, since its code is frozen (review question 5). These rules are for any later sealed
+or forward report, and its pre-registration fixes them before the run:
+1. **The gate runs and is recorded.** The full suite with `CHRONO_SLOW_LEAKS=1` runs on the clean tree before the
+   lock and again at the lock's commit before the run, and its pytest exit code and time go into the run log or the
+   report. The runner refuses to start without that record (review G4-1).
+2. **The baselines are marked.** The writer prints the pre-registration's baseline sentence: the comparison is before
+   costs, and the after-cost rows are not turnover-matched. The section is not headed "Matched" unless the turnover is
+   matched (review R4-2).
+3. **The known limits are printed** from the pre-registration's own list, and a writer test checks each one is there
+   (review R4-1). The list says what the sector table is (monthly as-of revisions), not "a present-day list" (R4-4), and
+   carries PLAN's two limits on ModernBERT's 2024 vocabulary and ChronoBERT's 2025 design (R4-9).
+4. **The unscored sessions** between the sealed or forward end and the next test's start are stated (review R4-3).
+5. **Descriptive tables are cut** at the test's first session, or their earlier rows are labelled (review R4-5).
+6. **Dev checks run at the named commit,** on a clean tree (review G4-2).

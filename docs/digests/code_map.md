@@ -1,6 +1,6 @@
 # Code map: world, sim, eval, agent, reader, data_pipeline
 
-Source: world/, sim/, eval/, agent/, reader/, data_pipeline/. Commit 89f35f7 plus the M3 review fixes (uncommitted), 23 Nov 2026.
+Source: world/, sim/, eval/, agent/, reader/, data_pipeline/. Commit 89f35f7 plus the M3 review fixes, 23 Nov 2026; sim/seal.py, sim/simulator.py, eval/report.py and world/world.py refreshed to 095a855 (M4), 24 Nov 2026.
 Line numbers are in the source file. "Store" means the Parquet tables in DATA_DIR/store. Private helpers (leading underscore) are listed only where they set a contract. Line counts are from `wc -l` of the working tree.
 
 ## world/__init__.py (4 lines)
@@ -49,35 +49,46 @@ The store's records, each with the time it becomes visible; builds views. Now al
 - `_SortedEmbeddings(emb, visible_at)` at world.py:227. Embeddings in visible_at order. `upto(ns, since=None)` at world.py:250 returns fresh copies of rows visible at ns and after `since` (the window).
 - `_parquet_footer(path)` at world.py:260. File size and SHA-256 of the Parquet footer.
 - `load_embeddings(store) -> Embeddings` at world.py:272. Rows from `embeddings.parquet`, vectors as read-only maps of the two `.npy` files; stops if `embeddings.json` does not match them.
-- `World(bars, labels, opens, stories, story_entities, membership, clock=None, allow_sealed=False, embeddings=None, embedding_window_days=90, vintage_offset=0)` at world.py:296. Refuses `vintage_offset` with `allow_sealed` (line 302). Drops stories failing `keep_story` (line 321) and story_entities of dropped stories (line 324). Refuses an embeddings table with problems (lines 327-330). Builds join/leave events from membership. `opens` is not time-cut (line 333).
-  - `embedding_window_days` at world.py:337 and `vintage_offset` at world.py:342. Read-only properties.
-  - `members_at(ns) -> (members, joined)` at world.py:346. From join and leave events at or before ns.
-  - `view(t) -> View` at world.py:352. Needs a tz-aware t. Raises PermissionError if t's New York date is on or after the sealed start and `allow_sealed` is False, or for any sealed date when `vintage_offset` is set. Returns prefixes of each table visible at t, and embeddings visible in the window.
+- `World(bars, labels, opens, stories, story_entities, membership, clock=None, allow_sealed=False, embeddings=None, embedding_window_days=90, vintage_offset=0)` at world.py:298. Refuses `vintage_offset` with `allow_sealed` (line 304): an offset World opens the sealed years only through `sim.simulator.run`, as the sealed older_vintage part. Drops stories failing `keep_story` (line 321) and story_entities of dropped stories (line 324). Refuses an embeddings table with problems (lines 327-330). Builds join/leave events from membership. `opens` is not time-cut (line 333).
+  - `embedding_window_days` at world.py:339 and `vintage_offset` at world.py:344. Read-only properties.
+  - `members_at(ns) -> (members, joined)` at world.py:348. From join and leave events at or before ns.
+  - `view(t) -> View` at world.py:354. Needs a tz-aware t. Raises PermissionError (line 361) if t's New York date is on or after the sealed start and `allow_sealed` is False; only `sim.simulator.run` sets it, after the seal holds. Returns prefixes of each table visible at t, and embeddings visible in the window.
   - `load(store=None, clock=None, allow_sealed=False, embeddings=True, embedding_window_days=90, embeddings_store=None, vintage_offset=0)` at world.py:370 (classmethod). Reads the six store Parquet files and, if present, the embeddings.
 
 ## sim/__init__.py (3 lines)
 Docstring only. `sim` imports nothing from `agent`.
 
-## sim/seal.py (62 lines)
-The seal check on runs that reach the sealed years.
-- `SealError` at seal.py:16. Raised on any seal failure.
-- `sealed_start(root=ROOT)` at seal.py:20. Reads `reference/split.json` sealed start.
-- `settings_hash(settings) -> sha256 hex` at seal.py:25. Hash of the sorted JSON of the settings.
-- `Git(root)` at seal.py:29. `head()` at seal.py:33 runs `git rev-parse HEAD`. `dirty()` at seal.py:37 runs `git status --porcelain`.
-- `check(first, last, settings, root=ROOT, git=None) -> None` at seal.py:43. Returns if `last` is before the sealed start. Otherwise needs `seal.lock`, settings, and a match of settings hash, `PREREG.md` hash and git commit, and a clean tree. Else raises SealError.
+## sim/seal.py (199 lines)
+The seal (PLAN 9.12, M4): the lock, the check on runs that reach the sealed years, and the run log that lets each sealed part start once.
+- Constants at seal.py:37-38: PARTS ("main", "older_vintage"), LOCK ("seal.lock").
+- `SealError` at seal.py:42. Raised on any seal failure.
+- `sealed_start(root=None)` at seal.py:54. Reads `reference/split.json`, period "sealed" start (via `_split`, line 50).
+- `settings_hash(settings) -> sha256 hex` at seal.py:58. Hash of the sorted JSON of the settings.
+- `prereg_hash(root=None)` at seal.py:62. SHA-256 of PREREG.md's bytes, or None if there is none.
+- `runs_log()` at seal.py:67. The run log, `DATA_DIR/sealed/runs.jsonl` (outside git).
+- `Git(root)` at seal.py:74. `head()` at 82, `dirty()` at 85 (`git status --porcelain`), `parents(rev)` at 88, `tracked(path)` at 91, `changed(rev)` at 95.
+- `_commit_matches(sealed, git)` at seal.py:104. HEAD is the lock's own commit: its one parent is the sealed commit, it changes seal.lock alone, and seal.lock is tracked.
+- `check(first, last, settings, root=None, git=None) -> None` at seal.py:116. Returns if `last` is before the sealed start. Otherwise needs `seal.lock`, the settings, a match of the part's settings hash, the PREREG hash and the commit rule, and a clean tree. Else raises SealError.
+- `write(parts, root=None, git=None, now=None) -> lock` at seal.py:137. Writes seal.lock once for HEAD from {part: settings}; refuses an existing lock, no PREREG.md, a dirty tree, an unknown part, or no "main". The lock is committed alone straight after.
+- `started(log=None)` at seal.py:162. The run log's entries, oldest first.
+- `require_started(settings, log=None)` at seal.py:170. For a sealed replay: the log must hold a start of that part with the same settings hash.
+- `begin(settings, again=False, ...) -> entry` at seal.py:179. Records a sealed part's start before any sealed view opens; refuses a second start unless again=True (which counts as another trial), and again=True for a part never started.
 
-## sim/simulator.py (241 lines)
+## sim/simulator.py (280 lines)
 The daily loop and portfolio accounting. Fills at the official open. Costs 5 bps per side (COST_BPS, line 26).
 - `Run` at simulator.py:31. Dataclass: decisions, equity (date, equity, cost, gross, traded), stats (forced_sales, unmarked).
-- `Simulator(world, cost_bps)` at simulator.py:37. Reads `world.opens` (rows with an open) and `world.labels.df` into dicts (lines 40-45), `data_end` from the last label end (line 49).
+- `Simulator(world, cost_bps)` at simulator.py:37. Reads `world.opens` (rows with an open) and `world.labels.df` into dicts, and `data_end` from the last label end.
   - `_label_from(key, day)` at simulator.py:52. The label starting on that date: (end, label, at_close) or None.
   - `step(day, targets)` at simulator.py:61. Marks holdings whose label ends today (or at a close before today), sells exits, forces sales where no label runs from today's open (not on the data's last day), trades only stocks with an official open that day, charges costs, appends an equity row.
-- `run(world, agent, first, last, cost_bps, settings=None) -> Run` at simulator.py:117. Builds the full settings (cost, agent class and params, embedding window), calls `_offset` and `seal.check`, sets `world.allow_sealed` once the seal holds (line 129) and restores it in a `finally` (line 139). For each session calls `agent.decide(world.view(decision_time(day)))` and `Simulator.step`.
-- `_offset(world, last, full)` at simulator.py:145. Refuses a World with a vintage_offset for any run reaching the sealed years; records a non-zero offset in the settings.
-- `_fresh(base)` at simulator.py:156. A simulator sharing base's lookups with a new empty book.
-- `_own_view(v)` at simulator.py:166. Shallow table copies and read-only vectors, one view per agent.
-- `run_many(world, agents, first, last, cost_bps, settings=None, freeze=()) -> {name: Run}` at simulator.py:179. One view per session shared by several agents, each with its own simulator. At each new year, a frozen twin `<name>_frozen_<year>` is added for each name in `freeze`. Same seal check.
-- `replay(world, run, costs=(0, 5, 10, 20), base=None, settings=None) -> {bps: equity rows}` at simulator.py:223. Trades the run's own targets again at each cost. Seal-checks the run's dates.
+- `settings_run(world, agent, cost_bps, settings=None)` at simulator.py:117 and `settings_many(world, agents, cost_bps, settings=None, freeze=())` at simulator.py:127. The whole settings `run` and `run_many` check against the seal (the caller's, costs, agents and parameters, embedding window, offset).
+- `_with_offset(world, full)` at simulator.py:138. Records a non-zero vintage_offset in the settings.
+- `_open(world, first, last, full, settings, again)` at simulator.py:145. Calls `_offset` and `seal.check`; for a run reaching the sealed years, checks the settings name these dates, calls `seal.begin` (once per part) and sets `world.allow_sealed`. Callers restore it in a `finally`.
+- `run(world, agent, first, last, cost_bps, settings=None, again=False) -> Run` at simulator.py:161. For each session calls `agent.decide(world.view(decision_time(day)))` and `Simulator.step`.
+- `_offset(world, last, full)` at simulator.py:184. An offset World reaches the sealed years only as the sealed "older_vintage" part (line 192), and that part only with offset 1 (line 195).
+- `_fresh(base)` at simulator.py:198. A simulator sharing base's lookups with a new empty book.
+- `_own_view(v)` at simulator.py:208. Shallow table copies and read-only vectors, one view per agent.
+- `run_many(world, agents, first, last, cost_bps, settings=None, freeze=(), again=False) -> {name: Run}` at simulator.py:221. One view per session shared by several agents, each with its own simulator; frozen twins `<name>_frozen_<year>` at each new year for names in `freeze`. Same `_open`.
+- `replay(world, run, costs=(0, 5, 10, 20), base=None, settings=None) -> {bps: equity rows}` at simulator.py:259. Trades the run's own targets again at each cost. Seal-checks the run's dates and, in the sealed years, needs a started sealed run with those settings (`seal.require_started`).
 
 ## eval/__init__.py (3 lines)
 Docstring only. `eval` imports nothing from `agent`.
@@ -149,14 +160,14 @@ The trial ledger `runs/trials.csv` (COLUMNS at trials.py:26).
 - `rows(runs=...)` at trials.py:54. All ledger rows.
 - `count(runs=...)` at trials.py:62. Distinct trial names whose latest row is not dropped.
 
-## eval/report.py (270 lines)
-Writes the dev report markdown and its charts from finished runs. Runs nothing and reads no view.
+## eval/report.py (288 lines)
+Writes the dev report markdown and its charts from finished runs, and the descriptive part of the sealed report (`sealed=True`). Runs nothing and reads no view.
 - `_fmt(v)` at report.py:34. Cell text; numbers to 4 decimals.
 - `table(df, index=True)` at report.py:46. Markdown table.
 - `read_trials(path)` at report.py:58. Ledger rows from a CSV.
-- `build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv, replays=None, variants=None, charts_dir=None, switch_years=(2017, 2018, 2019), title="M3 dev report", notes=(), trial_table=None) -> markdown` at report.py:74. Sections: trials, IC by quarter, frozen-twin gaps, price-only twin and placebo, baselines, variants, costs, beta and sector tilt, deflated Sharpe, seed spread, regimes, coefficient life, switch-day check, charts.
-- `_charts(d, replays, ic, ret, twins, spy_r, first, last)` at report.py:223. Writes the SVG charts and returns their links.
-- `write(path, charts_dir=CHARTS, **kw)` at report.py:264. Builds and writes the report; CHARTS is `DATA_DIR/runs/m3_dev_report_charts` (line 261).
+- `build(runs, labels, spy, sectors, sessions, first, last, run_bps, trials_csv, replays=None, variants=None, charts_dir=None, switch_years=(2017, 2018, 2019), title="M3 dev report", notes=(), trial_table=None, sealed=False) -> markdown` at report.py:74. Sections: trials, IC by quarter, frozen-twin gaps, price-only twin and placebo, baselines, variants, costs, beta and sector tilt, deflated Sharpe, seed spread, regimes, coefficient life, switch-day check, charts. With sealed=True it drops p-values and the tested sections, which `research/m4_sealed_report.py` writes from PREREG (lines 98, 127, 164, 193, 226).
+- `_charts(d, replays, ic, ret, twins, spy_r, first, last)` at report.py:241. Writes the SVG charts and returns their links.
+- `write(path, charts_dir=CHARTS, **kw)` at report.py:282. Builds and writes the report; CHARTS is `DATA_DIR/runs/m3_dev_report_charts` (line 279).
 
 ## agent/__init__.py (3 lines)
 Docstring only. An agent imports nothing from the project except `world.view`.
@@ -436,11 +447,11 @@ Builds the event store (Parquet tables) from bars, auctions, news and reference 
 16. world/view.py:29-30. `sessions` cut to the New York date of t.
 17. world/world.py:321-325. Late-edited stories and their entity rows dropped at load.
 18. world/clock.py:14, 49-50. Decision time 9:00 New York.
-19. sim/seal.py:43-61. Dates in the sealed years need a matching seal.lock, PREREG.md hash, commit and clean tree.
+19. sim/seal.py:116-134, 179-199. Dates in the sealed years need a matching seal.lock (part settings, PREREG.md hash, the lock-commit rule) and a clean tree, and each part starts once (run log).
 20. sim/simulator.py:73. A label is marked on the day it ends (or the day after a close exit).
 21. sim/simulator.py:85-89. Forced sales except on the data's last day.
-22. sim/simulator.py:117-142, 179-220, 223-241. `run`, `run_many` and `replay` seal dates and give the agent the view at 9:00 each session.
-23. sim/simulator.py:145-153. A World with a vintage_offset is refused for any run reaching the sealed years.
+22. sim/simulator.py:145-182, 221-257, 259-280. `run`, `run_many` and `replay` seal dates and give the agent the view at 9:00 each session.
+23. sim/simulator.py:184-195. A World with a vintage_offset reaches the sealed years only as the sealed older_vintage part.
 24. eval/leaks.py:35-53. `late_rows`: records not visible at t, embeddings included.
 25. eval/leaks.py:126-133. Changed records forced to stay hidden at t.
 26. eval/leaks.py:174-185. Decision time of `last` is the cut for the perturbation.
@@ -459,11 +470,11 @@ Builds the event store (Parquet tables) from bars, auctions, news and reference 
 1. world/world.py:57-59. `reference/split.json`.
 2. world/world.py:379-386. DATA_DIR/store files: bars, labels, opens, stories, story_entities, membership (Parquet).
 3. world/world.py:277-293. `embeddings.json`, `embeddings.parquet`, and the two `.npy` arrays in the store (or the older-vintage folder).
-4. sim/seal.py:20-22. `reference/split.json`.
-5. sim/seal.py:44-51. `seal.lock` and `PREREG.md`.
+4. sim/seal.py:50-55. `reference/split.json`.
+5. sim/seal.py:62-71, 116-160. `seal.lock`, `PREREG.md` and the run log `DATA_DIR/sealed/runs.jsonl`.
 6. eval/benchmarks.py:15, 20. `spy.parquet` and `sectors.parquet` in the store.
 7. eval/trials.py:54-59, 30-52. Reads and appends `runs/trials.csv`; writes `runs/settings/<hash>.json`.
-8. eval/report.py:58-63, 261. Reads the trials CSV; charts go to `DATA_DIR/runs/m3_dev_report_charts`.
+8. eval/report.py:58-63, 279. Reads the trials CSV; charts go to `DATA_DIR/runs/m3_dev_report_charts`.
 9. reader/embed.py:56-58, 76-80. `DATA_DIR/reader`, `reader_older`, and store `stories.parquet` and `story_entities.parquet`.
 10. reader/embed.py:248-292, 319-348. Writes `embeddings.parquet`, `embeddings.json`, and the two `.npy` files.
 11. reader/cutoff.py:69-76, 188-200. Cutoff outputs in `DATA_DIR/reader/cutoff`, `reader/probes.csv`, `probes2.csv`, `vintages.json`, and store stories.

@@ -24,9 +24,13 @@ The repo is the private GitHub repo `syedhamza2135/chrono-trader`, branch `maste
   (the owner's six decisions, the build order, steps 1 to 7 and the M4 entry rules). The dev results are in
   `research/m3_dev_report.md` (23 Nov): the chosen configuration is T09, `{"band": 15, "hold": 5}`. The older-vintage
   check is in `research/m3_older_vintage.md` (no warning). The review is `research/review_m3_2026-11-23.md`.
-- M4, the seal and the sealed run, has started on the branch `claude/m4-kickoff`: read `research/m4_kickoff.md`
-  (the owner's decisions, the seal's design and steps 1 to 3); the draft `PREREG.md` is in the repo root. Nothing
-  is sealed, and the sealed years are still shut.
+- M4, the seal and the sealed run, is done on the branch `claude/m4-kickoff` (pushed at `095a855`) and reviewed on
+  `claude/m4-review`: read `research/m4_kickoff.md` (the owner's decisions, the seal's design, steps 1 to 6 and the
+  forward-test entry rules). `PREREG.md` is frozen and `seal.lock` seals `8c683f5`. The sealed years (2020-01-02 to
+  2026-10-28) ran once on 23 Nov and are now spent for this first version: `sim/seal.py` refuses a second sealed run.
+  The result is **Failure** as PREREG defines it: H1 holds after Holm (IC +0.0104, t 2.27), H2 (p 0.21) and H3 (p 0.20
+  and 0.12) do not, and no leak check warns. The report is `research/m4_sealed_report.md`, with a dated note below it;
+  the review is `research/review_m4_2026-11-24.md`.
 - `research/audit/m0_review.md` records the review and its fixes. `research/brief_check.md` records the check of a
   research brief and what the plan took from it.
 
