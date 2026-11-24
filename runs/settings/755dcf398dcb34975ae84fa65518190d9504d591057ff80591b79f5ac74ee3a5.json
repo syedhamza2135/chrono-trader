@@ -1,0 +1,440 @@
+{
+ "agents": {
+  "equal_weight": {
+   "agent": "EqualWeight",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 1,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "equal_weight",
+    "trade_from": "2017-01-01"
+   }
+  },
+  "live": {
+   "agent": "TrackA",
+   "agent_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   }
+  },
+  "live_long_only": {
+   "agent": "TrackA",
+   "agent_params": {
+    "band": 15,
+    "book": "long_only",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": true,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "last",
+     "avg"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   }
+  },
+  "momentum": {
+   "agent": "Momentum",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "momentum_12_1",
+    "trade_from": "2017-01-01"
+   }
+  },
+  "placebo_1": {
+   "agent": "Placebo",
+   "agent_params": {
+    "inner": "TrackA",
+    "inner_params": {
+     "band": 15,
+     "book": "long_short",
+     "coefficients": "last",
+     "first_pick": "2016-04-01",
+     "fit_after_months": 6,
+     "full_val_years": 5,
+     "half_life_days": null,
+     "hold": 5,
+     "min_val_months": 3,
+     "n_picks": 50,
+     "n_side": 10,
+     "news": true,
+     "penalties": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "poolings": [
+      "last",
+      "avg"
+     ],
+     "recent_val_months": 12,
+     "trade_from": "2017-01-01",
+     "val_share": 0.2
+    },
+    "seed": 1
+   }
+  },
+  "placebo_2": {
+   "agent": "Placebo",
+   "agent_params": {
+    "inner": "TrackA",
+    "inner_params": {
+     "band": 15,
+     "book": "long_short",
+     "coefficients": "last",
+     "first_pick": "2016-04-01",
+     "fit_after_months": 6,
+     "full_val_years": 5,
+     "half_life_days": null,
+     "hold": 5,
+     "min_val_months": 3,
+     "n_picks": 50,
+     "n_side": 10,
+     "news": true,
+     "penalties": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "poolings": [
+      "last",
+      "avg"
+     ],
+     "recent_val_months": 12,
+     "trade_from": "2017-01-01",
+     "val_share": 0.2
+    },
+    "seed": 2
+   }
+  },
+  "placebo_3": {
+   "agent": "Placebo",
+   "agent_params": {
+    "inner": "TrackA",
+    "inner_params": {
+     "band": 15,
+     "book": "long_short",
+     "coefficients": "last",
+     "first_pick": "2016-04-01",
+     "fit_after_months": 6,
+     "full_val_years": 5,
+     "half_life_days": null,
+     "hold": 5,
+     "min_val_months": 3,
+     "n_picks": 50,
+     "n_side": 10,
+     "news": true,
+     "penalties": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "poolings": [
+      "last",
+      "avg"
+     ],
+     "recent_val_months": 12,
+     "trade_from": "2017-01-01",
+     "val_share": 0.2
+    },
+    "seed": 3
+   }
+  },
+  "placebo_4": {
+   "agent": "Placebo",
+   "agent_params": {
+    "inner": "TrackA",
+    "inner_params": {
+     "band": 15,
+     "book": "long_short",
+     "coefficients": "last",
+     "first_pick": "2016-04-01",
+     "fit_after_months": 6,
+     "full_val_years": 5,
+     "half_life_days": null,
+     "hold": 5,
+     "min_val_months": 3,
+     "n_picks": 50,
+     "n_side": 10,
+     "news": true,
+     "penalties": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "poolings": [
+      "last",
+      "avg"
+     ],
+     "recent_val_months": 12,
+     "trade_from": "2017-01-01",
+     "val_share": 0.2
+    },
+    "seed": 4
+   }
+  },
+  "placebo_5": {
+   "agent": "Placebo",
+   "agent_params": {
+    "inner": "TrackA",
+    "inner_params": {
+     "band": 15,
+     "book": "long_short",
+     "coefficients": "last",
+     "first_pick": "2016-04-01",
+     "fit_after_months": 6,
+     "full_val_years": 5,
+     "half_life_days": null,
+     "hold": 5,
+     "min_val_months": 3,
+     "n_picks": 50,
+     "n_side": 10,
+     "news": true,
+     "penalties": [
+      0.01,
+      0.1,
+      1.0,
+      10.0,
+      100.0,
+      1000.0,
+      10000.0
+     ],
+     "poolings": [
+      "last",
+      "avg"
+     ],
+     "recent_val_months": 12,
+     "trade_from": "2017-01-01",
+     "val_share": 0.2
+    },
+    "seed": 5
+   }
+  },
+  "price_only": {
+   "agent": "TrackA",
+   "agent_params": {
+    "band": 15,
+    "book": "long_short",
+    "coefficients": "last",
+    "first_pick": "2016-04-01",
+    "fit_after_months": 6,
+    "full_val_years": 5,
+    "half_life_days": null,
+    "hold": 5,
+    "min_val_months": 3,
+    "n_picks": 50,
+    "n_side": 10,
+    "news": false,
+    "penalties": [
+     0.01,
+     0.1,
+     1.0,
+     10.0,
+     100.0,
+     1000.0,
+     10000.0
+    ],
+    "poolings": [
+     "none"
+    ],
+    "recent_val_months": 12,
+    "trade_from": "2017-01-01",
+    "val_share": 0.2
+   }
+  },
+  "random_1": {
+   "agent": "RandomRanking",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "random",
+    "seed": 1,
+    "trade_from": "2017-01-01"
+   }
+  },
+  "random_2": {
+   "agent": "RandomRanking",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "random",
+    "seed": 2,
+    "trade_from": "2017-01-01"
+   }
+  },
+  "random_3": {
+   "agent": "RandomRanking",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "random",
+    "seed": 3,
+    "trade_from": "2017-01-01"
+   }
+  },
+  "random_4": {
+   "agent": "RandomRanking",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "random",
+    "seed": 4,
+    "trade_from": "2017-01-01"
+   }
+  },
+  "random_5": {
+   "agent": "RandomRanking",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "random",
+    "seed": 5,
+    "trade_from": "2017-01-01"
+   }
+  },
+  "reversal": {
+   "agent": "Reversal",
+   "agent_params": {
+    "first_pick": "2016-04-01",
+    "hold": 5,
+    "n_picks": 50,
+    "n_side": 10,
+    "rule": "reversal_5",
+    "trade_from": "2017-01-01"
+   }
+  }
+ },
+ "chosen": "T09",
+ "chosen_kw": {
+  "band": 15,
+  "hold": 5
+ },
+ "cost_bps": 5.0,
+ "data": {
+  "embeddings": {
+   "arrays": {
+    "dim": 768,
+    "dtype": "float16",
+    "files": {
+     "emb_avg": "embeddings_avg.npy",
+     "emb_last": "embeddings_last.npy"
+    },
+    "ids_sha256": "0377c34ece056c8b163685add9101393289f9fd3177a990b89d264f45570451d",
+    "parquet": {
+     "bytes": 1480328055,
+     "footer_sha256": "61eefea51bb2e904e03bf4a33b38a42dae6e2227ec782ee6f0509b5ba6cce0e2"
+    },
+    "rows": 502712
+   },
+   "store": "store"
+  },
+  "tables": {
+   "bars": {
+    "bytes": 54567862,
+    "footer_sha256": "43006d61a875d3350d263c675253198b8b5111d9dda4301c82b8247e6a0cd983"
+   },
+   "labels": {
+    "bytes": 26786075,
+    "footer_sha256": "5a67b1f3392a1b906232cef41491fb0b877b3a1520315320255b3af56b482ed3"
+   },
+   "membership": {
+    "bytes": 15248,
+    "footer_sha256": "83b402585011b16031ef6560cddbb395f24008671ee33b4a8b0a649881decc5f"
+   },
+   "opens": {
+    "bytes": 20430675,
+    "footer_sha256": "861545b547159d64736becdd310962937a500c296f6dc9d809f7f221fdc254bd"
+   },
+   "stories": {
+    "bytes": 162761363,
+    "footer_sha256": "004e07d0d7297cf6a34e9381c1d221b2669a849cff5e9646c1f75bba80b15e33"
+   },
+   "story_entities": {
+    "bytes": 3311227,
+    "footer_sha256": "28801c577104f15eaacf396281e348ae57edd8b1cdc92493ae315bac1d9d3bb1"
+   }
+  }
+ },
+ "embedding_window_days": 90,
+ "first": "2016-01-04",
+ "freeze": [
+  "live"
+ ],
+ "last": "2026-10-28",
+ "m4": "sealed run",
+ "plan_sha256": "4a9a45a1238aad3b704a18f27c9bac046e13bbadf981ff642fc3d78986861e2f",
+ "sealed_part": "main"
+}
