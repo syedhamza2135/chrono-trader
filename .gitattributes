@@ -1,3 +1,7 @@
 # Frozen files keep their bytes on checkout: core.autocrlf is true on the owner's laptop, and a CRLF checkout would
 # change the SHA-256 that research/audit/cutoff.md records for reader/probes2.csv.
 reader/*.csv -text
+# The seal hashes PREREG.md's bytes and records seal.lock (sim/seal.py), so both keep their LF bytes in every checkout
+# (M4 judge J4-8, PREREG skeptic P-9).
+PREREG.md -text
+seal.lock -text

@@ -1,0 +1,11 @@
+{
+ "commit": "8c683f566c8126982282d6713dc3f78007973f20",
+ "prereg": "97e15094684e1b40e4a8d967cba55ec79e92b7f2ac55b3a55b21e3a5681d92ca",
+ "sealed_end": "2026-10-28",
+ "sealed_start": "2020-01-02",
+ "settings": {
+  "main": "755dcf398dcb34975ae84fa65518190d9504d591057ff80591b79f5ac74ee3a5",
+  "older_vintage": "380ebc4f7809de2f15b4f117d1a016514978a0ba0b2233a05dea656dbada0941"
+ },
+ "written_at": "2026-11-23T12:31:11"
+}

@@ -36,7 +36,13 @@ M3, Track A on the dev years, is built and reviewed (PLAN.md, section 9.2; state
 - **The comparison harness:** frozen twins, the price-only twin, the shuffled-news placebo (`agent/placebo.py`), the baselines (`agent/baselines.py`) and the ledger `runs/trials.csv` (`eval/trials.py`), all fed by one pass over the views (`sim.simulator.run_many`).
 - **The report:** metrics (`eval/metrics.py`), statistics (`eval/stats.py`), the switch-day check (`eval/switch_day.py`), charts (`eval/charts.py`) and the writer (`eval/report.py`). Results: [research/m3_dev_report.md](research/m3_dev_report.md). The older-vintage check: [research/m3_older_vintage.md](research/m3_older_vintage.md). Review: [research/review_m3_2026-11-23.md](research/review_m3_2026-11-23.md).
 
-On the dev years (2017 to 2019) the chosen configuration's mean daily rank IC is 0.0076 (t 1.38), and its long-short book loses money after 5 bps. The sealed years stay shut.
+On the dev years (2017 to 2019) the chosen configuration's mean daily rank IC is 0.0076 (t 1.38), and its long-short book loses money after 5 bps.
+
+M4, the sealed run, is done and reviewed (state, decisions and the timeline in [research/m4_kickoff.md](research/m4_kickoff.md)):
+
+- **The pre-registration:** [PREREG.md](PREREG.md), frozen before the run. `seal.lock` seals its hash, the settings and the code commit `8c683f5`.
+- **The sealed run:** the sealed years, 2020-01-02 to 2026-10-28, ran once on 23 Nov and are now spent for this first version. `sim/seal.py` refuses a second sealed run.
+- **The result:** **Failure** as PREREG defines it. The agent's daily rank IC is above zero (H1 holds after Holm: +0.0104, t 2.27), but retraining does not beat a frozen copy (H2, p 0.21) and the news adds nothing significant over the price-only twin or the shuffled-news placebo (H3, p 0.20 and 0.12). No leak check warns. Report: [research/m4_sealed_report.md](research/m4_sealed_report.md), with a dated note below it. Review: [research/review_m4_2026-11-24.md](research/review_m4_2026-11-24.md).
 
 ## Setup
 
@@ -85,6 +91,9 @@ Run these from the repo root with the venv's Python.
 | `python research/m3_trial_plan.py [--log]` | Prints the frozen trial plan's SHA-256; with `--log`, adds the planned rows to `runs/trials.csv` |
 | `python research/m3_dev_runs.py stage1 \| stage2 \| compare \| report` | The dev runs under the frozen plan: stage 1, stage 2, the comparison pass with its cost replays, and `research/m3_dev_report.md` (charts to D:). Each run is a row of `runs/trials.csv`; outputs in `D:\chrono-data\runs\m3_dev` |
 | `python research/m3_older_vintage.py space`, `count`, `run`, `result` | The older-vintage rerun's steps: disk space, the table's counts, the rerun of the chosen configuration, and the warning rule |
+| `python research/m4_sealed_run.py settings`, `dev-check`, `seal`, `run main`, `run older_vintage`, `replay`, `ledger` | M4's sealed run (`research/m4_kickoff.md`): each part's settings hash, the dev check at the sealed commit, the `seal.lock` writer, and each part's one sealed run (`--again` for a second, logged as another trial). Only on the owner's go |
+| `python research/m4_t09_check.py` | M4 step 2: T09 rerun on the dev years at the current commit, against step 6's run, day by day |
+| `python research/m4_sealed_report.py` | The sealed report's writer, the scoring code PREREG.md names. Run it once, after both sealed parts and their replays |
 | `python research/reader_stats.py` | The run's counts, speeds and disk use, for `research/audit/reader.md` |
 | `python research/world_memory.py` | `World.load`'s time and memory with the embeddings, and the cost of a view in each period |
 

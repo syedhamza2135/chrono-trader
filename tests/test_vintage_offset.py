@@ -85,13 +85,14 @@ def test_the_offset_is_fixed_when_the_world_is_built():
     assert World(**tables).vintage_offset == 0
 
 
-def test_an_offset_world_never_opens_the_sealed_years():
+def test_an_offset_world_opens_the_sealed_years_only_through_the_runner():
+    """M4 decision 2: the older-vintage part may run in the sealed years, so only the runner opens them, under the
+    seal (tests/test_seal.py runs it there). By hand they stay shut."""
     tables = synthetic.make_tables(0)
-    with pytest.raises(PermissionError, match="never opens the sealed years"):
+    with pytest.raises(PermissionError, match="only through sim.simulator.run"):
         World(**tables, embeddings=older(tables), vintage_offset=1, allow_sealed=True)
     w = World(**tables, embeddings=older(tables), vintage_offset=1)
-    w.allow_sealed = True  # as sim.simulator.run sets it under a seal: still refused
-    with pytest.raises(PermissionError, match="vintage_offset"):
+    with pytest.raises(PermissionError, match="sealed years"):
         w.view(Clock().decision_time(str(seal.sealed_start().date())))
     w.view(Clock().decision_time("2017-03-15"))  # a dev date is fine
 
@@ -106,15 +107,17 @@ class Idle:
         return Idle()
 
 
-def test_the_runner_refuses_an_offset_world_for_any_sealed_date(monkeypatch):
+def test_the_runner_takes_an_offset_world_into_the_sealed_years_only_as_the_older_part(monkeypatch):
     tables = synthetic.make_tables(0)
     w = World(**tables, embeddings=older(tables), vintage_offset=1)
     monkeypatch.setattr(seal, "check", lambda *a, **k: None)  # even with a seal that holds
+    monkeypatch.setattr(seal, "begin", lambda *a, **k: None)
     last = str(seal.sealed_start().date())
-    with pytest.raises(PermissionError, match="vintage_offset may not run into the sealed years"):
-        simulator.run(w, Idle(), "2017-01-03", last, settings={})
-    with pytest.raises(PermissionError, match="vintage_offset may not run into the sealed years"):
-        simulator.run_many(w, {"live": Idle()}, "2017-01-03", last, settings={})
+    for part in ({}, {"sealed_part": "main"}):
+        with pytest.raises(PermissionError, match="only as the sealed older_vintage part"):
+            simulator.run(w, Idle(), "2017-01-03", last, settings=part)
+        with pytest.raises(PermissionError, match="only as the sealed older_vintage part"):
+            simulator.run_many(w, {"live": Idle()}, "2017-01-03", last, settings=part)
     assert w.allow_sealed is False
 
 
